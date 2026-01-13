@@ -26,7 +26,7 @@ export interface ScoreRecord {
 export const EXERCISES: Exercise[] = [
     {
         id: '1.1',
-        title: 'P4 Spelling 1.1',
+        title: 'P4 1.1',
         date: '24 Jan 2026',
         spelling: [
             { id: 's1', phrase: 'peered curiously' },
@@ -39,7 +39,7 @@ export const EXERCISES: Exercise[] = [
     },
     {
         id: '1.2',
-        title: 'P4 Spelling 1.2',
+        title: 'P4 1.2',
         date: '30 Jan 2026',
         spelling: [
             { id: 's1', phrase: 'elated' },
@@ -65,7 +65,7 @@ export const EXERCISES: Exercise[] = [
     },
     {
         id: '1.4',
-        title: 'P4 Spelling 1.4',
+        title: 'P4 1.4',
         date: '13 Feb 2026',
         spelling: [
             { id: 's1', phrase: 'froze on the spot' },
