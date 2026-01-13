@@ -8,16 +8,43 @@ const prepForSpeech = (text: string): string => {
         .replace(/"/g, ' quote ');
 };
 
-export const speak = (text: string, rate: number = 0.85) => {
+const playAudioContent = (base64Audio: string) => {
+    const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+    audio.play();
+};
+
+export const speak = async (text: string, rate: number = 0.85) => {
     window.speechSynthesis.cancel();
-    // Speak the text with explicit punctuation
     const textToSpeak = prepForSpeech(text);
+
+    try {
+        // Try requesting high-quality audio from our backend
+        const response = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: textToSpeak }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.audioContent) {
+                playAudioContent(data.audioContent);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('TTS API failed, falling back to browser voice:', e);
+    }
+
+    // FALLBACK: Browser Speech Synthesis
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
 
-    // Try to select an American female voice
+    // Try to select an American female voice, prioritizing "Natural" or "Google" variants
     const voices = window.speechSynthesis.getVoices();
     const americanVoice = voices.find(v =>
         (v.lang === 'en-US' && v.name.includes('Google')) || // Prioritize Google US English
+        (v.lang === 'en-US' && v.name.includes('Natural')) || // Prioritize "Natural" voices (Edge)
+        (v.lang === 'en-US' && v.name.includes('Online')) ||  // Prioritize "Online" voices
         (v.lang === 'en-US' && v.name.includes('Female')) ||
         v.lang === 'en-US'
     );
