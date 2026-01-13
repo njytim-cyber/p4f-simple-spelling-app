@@ -23,7 +23,6 @@ import {
     CheckCircle,
     RadioButtonUnchecked,
     Sync,
-    ArrowBack,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { motion } from 'framer-motion';
@@ -36,7 +35,6 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     const [openHistory, setOpenHistory] = useState(false);
     const [openSpellingList, setOpenSpellingList] = useState(false);
-    const [currentReferenceIndex, setCurrentReferenceIndex] = useState(0);
     const getTotalXP = () => history.reduce((acc, curr) => acc + (curr.score * 10), 0);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
@@ -165,75 +163,44 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
 
             {/* Spelling List Dialog */}
             <Dialog open={openSpellingList} onClose={() => setOpenSpellingList(false)} fullWidth maxWidth="md">
-                <DialogTitle sx={{ fontWeight: '800', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    Master Spelling List
-                    <Typography variant="caption" color="text.secondary">
-                        Week {currentReferenceIndex + 1} of {EXERCISES.length}
-                    </Typography>
-                </DialogTitle>
-                <DialogContent dividers sx={{ minHeight: 400, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <IconButton
-                            onClick={() => setCurrentReferenceIndex(prev => Math.max(0, prev - 1))}
-                            disabled={currentReferenceIndex === 0}
-                            sx={{ mr: 2 }}
-                        >
-                            <ArrowBack />
-                        </IconButton>
-
-                        <motion.div
-                            key={currentReferenceIndex}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ flexGrow: 1 }}
-                        >
-                            <Box sx={{ p: 2 }}>
-                                <Typography variant="h5" color="primary" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
-                                    {EXERCISES[currentReferenceIndex].title}
+                <DialogTitle sx={{ fontWeight: '800' }}>Master Spelling List</DialogTitle>
+                <DialogContent dividers>
+                    <List disablePadding>
+                        {EXERCISES.map((ex, i) => (
+                            <Box key={ex.id} sx={{ mb: i < EXERCISES.length - 1 ? 4 : 0 }}>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                    {ex.title}
                                 </Typography>
                                 <Grid container spacing={4}>
-                                    <Grid item xs={12} md={6}>
-                                        <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 2, height: '100%' }}>
-                                            <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 2 }}>
-                                                Spelling Phrases
-                                            </Typography>
-                                            <List dense>
-                                                {EXERCISES[currentReferenceIndex].spelling.map((item) => (
-                                                    <ListItem key={item.id} sx={{ px: 0, py: 1 }}>
-                                                        <Typography variant="body1" fontWeight="500">• {item.phrase}</Typography>
-                                                    </ListItem>
-                                                ))}
-                                            </List>
-                                        </Paper>
+                                    <Grid item xs={12} md={5}>
+                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                            Spelling Phrases
+                                        </Typography>
+                                        <List dense>
+                                            {ex.spelling.map((item) => (
+                                                <ListItem key={item.id} sx={{ px: 0, py: 0.5 }}>
+                                                    <Typography variant="body2">• {item.phrase}</Typography>
+                                                </ListItem>
+                                            ))}
+                                        </List>
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Paper elevation={0} sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 2, height: '100%' }}>
-                                            <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 2 }}>
-                                                Dictation Text
-                                            </Typography>
-                                            <Typography variant="body1" sx={{ lineHeight: 1.8, fontStyle: 'italic' }}>
-                                                "{EXERCISES[currentReferenceIndex].dictation}"
-                                            </Typography>
-                                        </Paper>
+                                    <Grid item xs={12} md={7}>
+                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                            Dictation Text
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ fontStyle: 'italic', bgcolor: '#f9f9f9', p: 1.5, borderRadius: 1 }}>
+                                            "{ex.dictation}"
+                                        </Typography>
                                     </Grid>
                                 </Grid>
+                                {i < EXERCISES.length - 1 && <Divider sx={{ mt: 3 }} />}
                             </Box>
-                        </motion.div>
-
-                        <IconButton
-                            onClick={() => setCurrentReferenceIndex(prev => Math.min(EXERCISES.length - 1, prev + 1))}
-                            disabled={currentReferenceIndex === EXERCISES.length - 1}
-                            sx={{ ml: 2, transform: 'rotate(180deg)' }}
-                        >
-                            <ArrowBack />
-                        </IconButton>
-                    </Box>
+                        ))}
+                    </List>
                 </DialogContent>
-                <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
-                    <Button onClick={() => setOpenSpellingList(false)} variant="contained" sx={{ borderRadius: 2, py: 1, px: 4 }}>
-                        Close
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={() => setOpenSpellingList(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
+                        Got it
                     </Button>
                 </DialogActions>
             </Dialog>
