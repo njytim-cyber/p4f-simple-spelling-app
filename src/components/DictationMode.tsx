@@ -143,27 +143,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
     // Deleted ModeSwitch
 
-    if (mode === 'write' && feedback !== 'neutral') {
-        return (
-            <Container maxWidth="sm" sx={{ py: 4 }}>
-                <Typography variant="h5" gutterBottom fontWeight="bold">
-                    Self Check
-                </Typography>
-                <Card sx={{ mb: 3, p: 3, bgcolor: feedback === 'correct' ? '#e8f5e9' : '#fff3e0', borderRadius: 4 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                        CORRECT TEXT:
-                    </Typography>
-                    <Typography variant="h6" sx={{ mt: 1 }}>{currentChunk}</Typography>
-                </Card>
-                <Typography paragraph color="text.secondary">
-                    Compare this with what you wrote in your notebook.
-                </Typography>
-                <Button variant="contained" fullWidth size="large" onClick={handleNext}>
-                    Next Part
-                </Button>
-            </Container>
-        );
-    }
+
 
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
