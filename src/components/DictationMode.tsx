@@ -11,7 +11,7 @@ import {
     LinearProgress,
     Chip,
 } from '@mui/material';
-import { ArrowBack, VolumeUp, CameraAlt, Star } from '@mui/icons-material';
+import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak, chunkText } from '../utils/speech';
@@ -25,7 +25,6 @@ interface DictationModeProps {
 
 
 const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onBack, onCorrect }) => {
-    const [mode, setMode] = useState<'type' | 'write'>('type');
     const [index, setIndex] = useState(0);
     const [input, setInput] = useState('');
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
@@ -130,7 +129,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && input && mode === 'type') {
+        if (e.key === 'Enter' && input) {
             if (feedback === 'neutral') handleSubmit();
             else handleNext();
         }
@@ -142,21 +141,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
     const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
 
-    const ModeSwitch = () => (
-        <Button
-            onClick={() => {
-                setMode(mode === 'type' ? 'write' : 'type');
-                setFeedback('neutral');
-                setInput('');
-            }}
-            sx={{ mt: 2 }}
-            fullWidth
-            variant="text"
-            disabled={feedback !== 'neutral'}
-        >
-            Switch to {mode === 'type' ? 'Handwriting' : 'Typing'} Mode
-        </Button>
-    )
+    // Deleted ModeSwitch
 
     if (mode === 'write' && feedback !== 'neutral') {
         return (
@@ -221,80 +206,50 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
 
             <AnimatePresence mode="wait">
-                {mode === 'type' ? (
-                    <motion.div
-                        key="type"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                    >
-                        <TextField
-                            fullWidth
-                            multiline
-                            rows={3}
-                            label="Type what you hear..."
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            disabled={feedback !== 'neutral'}
-                            error={feedback === 'wrong'}
-                            sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
-                            variant="filled"
-                            autoFocus
-                        />
-                        {feedback === 'correct' && (
-                            <Box sx={{ bgcolor: '#e8f5e9', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                                <Typography color="success.main" variant="h6" fontWeight="bold">
-                                    Great Job! 🌟
-                                </Typography>
-                            </Box>
-                        )}
-                        {feedback === 'wrong' && (
-                            <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                                <Typography color="error" fontWeight="bold">Correct:</Typography>
-                                <Typography variant="body1">{currentChunk}</Typography>
-                            </Box>
-                        )}
-                        <Button
-                            variant="contained"
-                            fullWidth
-                            size="large"
-                            onClick={feedback === 'neutral' ? handleSubmit : handleNext}
-                            disabled={!input && feedback === 'neutral'}
-                            color={feedback === 'correct' ? 'success' : 'primary'}
-                        >
-                            {feedback === 'neutral' ? 'Check Answer' : 'Next Chunk'}
-                        </Button>
-                        <ModeSwitch />
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="write"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                    >
-                        <Box
-                            sx={{
-                                border: '3px dashed #ccc',
-                                borderRadius: 2,
-                                p: 5,
-                                textAlign: 'center',
-                                mb: 3,
-                                cursor: 'pointer',
-                                bgcolor: 'background.paper'
-                            }}
-                            onClick={() => setFeedback('correct')} // Visual selection for "checking"
-                            component={motion.div}
-                            whileHover={{ scale: 1.02, borderColor: '#666' }}
-                        >
-                            <CameraAlt fontSize="large" color="action" />
-                            <Typography variant="h6" mt={2}>Tap to "Scan" Notebook</Typography>
-                            <Typography variant="caption" color="text.secondary">(Simulated)</Typography>
+                <motion.div
+                    key="type"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                >
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="Type what you hear..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={feedback !== 'neutral'}
+                        error={feedback === 'wrong'}
+                        sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                        variant="filled"
+                        autoFocus
+                    />
+                    {feedback === 'correct' && (
+                        <Box sx={{ bgcolor: '#e8f5e9', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
+                            <Typography color="success.main" variant="h6" fontWeight="bold">
+                                Great Job! 🌟
+                            </Typography>
                         </Box>
-                        <ModeSwitch />
-                    </motion.div>
-                )}
+                    )}
+                    {feedback === 'wrong' && (
+                        <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
+                            <Typography color="error" fontWeight="bold">Correct:</Typography>
+                            <Typography variant="body1">{currentChunk}</Typography>
+                        </Box>
+                    )}
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        size="large"
+                        onClick={feedback === 'neutral' ? handleSubmit : handleNext}
+                        disabled={!input && feedback === 'neutral'}
+                        color={feedback === 'correct' ? 'success' : 'primary'}
+                    >
+                        {feedback === 'neutral' ? 'Check Answer' : 'Next Chunk'}
+                    </Button>
+                </motion.div>
             </AnimatePresence>
         </Container>
     );

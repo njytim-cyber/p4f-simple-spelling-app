@@ -13,7 +13,19 @@ export const speak = (text: string, rate: number = 0.85) => {
     // Speak the text with explicit punctuation
     const textToSpeak = prepForSpeech(text);
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'en-GB'; // British English preferred for SG context
+
+    // Try to select an American female voice
+    const voices = window.speechSynthesis.getVoices();
+    const americanVoice = voices.find(v =>
+        (v.lang === 'en-US' && v.name.includes('Google')) || // Prioritize Google US English
+        (v.lang === 'en-US' && v.name.includes('Female')) ||
+        v.lang === 'en-US'
+    );
+
+    if (americanVoice) {
+        utterance.voice = americanVoice;
+    }
+    utterance.lang = 'en-US'; // Fallback
     utterance.rate = rate;
     window.speechSynthesis.speak(utterance);
 };
