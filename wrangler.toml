@@ -1,8 +1,0 @@
-name = "p4f-simple-spelling-app"
-compatibility_date = "2024-09-23"
-pages_build_output_dir = "dist"
-
-# Build configuration
-# Note: Cloudflare Pages Git integration usually prioritizes Dashboard settings,
-# but the beta feature logs suggest it might read this.
-command = "npm run build"
