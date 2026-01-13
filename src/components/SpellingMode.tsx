@@ -59,19 +59,21 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
 
     const handleNext = () => {
-        if (index < exercise.spelling.length - 1) {
-            setIndex((i) => i + 1);
-            setInput('');
-            setFeedback('neutral');
-        } else {
-            setShowResults(true);
-        }
+        setIndex((prevIndex) => {
+            if (prevIndex < exercise.spelling.length - 1) {
+                setInput('');
+                setFeedback('neutral');
+                return prevIndex + 1;
+            } else {
+                setShowResults(true);
+                return prevIndex;
+            }
+        });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && input) {
-            if (feedback === 'neutral') handleSubmit();
-            else handleNext();
+        if (e.key === 'Enter' && input && feedback === 'neutral') {
+            handleSubmit();
         }
     }
 
@@ -243,7 +245,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
 
 
-                    {feedback === 'neutral' ? (
+                    {feedback === 'neutral' && (
                         <Button
                             variant="contained"
                             size="large"
@@ -253,20 +255,6 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             sx={{ py: 2, fontSize: '1.2rem' }}
                         >
                             Check
-                        </Button>
-                    ) : (
-                        <Button
-                            variant="contained"
-                            size="large"
-                            onClick={handleNext}
-                            color={feedback === 'correct' ? 'success' : 'primary'}
-                            fullWidth
-                            component={motion.button}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            sx={{ py: 2, fontSize: '1.2rem' }}
-                        >
-                            {index === exercise.spelling.length - 1 ? 'Finish' : 'Next Word'}
                         </Button>
                     )}
                 </Card>
