@@ -32,7 +32,19 @@ The dashboard now features two distinct tools in the header:
 ## 🛠 Verification & Stability
 - **Build**: Successfully generated a production bundle via `npm run build`.
 - **Linting**: PASSED strict ESLint v9 checks.
-- **CI/CD**: Fully configured for automated deployment to Firebase Hosting via GitHub Actions.
+- **CI/CD**:
+  - **Required GitHub Secrets**:
+    To enable the automated deployment via GitHub Actions, ensure the following secrets are added to your GitHub repository:
+    - `CLOUDFLARE_API_TOKEN`
+    - `CLOUDFLARE_ACCOUNT_ID`
+
+  - **Alternative: Direct Git Integration (Recommended)**
+    If you connect via the Cloudflare Dashboard, use these build settings:
+    - **Framework preset**: `Vite`
+    - **Build command**: `npm run build`
+    - **Build output directory**: `dist`
+
+  - **Deployment URL**: Your app will be accessible at your Cloudflare Pages project URL (e.g., `https://p4f-simple-spelling-app.pages.dev`).
 
 ## 🔗 Deployment Link
-The app is live at: **[https://p4f-spelling-app.web.app](https://p4f-spelling-app.web.app)**
+The app is live at: **[https://p4f-simple-spelling-app.pages.dev](https://p4f-simple-spelling-app.pages.dev)**

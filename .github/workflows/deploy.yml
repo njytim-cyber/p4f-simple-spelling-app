@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting
+name: Deploy to Cloudflare Pages
 
 on:
   push:
@@ -24,10 +24,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_P4F_SPELLING_APP }}'
-          channelId: live
-          projectId: p4f-spelling-app
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: p4f-spelling-app
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
