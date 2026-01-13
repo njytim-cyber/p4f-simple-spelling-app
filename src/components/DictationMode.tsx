@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
     Container,
     Typography,
@@ -6,62 +6,165 @@ import {
     Button,
     TextField,
     IconButton,
-    Fab,
     Stack,
     Box,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
+    LinearProgress,
+    Chip,
 } from '@mui/material';
-import { ArrowBack, VolumeUp, CameraAlt } from '@mui/icons-material';
+import { ArrowBack, VolumeUp, CameraAlt, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak, chunkText } from '../utils/speech';
 
 interface DictationModeProps {
     exercise: Exercise;
-    onComplete: (score: number, total: number) => void;
+    onComplete: (score: number, total: number, missedItems: string[]) => void;
+    onCorrect?: () => void;
     onBack: () => void;
 }
 
-const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onBack }) => {
+
+const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onBack, onCorrect }) => {
     const [mode, setMode] = useState<'type' | 'write'>('type');
     const [index, setIndex] = useState(0);
     const [input, setInput] = useState('');
-    const [showAnswer, setShowAnswer] = useState(false);
+    const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
+    const [score, setScore] = useState(0);
+    const [speed, setSpeed] = useState(0.85);
+    const [showResults, setShowResults] = useState(false);
+    const [missedChunks, setMissedChunks] = useState<string[]>([]);
 
     const chunks = useMemo(() => chunkText(exercise.dictation), [exercise.dictation]);
     const currentChunk = chunks[index];
+
+    useEffect(() => {
+        if (feedback === 'neutral' && !showResults) {
+            const timer = setTimeout(() => speak(currentChunk, speed), 300);
+            return () => clearTimeout(timer);
+        }
+    }, [index, currentChunk, feedback, speed, showResults]);
+
+    const handleSubmit = () => {
+        const isCorrect = input.toLowerCase().trim().replace(/[.,!?]$/, '') === currentChunk.toLowerCase().trim().replace(/[.,!?]$/, '');
+        setFeedback(isCorrect ? 'correct' : 'wrong');
+        if (isCorrect) {
+            setScore((s) => s + 1);
+            onCorrect?.();
+            // Automatically move to next chunk after a brief delay
+            setTimeout(handleNext, 1200);
+        } else {
+            setMissedChunks(prev => [...prev, currentChunk]);
+            speak(`Incorrect. The correct text is ${currentChunk}`, speed);
+        }
+    };
+
+
 
     const handleNext = () => {
         if (index < chunks.length - 1) {
             setIndex((i) => i + 1);
             setInput('');
-            setShowAnswer(false);
+            setFeedback('neutral');
         } else {
-            onComplete(100, 100); // Simple completion for dictation
+            setShowResults(true);
         }
     };
 
+    if (showResults) {
+        return (
+            <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center">
+                    Dictation Review
+                </Typography>
+                <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography variant="h2" color="secondary" fontWeight="bold">
+                            {score} / {chunks.length}
+                        </Typography>
+                        <Typography color="text.secondary">Correct Chunks</Typography>
+                    </Box>
+
+                    {missedChunks.length > 0 ? (
+                        <>
+                            <Typography variant="h6" gutterBottom color="error">
+                                Review Missed Chunks:
+                            </Typography>
+                            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                                {missedChunks.map((chunk, i) => (
+                                    <Box key={i} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                                        <Typography variant="body1" sx={{ mb: 1 }}>{chunk}</Typography>
+                                        <Button
+                                            size="small"
+                                            startIcon={<VolumeUp />}
+                                            onClick={() => speak(chunk, speed)}
+                                            variant="outlined"
+                                        >
+                                            Listen Again
+                                        </Button>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </>
+                    ) : (
+                        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                            <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
+                                Flawless Dictation! 🎯
+                            </Typography>
+                            <Typography color="text.secondary">You captured every word perfectly.</Typography>
+                        </Box>
+                    )}
+
+                    <Button
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        sx={{ mt: 4, py: 2 }}
+                        onClick={() => onComplete(score, chunks.length, missedChunks)}
+                    >
+                        Finish Exercise
+                    </Button>
+                </Card>
+            </Container>
+        );
+    }
+
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && input && mode === 'type') {
+            if (feedback === 'neutral') handleSubmit();
+            else handleNext();
+        }
+    }
+
+    const toggleSpeed = () => {
+        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
+    };
+
+    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
+
     const ModeSwitch = () => (
         <Button
-            onClick={() => setMode(mode === 'type' ? 'write' : 'type')}
+            onClick={() => {
+                setMode(mode === 'type' ? 'write' : 'type');
+                setFeedback('neutral');
+                setInput('');
+            }}
             sx={{ mt: 2 }}
             fullWidth
             variant="text"
+            disabled={feedback !== 'neutral'}
         >
             Switch to {mode === 'type' ? 'Handwriting' : 'Typing'} Mode
         </Button>
     )
 
-    if (mode === 'write' && showAnswer) {
+    if (mode === 'write' && feedback !== 'neutral') {
         return (
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 <Typography variant="h5" gutterBottom fontWeight="bold">
                     Self Check
                 </Typography>
-                <Card sx={{ mb: 3, p: 3, bgcolor: '#e8f5e9', borderRadius: 4 }}>
+                <Card sx={{ mb: 3, p: 3, bgcolor: feedback === 'correct' ? '#e8f5e9' : '#fff3e0', borderRadius: 4 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight="bold">
                         CORRECT TEXT:
                     </Typography>
@@ -71,36 +174,51 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     Compare this with what you wrote in your notebook.
                 </Typography>
                 <Button variant="contained" fullWidth size="large" onClick={handleNext}>
-                    I Checked It (Next Part)
+                    Next Part
                 </Button>
             </Container>
         );
     }
 
     return (
-        <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, display: 'flex', flexDirection: 'column' }}>
-            <Stack direction="row" alignItems="center" mb={2}>
-                <IconButton onClick={onBack}>
-                    <ArrowBack />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                    Dictation (Part {index + 1}/{chunks.length})
-                </Typography>
+        <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton onClick={onBack}>
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography variant="h6" sx={{ ml: 1 }}>
+                        Dictation (Part {index + 1}/{chunks.length})
+                    </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Button
+                        size="small"
+                        onClick={toggleSpeed}
+                        variant="text"
+                        sx={{ mr: 1, minWidth: 80, fontSize: '0.75rem' }}
+                    >
+                        Speed: {speedLabel}
+                    </Button>
+                    <IconButton onClick={() => speak(currentChunk, speed)} color="secondary" sx={{ mr: 1 }}>
+                        <VolumeUp />
+                    </IconButton>
+                    <Chip
+                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
+                        label={`${score} / ${chunks.length}`}
+                        variant="outlined"
+                        sx={{ fontWeight: 'bold' }}
+                    />
+                </Box>
             </Stack>
 
-            <Card sx={{ p: 4, mb: 3, textAlign: 'center', borderRadius: 6, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }} elevation={0} variant="outlined">
-                <Typography variant="body1" color="text.secondary" gutterBottom>
-                    Listen deeply...
-                </Typography>
-                <Box display="flex" justifyContent="center" my={2}>
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Fab color="secondary" onClick={() => speak(currentChunk)} size="large">
-                            <VolumeUp />
-                        </Fab>
-                    </motion.div>
-                </Box>
-                <Typography variant="caption">Tap to play chunk</Typography>
-            </Card>
+
+            <LinearProgress
+                variant="determinate"
+                value={(index / chunks.length) * 100}
+                sx={{ borderRadius: 5, height: 10, mb: 4, bgcolor: 'secondary.light' }}
+            />
+
 
             <AnimatePresence mode="wait">
                 {mode === 'type' ? (
@@ -113,21 +231,39 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         <TextField
                             fullWidth
                             multiline
-                            rows={4}
+                            rows={3}
                             label="Type what you hear..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                            onKeyDown={handleKeyDown}
+                            disabled={feedback !== 'neutral'}
+                            error={feedback === 'wrong'}
+                            sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
                             variant="filled"
+                            autoFocus
                         />
+                        {feedback === 'correct' && (
+                            <Box sx={{ bgcolor: '#e8f5e9', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
+                                <Typography color="success.main" variant="h6" fontWeight="bold">
+                                    Great Job! 🌟
+                                </Typography>
+                            </Box>
+                        )}
+                        {feedback === 'wrong' && (
+                            <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
+                                <Typography color="error" fontWeight="bold">Correct:</Typography>
+                                <Typography variant="body1">{currentChunk}</Typography>
+                            </Box>
+                        )}
                         <Button
                             variant="contained"
                             fullWidth
                             size="large"
-                            onClick={() => setShowAnswer(true)}
-                            disabled={!input}
+                            onClick={feedback === 'neutral' ? handleSubmit : handleNext}
+                            disabled={!input && feedback === 'neutral'}
+                            color={feedback === 'correct' ? 'success' : 'primary'}
                         >
-                            Check Answer
+                            {feedback === 'neutral' ? 'Check Answer' : 'Next Chunk'}
                         </Button>
                         <ModeSwitch />
                     </motion.div>
@@ -141,14 +277,14 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         <Box
                             sx={{
                                 border: '3px dashed #ccc',
-                                borderRadius: 4,
+                                borderRadius: 2,
                                 p: 5,
                                 textAlign: 'center',
                                 mb: 3,
                                 cursor: 'pointer',
                                 bgcolor: 'background.paper'
                             }}
-                            onClick={() => setShowAnswer(true)}
+                            onClick={() => setFeedback('correct')} // Visual selection for "checking"
                             component={motion.div}
                             whileHover={{ scale: 1.02, borderColor: '#666' }}
                         >
@@ -160,30 +296,10 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {showAnswer && mode === 'type' && (
-                <Dialog open={true} onClose={() => { }} PaperProps={{ sx: { borderRadius: 4 } }}>
-                    <DialogTitle fontWeight="bold">Check your work</DialogTitle>
-                    <DialogContent>
-                        <Typography variant="caption" color="success.main" fontWeight="bold">
-                            CORRECT:
-                        </Typography>
-                        <Typography paragraph variant="body1" sx={{ bgcolor: '#e8f5e9', p: 1, borderRadius: 1 }}>{currentChunk}</Typography>
-
-                        <Typography variant="caption" color="error" fontWeight="bold">
-                            YOU TYPED:
-                        </Typography>
-                        <Typography variant="body1" sx={{ bgcolor: '#ffebee', p: 1, borderRadius: 1 }}>{input}</Typography>
-                    </DialogContent>
-                    <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={handleNext} variant="contained" fullWidth size="large">
-                            Next Chunk
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            )}
         </Container>
     );
 };
+
+
 
 export default DictationMode;

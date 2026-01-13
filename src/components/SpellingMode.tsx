@@ -7,46 +7,56 @@ import {
     TextField,
     LinearProgress,
     IconButton,
-    Fab,
     Box,
+    Chip,
 } from '@mui/material';
-import { ArrowBack, VolumeUp } from '@mui/icons-material';
+import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
 
 interface SpellingModeProps {
     exercise: Exercise;
-    onComplete: (score: number, total: number) => void;
+    onComplete: (score: number, total: number, missedItems: string[]) => void;
+    onCorrect?: () => void;
     onBack: () => void;
 }
 
-const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBack }) => {
+
+const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBack, onCorrect }) => {
     const [index, setIndex] = useState(0);
     const [input, setInput] = useState('');
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
+    const [speed, setSpeed] = useState(0.85);
+    const [showResults, setShowResults] = useState(false);
+    const [missedItems, setMissedItems] = useState<string[]>([]);
 
     const currentWord = exercise.spelling[index];
     const progress = (index / exercise.spelling.length) * 100;
 
     useEffect(() => {
-        if (feedback === 'neutral') {
+        if (feedback === 'neutral' && !showResults) {
             // Small delay to ensure synthesis is ready
-            setTimeout(() => speak(currentWord.phrase), 300);
+            setTimeout(() => speak(currentWord.phrase, speed), 300);
         }
-    }, [index, currentWord, feedback]);
+    }, [index, currentWord, feedback, speed, showResults]);
 
     const handleSubmit = () => {
         const isCorrect = input.toLowerCase().trim() === currentWord.phrase.toLowerCase().trim();
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
             setScore((s) => s + 1);
-            speak('Correct!');
+            onCorrect?.();
+            // Automatically move to next word after a brief delay
+            setTimeout(handleNext, 1200);
         } else {
-            speak(`Incorrect. The correct spelling is ${currentWord.phrase}`);
+            setMissedItems(prev => [...prev, currentWord.phrase]);
+            // Visual feedback only for wrong answers as requested
         }
     };
+
+
 
     const handleNext = () => {
         if (index < exercise.spelling.length - 1) {
@@ -54,7 +64,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             setInput('');
             setFeedback('neutral');
         } else {
-            onComplete(score + (feedback === 'correct' ? 1 : 0), exercise.spelling.length);
+            setShowResults(true);
         }
     };
 
@@ -65,16 +75,97 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         }
     }
 
+    const toggleSpeed = () => {
+        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
+    };
+
+    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
+
+    if (showResults) {
+        return (
+            <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
+                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center">
+                    Review
+                </Typography>
+                <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography variant="h2" color="primary" fontWeight="bold">
+                            {score} / {exercise.spelling.length}
+                        </Typography>
+                        <Typography color="text.secondary">Correct Words</Typography>
+                    </Box>
+
+                    {missedItems.length > 0 ? (
+                        <>
+                            <Typography variant="h6" gutterBottom color="error">
+                                Words to Practice:
+                            </Typography>
+                            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                                {missedItems.map((item, i) => (
+                                    <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography fontWeight="bold">{item}</Typography>
+                                        <IconButton size="small" onClick={() => speak(item, speed)}>
+                                            <VolumeUp fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </>
+                    ) : (
+                        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                            <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
+                                Perfect Score! 🏆
+                            </Typography>
+                            <Typography color="text.secondary">You got everything correct.</Typography>
+                        </Box>
+                    )}
+
+                    <Button
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        sx={{ mt: 4, py: 2 }}
+                        onClick={() => onComplete(score, exercise.spelling.length, missedItems)}
+                    >
+                        Return to Dashboard
+                    </Button>
+                </Card>
+            </Container>
+        );
+    }
+
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <IconButton onClick={onBack} sx={{ mr: 1 }}>
-                    <ArrowBack />
-                </IconButton>
-                <Typography variant="h6" color="text.secondary">
-                    Word {index + 1} of {exercise.spelling.length}
-                </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton onClick={onBack} sx={{ mr: 1 }}>
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography variant="h6" color="text.secondary">
+                        Word {index + 1} of {exercise.spelling.length}
+                    </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Button
+                        size="small"
+                        onClick={toggleSpeed}
+                        variant="text"
+                        sx={{ mr: 1, minWidth: 80, fontSize: '0.75rem' }}
+                    >
+                        Speed: {speedLabel}
+                    </Button>
+                    <IconButton onClick={() => speak(currentWord.phrase, speed)} color="primary" sx={{ mr: 1 }}>
+                        <VolumeUp />
+                    </IconButton>
+                    <Chip
+                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
+                        label={`${score} / ${exercise.spelling.length}`}
+                        variant="outlined"
+                        sx={{ fontWeight: 'bold' }}
+                    />
+                </Box>
             </Box>
+
 
             <LinearProgress
                 variant="determinate"
@@ -92,30 +183,19 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             >
                 <Card
                     sx={{
-                        flexGrow: 1,
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         p: 4,
-                        borderRadius: 8,
+                        borderRadius: 2,
                         position: 'relative',
                         overflow: 'visible'
                     }}
                     component={motion.div}
                     animate={feedback === 'wrong' ? { x: [-10, 10, -10, 10, 0] } : {}}
                 >
-                    <Box sx={{ textAlign: 'center', mb: 6 }}>
-                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                            <Fab color="primary" onClick={() => speak(currentWord.phrase)} size="large" sx={{ width: 80, height: 80 }}>
-                                <VolumeUp fontSize="large" sx={{ fontSize: 40 }} />
-                            </Fab>
-                        </motion.div>
-                        <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>
-                            Tap to listen
-                        </Typography>
-                    </Box>
-
                     <TextField
+
                         fullWidth
                         variant="outlined"
                         placeholder="Type what you hear..."
@@ -126,17 +206,30 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         error={feedback === 'wrong'}
                         autoFocus
                         autoComplete="off"
-                        sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 4, fontSize: '1.5rem', fontWeight: 'bold' } }}
+                        sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 1, fontSize: '1.5rem', fontWeight: 'bold' } }}
                     />
 
                     <AnimatePresence>
+                        {feedback === 'correct' && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <Box sx={{ bgcolor: '#e8f5e9', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
+                                    <Typography color="success.main" variant="h5" fontWeight="bold">
+                                        Excellent! 🎉
+                                    </Typography>
+                                </Box>
+                            </motion.div>
+                        )}
                         {feedback === 'wrong' && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                             >
-                                <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 3, mb: 3, textAlign: 'center' }}>
+                                <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
                                     <Typography color="error" fontWeight="bold">
                                         Correct answer:
                                     </Typography>
@@ -147,6 +240,8 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+
 
                     {feedback === 'neutral' ? (
                         <Button

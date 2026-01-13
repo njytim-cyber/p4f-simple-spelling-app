@@ -15,9 +15,12 @@ export interface Exercise {
 
 export interface ScoreRecord {
     exerciseId: string;
+    type: ExerciseType;
     score: number;
     total: number;
     date: string;
+    time: string;
+    missedItems?: string[];
 }
 
 export const EXERCISES: Exercise[] = [

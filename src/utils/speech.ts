@@ -1,29 +1,28 @@
-export const speak = (text: string) => {
+// Helper to replace punctuation with spoken words
+const prepForSpeech = (text: string): string => {
+    return text
+        .replace(/\./g, ' full stop. ')
+        .replace(/,/g, ' comma, ')
+        .replace(/\?/g, ' question mark? ')
+        .replace(/!/g, ' exclamation mark! ')
+        .replace(/"/g, ' quote ');
+};
+
+export const speak = (text: string, rate: number = 0.85) => {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Speak the text with explicit punctuation
+    const textToSpeak = prepForSpeech(text);
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = 'en-GB'; // British English preferred for SG context
-    utterance.rate = 0.9;
+    utterance.rate = rate;
     window.speechSynthesis.speak(utterance);
 };
 
-// Chunk dictation by max 5 words or punctuation
+// Chunk dictation by punctuation marks (., !, ?, ,)
+// Removes the arbitrary 5-word limit
 export const chunkText = (text: string): string[] => {
-    const regex = /([^.!?]+[.!?]+)|([^.!?]+$)/g;
-    const sentences = text.match(regex) || [];
-    const chunks: string[] = [];
-
-    sentences.forEach((sentence) => {
-        const words = sentence.trim().split(' ');
-        let currentChunk: string[] = [];
-
-        words.forEach((word) => {
-            currentChunk.push(word);
-            if (currentChunk.length >= 5 || word.match(/[.!?]$/)) {
-                chunks.push(currentChunk.join(' '));
-                currentChunk = [];
-            }
-        });
-        if (currentChunk.length > 0) chunks.push(currentChunk.join(' '));
-    });
-    return chunks;
+    // Split after any weight-bearing punctuation (., !, ?, ,)
+    // using a positive lookbehind to keep the punctuation with the preceding text
+    const chunks = text.split(/(?<=[.,!?])\s+/);
+    return chunks.map(c => c.trim()).filter(c => c.length > 0);
 };

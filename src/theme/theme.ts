@@ -9,16 +9,18 @@ const theme = createTheme({
         error: { main: '#B3261E' },
         success: { main: '#2e7d32' },
     },
-    shape: { borderRadius: 24 },
+    shape: { borderRadius: 12 },
     typography: {
         fontFamily: '"Outfit", "Roboto", "Helvetica", "Arial", sans-serif',
         h4: { fontWeight: 700 },
         h6: { fontWeight: 600 },
-        button: { textTransform: 'none', fontWeight: 600, borderRadius: 20 },
+        button: { textTransform: 'none', fontWeight: 600 },
     },
     components: {
         MuiCard: { styleOverrides: { root: { boxShadow: '0px 4px 8px 3px rgba(0,0,0,0.05)' } } },
         MuiButton: { styleOverrides: { root: { borderRadius: 100 } } },
+        MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 12 } } },
+        MuiFilledInput: { styleOverrides: { root: { borderRadius: 12 } } },
     },
 });
 
