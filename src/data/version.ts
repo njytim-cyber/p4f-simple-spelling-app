@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.3.6';
+export const APP_VERSION = '1.3.7';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.7',
+        date: '14 Jan 2026',
+        title: '🍯 Honey Jar & ⚡ Speed',
+        changes: [
+            'New Honey Jar visualization for progress!',
+            'Updated audio speed controls (0.6x, 0.85x, 1.1x)',
+            'Larger text input for long spelling phrases',
+        ],
+    },
     {
         version: '1.3.6',
         date: '14 Jan 2026',

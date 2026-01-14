@@ -14,6 +14,7 @@ import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
+import { HoneyJar } from './HoneyJar';
 
 interface SpellingModeProps {
     exercise: Exercise;
@@ -86,7 +87,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
     };
 
-    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
+    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.1x' : '0.85x';
 
     if (showResults) {
         return (
@@ -141,9 +142,11 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         );
     }
 
+
+
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <IconButton onClick={onBack} sx={{ mr: 1 }}>
                         <ArrowBack />
@@ -152,6 +155,8 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         Spelling
                     </Typography>
                 </Box>
+
+                {/* Center Controls */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Chip
                         label={speedLabel}
@@ -168,44 +173,21 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                     <IconButton onClick={() => speak(currentWord.phrase, speed)} color="primary">
                         <VolumeUp />
                     </IconButton>
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${exercise.spelling.length * 2}`}
-                        variant="outlined"
-                        sx={{ fontWeight: 'bold' }}
-                    />
+                </Box>
+
+                {/* Honey Jar Score */}
+                <Box sx={{ mt: -2 }}>
+                    <HoneyJar currentScore={score} totalPossible={exercise.spelling.length * 2} />
                 </Box>
             </Box>
 
-
-            <Box sx={{ position: 'relative', mb: 4 }}>
-                <LinearProgress
-                    variant="determinate"
-                    value={((index + 1) / exercise.spelling.length) * 100}
-                    sx={{ borderRadius: 5, height: 24, bgcolor: 'secondary.light', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
-                />
-                <Typography
-                    variant="caption"
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                    }}
-                >
-                    {index + 1} / {exercise.spelling.length}
-                </Typography>
-            </Box>
-
+            {/* Progress Text (Simple) */}
             <Typography
                 variant="caption"
                 color="text.secondary"
-                sx={{ mb: 2, textAlign: 'center', display: 'block' }}
+                sx={{ mb: 1, textAlign: 'center', display: 'block', fontWeight: 'bold' }}
             >
-                ⭐ 2 points first try • 1 point retry
+                Question {index + 1} of {exercise.spelling.length}
             </Typography>
 
             <motion.div
@@ -230,8 +212,9 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                     animate={feedback === 'wrong' ? { x: [-10, 10, -10, 10, 0] } : {}}
                 >
                     <TextField
-
                         fullWidth
+                        multiline
+                        minRows={2}
                         variant="outlined"
                         placeholder="Type what you hear..."
                         value={input}

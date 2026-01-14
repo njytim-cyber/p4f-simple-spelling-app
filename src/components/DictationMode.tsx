@@ -15,6 +15,7 @@ import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak, chunkText } from '../utils/speech';
+import { HoneyJar } from './HoneyJar';
 
 interface DictationModeProps {
     exercise: Exercise;
@@ -22,7 +23,6 @@ interface DictationModeProps {
     onCorrect?: () => void;
     onBack: () => void;
 }
-
 
 const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onBack, onCorrect }) => {
     const [index, setIndex] = useState(0);
@@ -56,7 +56,6 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             const cW = correctWords[i] || '';
 
             // Strip all punctuation for spelling/caps check (but keep internal apostrophes for now?)
-            // Actually, simple strip is fine as we are normalizing
             const iWClean = iW.replace(/[.,!?;:"'()-]/g, '');
             const cWClean = cW.replace(/[.,!?;:"'()-]/g, '');
 
@@ -141,8 +140,6 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         }
     };
 
-
-
     const handleNext = () => {
         if (index < chunks.length - 1) {
             setIndex((i) => i + 1);
@@ -154,6 +151,26 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             setShowResults(true);
         }
     };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && input) {
+            // For multiline input, Enter usually creates a newline.
+            // We'll require CTRL+Enter or button click, or just allow button click.
+            // But user might expect Enter to submit if they are done.
+            // Preventing default here to submit if user presses Enter without Shift
+            if (!e.shiftKey) {
+                e.preventDefault();
+                if (feedback === 'neutral') handleSubmit();
+                else handleNext();
+            }
+        }
+    }
+
+    const toggleSpeed = () => {
+        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
+    };
+
+    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.1x' : '0.85x';
 
     if (showResults) {
         return (
@@ -213,27 +230,9 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         );
     }
 
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && input) {
-            if (feedback === 'neutral') handleSubmit();
-            else handleNext();
-        }
-    }
-
-    const toggleSpeed = () => {
-        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
-    };
-
-    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
-
-    // Deleted ModeSwitch
-
-
-
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" mb={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <IconButton onClick={onBack}>
                         <ArrowBack />
@@ -242,6 +241,8 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         Dictation
                     </Typography>
                 </Box>
+
+                {/* Center Controls */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Chip
                         label={speedLabel}
@@ -258,52 +259,29 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     <IconButton onClick={() => speak(currentChunk, speed)} color="secondary" sx={{ mr: 1 }}>
                         <VolumeUp />
                     </IconButton>
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${chunks.length * 2}`}
-                        variant="outlined"
-                        sx={{ fontWeight: 'bold' }}
-                    />
+                </Box>
+
+                {/* Honey Jar Score */}
+                <Box sx={{ mt: -2 }}>
+                    <HoneyJar currentScore={score} totalPossible={chunks.length * 2} />
                 </Box>
             </Stack>
-
-
-            <Box sx={{ position: 'relative', mb: 2 }}>
-                <LinearProgress
-                    variant="determinate"
-                    value={((index + 1) / chunks.length) * 100}
-                    sx={{ borderRadius: 5, height: 24, bgcolor: 'secondary.light' }}
-                />
-                <Typography
-                    variant="caption"
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                    }}
-                >
-                    {index + 1} / {chunks.length}
-                </Typography>
-            </Box>
 
             <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mb: 1, textAlign: 'center', fontStyle: 'italic' }}
+                sx={{ mb: 1, textAlign: 'center', fontStyle: 'italic', fontSize: '0.8rem' }}
             >
-                All punctuation marks will be read out to you except for capital letters, hyphens and apostrophes (').
+                All punctuation marks will be read out except capital letters.
             </Typography>
 
+            {/* Progress Text */}
             <Typography
                 variant="caption"
                 color="text.secondary"
-                sx={{ mb: 3, textAlign: 'center', display: 'block' }}
+                sx={{ mb: 2, textAlign: 'center', display: 'block', fontWeight: 'bold' }}
             >
-                ⭐ 2 points first try • 1 point retry
+                Chunk {index + 1} of {chunks.length}
             </Typography>
 
             <AnimatePresence mode="wait">
@@ -377,7 +355,5 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         </Container>
     );
 };
-
-
 
 export default DictationMode;
