@@ -4,8 +4,9 @@ import Dashboard from './components/Dashboard';
 import SpellingMode from './components/SpellingMode';
 import DictationMode from './components/DictationMode';
 import OnboardingOverlay from './components/OnboardingOverlay';
-import UpdateSplash from './components/UpdateSplash';
+import UpdateSplash, { LAST_SEEN_VERSION_KEY } from './components/UpdateSplash';
 import VersionChecker from './components/VersionChecker';
+import { APP_VERSION } from './data/version';
 import Confetti from 'react-confetti';
 import { Box } from '@mui/material';
 
@@ -36,6 +37,8 @@ export default function App() {
 
     const handleOnboardingComplete = () => {
         localStorage.setItem(STORAGE_KEY_ONBOARDING, 'true');
+        // Mark current version as seen so we don't show "What's New" to a brand new user
+        localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION);
         setShowOnboarding(false);
     };
 
@@ -107,8 +110,8 @@ export default function App() {
                 <OnboardingOverlay onComplete={handleOnboardingComplete} />
             )}
 
-            {/* Version update splash - shows when app is updated */}
-            <UpdateSplash />
+            {/* Version update splash - shows when app is updated (surpressed during onboarding) */}
+            {!showOnboarding && <UpdateSplash />}
 
             {/* Background version checker - prompts refresh when new version deployed */}
             <VersionChecker />

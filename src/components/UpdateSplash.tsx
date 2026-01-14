@@ -17,7 +17,7 @@ import { CheckCircle, Celebration } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { APP_VERSION, getLatestChangelog, isNewerVersion } from '../data/version';
 
-const LAST_SEEN_VERSION_KEY = 'p4f-spelling-last-seen-version';
+export const LAST_SEEN_VERSION_KEY = 'p4f-spelling-last-seen-version';
 
 const UpdateSplash: React.FC = () => {
     const [open, setOpen] = useState(false);
