@@ -266,7 +266,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     }
 
     return (
-        <Container maxWidth="md" sx={{ py: 4 }}>
+        <Container maxWidth="sm" sx={{ py: 4 }}>
             {/* Header */}
             {/* Header */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>

@@ -10,12 +10,18 @@ import {
     Box,
     Chip,
     ButtonBase,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak, chunkText } from '../utils/speech';
 import { HoneyJar } from './HoneyJar';
+import VoiceSelector, { getSavedVoice } from './VoiceSelector';
 
 interface DictationModeProps {
     exercise: Exercise;
@@ -30,10 +36,21 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
     const [speed, setSpeed] = useState(1.0);
+    const [voice, setVoice] = useState(getSavedVoice);
     const [showResults, setShowResults] = useState(false);
     const [missedChunks, setMissedChunks] = useState<string[]>([]);
     const [hasAttempted, setHasAttempted] = useState(false);
     const [errorHint, setErrorHint] = useState<string[]>([]);
+    const [showExitDialog, setShowExitDialog] = useState(false);
+
+    const handleBackClick = () => {
+        // If user has made progress (moved past first chunk OR has a score), warn them
+        if (index > 0 || score > 0) {
+            setShowExitDialog(true);
+        } else {
+            onBack();
+        }
+    };
 
 
 
@@ -160,10 +177,10 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
     useEffect(() => {
         if (feedback === 'neutral' && !showResults) {
-            const timer = setTimeout(() => speak(currentChunk, speed), 300);
+            const timer = setTimeout(() => speak(currentChunk, speed, voice), 300);
             return () => clearTimeout(timer);
         }
-    }, [index, currentChunk, feedback, speed, showResults]);
+    }, [index, currentChunk, feedback, speed, voice, showResults]);
 
     // Normalize text for comparison (quotes, dashes, spaces)
     const normalizeText = (text: string): string => {
@@ -256,7 +273,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                                         <Button
                                             size="small"
                                             startIcon={<VolumeUp />}
-                                            onClick={() => speak(chunk, speed)}
+                                            onClick={() => speak(chunk, speed, voice)}
                                             variant="outlined"
                                         >
                                             Listen Again
@@ -290,56 +307,61 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
-            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" mb={4}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton onClick={onBack}>
+                    <IconButton onClick={handleBackClick}>
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h6" sx={{ ml: 1 }}>
+                    <Typography variant="h6" sx={{ ml: 1, lineHeight: 1 }}>
                         Dictation
                     </Typography>
                 </Box>
 
                 {/* Center Controls */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {/* Media Pill */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {/* Unified Media Pill */}
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
                         bgcolor: '#f5f5f5',
-                        borderRadius: 4,
-                        px: 0.5,
-                        py: 0.5,
-                        mr: 1
+                        borderRadius: 3,
+                        px: 0.25,
+                        py: 0.25,
                     }}>
                         <IconButton
-                            onClick={() => speak(currentChunk, speed)}
+                            onClick={() => speak(currentChunk, speed, voice)}
                             size="small"
-                            sx={{ color: 'text.secondary' }}
+                            sx={{ color: 'text.secondary', p: 0.5 }}
                         >
-                            <VolumeUp fontSize="small" />
+                            <VolumeUp sx={{ fontSize: '1.1rem' }} />
                         </IconButton>
-                        <Box sx={{ width: '1px', height: '16px', bgcolor: 'divider', mx: 0.5 }} />
+                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
                         <ButtonBase
                             onClick={toggleSpeed}
                             sx={{
-                                px: 1.5,
+                                display: 'flex',
+                                alignItems: 'center',
+                                px: 0.75,
                                 fontWeight: 'bold',
-                                fontSize: '0.85rem',
+                                fontSize: '0.7rem',
+                                lineHeight: 1,
                                 color: 'text.secondary',
-                                height: 32,
-                                borderRadius: 2,
+                                height: 28,
+                                borderRadius: 1.5,
                                 '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
                             }}
                         >
                             {speedLabel}
                         </ButtonBase>
+                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
+                        <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
                     <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${chunks.length * 2}`}
+                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1rem' }} />}
+                        label={`${score}/${chunks.length * 2}`}
                         variant="outlined"
-                        sx={{ fontWeight: 'bold' }}
+                        size="small"
+                        sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}
                     />
                 </Box>
             </Stack>
@@ -434,6 +456,31 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>
                 <HoneyJar currentScore={score} totalPossible={chunks.length * 2} />
             </Box>
+
+            {/* Exit Confirmation Dialog */}
+            <Dialog
+                open={showExitDialog}
+                onClose={() => setShowExitDialog(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Stop Practicing?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        You're doing great! If you leave now, you'll lose your current progress.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowExitDialog(false)} autoFocus>
+                        Keep Going
+                    </Button>
+                    <Button onClick={onBack} color="error">
+                        Exit
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

@@ -9,12 +9,18 @@ import {
     Box,
     Chip,
     ButtonBase,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
 import { HoneyJar } from './HoneyJar';
+import VoiceSelector, { getSavedVoice } from './VoiceSelector';
 
 interface SpellingModeProps {
     exercise: Exercise;
@@ -30,18 +36,29 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
     const [speed, setSpeed] = useState(1.0);
+    const [voice, setVoice] = useState(getSavedVoice);
     const [showResults, setShowResults] = useState(false);
     const [missedItems, setMissedItems] = useState<string[]>([]);
     const [hasAttempted, setHasAttempted] = useState(false);
+    const [showExitDialog, setShowExitDialog] = useState(false);
 
     const currentWord = exercise.spelling[index];
+
+    const handleBackClick = () => {
+        // If user has made progress (moved past first word OR has a score), warn them
+        if (index > 0 || score > 0) {
+            setShowExitDialog(true);
+        } else {
+            onBack();
+        }
+    };
 
     useEffect(() => {
         if (feedback === 'neutral' && !showResults) {
             // Small delay to ensure synthesis is ready
-            setTimeout(() => speak(currentWord.phrase, speed), 300);
+            setTimeout(() => speak(currentWord.phrase, speed, voice), 300);
         }
-    }, [index, currentWord, feedback, speed, showResults]);
+    }, [index, currentWord, feedback, speed, voice, showResults]);
 
     const handleSubmit = () => {
         const isCorrect = input.toLowerCase().trim() === currentWord.phrase.toLowerCase().trim();
@@ -112,7 +129,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                                 {missedItems.map((item, i) => (
                                     <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Typography fontWeight="bold">{item}</Typography>
-                                        <IconButton size="small" onClick={() => speak(item, speed)}>
+                                        <IconButton size="small" onClick={() => speak(item, speed, voice)}>
                                             <VolumeUp fontSize="small" />
                                         </IconButton>
                                     </Box>
@@ -146,60 +163,69 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton onClick={onBack} sx={{ mr: 1 }}>
+                    <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h6" color="text.secondary">
+                    <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1 }}>
                         Spelling
                     </Typography>
                 </Box>
 
                 {/* Center Controls */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {/* Media Pill */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {/* Unified Media Pill */}
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
                         bgcolor: '#f5f5f5',
-                        borderRadius: 4,
-                        px: 0.5,
-                        py: 0.5,
-                        mr: 1
+                        borderRadius: 3,
+                        px: 0.25,
+                        py: 0.25,
                     }}>
                         <IconButton
-                            onClick={() => speak(currentWord.phrase, speed)}
+                            onClick={() => speak(currentWord.phrase, speed, voice)}
                             size="small"
-                            sx={{ color: 'text.secondary' }}
+                            sx={{ color: 'text.secondary', p: 0.5 }}
                         >
-                            <VolumeUp fontSize="small" />
+                            <VolumeUp sx={{ fontSize: '1.1rem' }} />
                         </IconButton>
-                        <Box sx={{ width: '1px', height: '16px', bgcolor: 'divider', mx: 0.5 }} />
+                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
                         <ButtonBase
                             onClick={toggleSpeed}
                             sx={{
-                                px: 1.5,
+                                display: 'flex',
+                                alignItems: 'center',
+                                px: 0.75,
                                 fontWeight: 'bold',
-                                fontSize: '0.85rem',
+                                fontSize: '0.7rem',
+                                lineHeight: 1,
                                 color: 'text.secondary',
-                                height: 32,
-                                borderRadius: 2,
+                                height: 28,
+                                borderRadius: 1.5,
                                 '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
                             }}
                         >
                             {speedLabel}
                         </ButtonBase>
+                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
+                        <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
                     <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${exercise.spelling.length * 2}`}
+                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1rem' }} />}
+                        label={`${score}/${exercise.spelling.length * 2}`}
                         variant="outlined"
-                        sx={{ fontWeight: 'bold' }}
+                        size="small"
+                        sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}
                     />
                 </Box>
             </Box>
 
+            {/* Scoring Instruction */}
+            <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 1 }}>
+                ⭐ 2 points first try • 1 point retry
+            </Typography>
 
 
             <motion.div
@@ -301,10 +327,6 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             Try Again
                         </Button>
                     )}
-                    {/* Scoring Instruction */}
-                    <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 2 }}>
-                        ⭐ 2 points first try • 1 point retry
-                    </Typography>
                 </Card>
             </motion.div>
 
@@ -314,6 +336,31 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>
                 <HoneyJar currentScore={score} totalPossible={exercise.spelling.length * 2} />
             </Box>
+
+            {/* Exit Confirmation Dialog */}
+            <Dialog
+                open={showExitDialog}
+                onClose={() => setShowExitDialog(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Stop Practicing?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        You're doing great! If you leave now, you'll lose your current progress.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowExitDialog(false)} autoFocus>
+                        Keep Going
+                    </Button>
+                    <Button onClick={onBack} color="error">
+                        Exit
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
