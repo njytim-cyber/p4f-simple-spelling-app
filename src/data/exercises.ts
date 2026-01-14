@@ -27,7 +27,7 @@ export const EXERCISES: Exercise[] = [
     {
         id: '1.1',
         title: '1.1',
-        date: '24 Jan',
+        date: '23 Jan 2026',
         spelling: [
             { id: 's1', phrase: 'peered curiously' },
             { id: 's2', phrase: 'nodded his head' },

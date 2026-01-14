@@ -64,26 +64,33 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     // Temp state for editing
     const [editDates, setEditDates] = useState<Record<string, string>>({});
 
-    // Helper to format "24 Jan" (current year) -> "YYYY-MM-DD" for input
+    // Helper to format "24 Jan" or "24 Jan 2026" -> "YYYY-MM-DD" for input
     const toInputFormat = (dateStr: string) => {
         if (!dateStr) return '';
         try {
-            // Assume current year if missing
-            const currentYear = new Date().getFullYear();
-            const date = new Date(`${dateStr} ${currentYear}`);
-            if (isNaN(date.getTime())) return ''; // Fallback
-            return date.toISOString().split('T')[0];
+            // Check if year is already present (digits at end)
+            const hasYear = /\d{4}$/.test(dateStr.trim());
+            const fullDateStr = hasYear ? dateStr : `${dateStr} ${new Date().getFullYear()}`;
+
+            const date = new Date(fullDateStr);
+            if (isNaN(date.getTime())) return '';
+
+            // Adjust for local timezone offset to prevent date shifting
+            // or just use ISO string split if time is 00:00:00 local
+            const offset = date.getTimezoneOffset() * 60000;
+            const localDate = new Date(date.getTime() - offset);
+            return localDate.toISOString().split('T')[0];
         } catch (e) {
             return '';
         }
     };
 
-    // Helper to format "YYYY-MM-DD" -> "24 Jan" for display/storage
+    // Helper to format "YYYY-MM-DD" -> "24 Jan" (or "24 Jan 2026" if needed) for display/storage
     const toDisplayFormat = (isoDate: string) => {
         if (!isoDate) return '';
         try {
             const date = new Date(isoDate);
-            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         } catch (e) {
             return isoDate;
         }
