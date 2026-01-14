@@ -99,8 +99,8 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     };
 
     const handleSubmit = () => {
-        const normalizedInput = normalizeQuotes(input.trim());
-        const normalizedChunk = normalizeQuotes(currentChunk.trim());
+        const normalizedInput = normalizeText(input);
+        const normalizedChunk = normalizeText(currentChunk);
         const isCorrect = normalizedInput === normalizedChunk;
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
