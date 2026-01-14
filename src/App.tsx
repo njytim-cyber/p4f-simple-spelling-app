@@ -3,11 +3,13 @@ import { Exercise, ExerciseType, ScoreRecord } from './data/exercises';
 import Dashboard from './components/Dashboard';
 import SpellingMode from './components/SpellingMode';
 import DictationMode from './components/DictationMode';
+import OnboardingOverlay from './components/OnboardingOverlay';
 import Confetti from 'react-confetti';
 import { Box } from '@mui/material';
 
 // Simple persistence helpers
 const STORAGE_KEY_HISTORY = 'p4_spelling_history';
+const STORAGE_KEY_ONBOARDING = 'p4_onboarding_complete';
 
 export default function App() {
     const [view, setView] = useState<'dashboard' | 'exercise'>('dashboard');
@@ -19,12 +21,21 @@ export default function App() {
         return saved ? JSON.parse(saved) : [];
     });
 
+    const [showOnboarding, setShowOnboarding] = useState(() => {
+        return localStorage.getItem(STORAGE_KEY_ONBOARDING) !== 'true';
+    });
+
     const [showConfetti, setShowConfetti] = useState(false);
     const { width, height } = useWinSize();
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
     }, [history]);
+
+    const handleOnboardingComplete = () => {
+        localStorage.setItem(STORAGE_KEY_ONBOARDING, 'true');
+        setShowOnboarding(false);
+    };
 
     const handleSelect = (ex: Exercise, type: ExerciseType) => {
         setActiveExercise(ex);
@@ -88,6 +99,11 @@ export default function App() {
                     />
                 )
             ) : null}
+
+            {/* Onboarding overlay - only shows on dashboard for first-time users */}
+            {showOnboarding && view === 'dashboard' && (
+                <OnboardingOverlay onComplete={handleOnboardingComplete} />
+            )}
         </Box>
     );
 }

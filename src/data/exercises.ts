@@ -27,7 +27,7 @@ export const EXERCISES: Exercise[] = [
     {
         id: '1.1',
         title: '1.1',
-        date: '24 Jan 2026',
+        date: '24 Jan',
         spelling: [
             { id: 's1', phrase: 'peered curiously' },
             { id: 's2', phrase: 'nodded his head' },
@@ -40,7 +40,7 @@ export const EXERCISES: Exercise[] = [
     {
         id: '1.2',
         title: '1.2',
-        date: '30 Jan 2026',
+        date: '30 Jan',
         spelling: [
             { id: 's1', phrase: 'elated' },
             { id: 's2', phrase: 'eagerly agreed' },
@@ -53,7 +53,7 @@ export const EXERCISES: Exercise[] = [
     {
         id: '1.3',
         title: '1.3',
-        date: '6 Feb 2026',
+        date: '6 Feb',
         spelling: [
             { id: 's1', phrase: 'face lit up' },
             { id: 's2', phrase: 'a delectable breakfast spread' },
@@ -66,7 +66,7 @@ export const EXERCISES: Exercise[] = [
     {
         id: '1.4',
         title: '1.4',
-        date: '13 Feb 2026',
+        date: '13 Feb',
         spelling: [
             { id: 's1', phrase: 'froze on the spot' },
             { id: 's2', phrase: 'caught red-handed' },

@@ -139,7 +139,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
     };
 
-    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
+    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.5x' : '1x';
 
     // Deleted ModeSwitch
 
@@ -153,18 +153,22 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         <ArrowBack />
                     </IconButton>
                     <Typography variant="h6" sx={{ ml: 1 }}>
-                        Dictation (Part {index + 1}/{chunks.length})
+                        Dictation
                     </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Button
-                        size="small"
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                        label={speedLabel}
                         onClick={toggleSpeed}
-                        variant="text"
-                        sx={{ mr: 1, minWidth: 80, fontSize: '0.75rem' }}
-                    >
-                        Speed: {speedLabel}
-                    </Button>
+                        size="small"
+                        sx={{
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
+                            '&:hover': { bgcolor: 'primary.dark' },
+                        }}
+                    />
                     <IconButton onClick={() => speak(currentChunk, speed)} color="secondary" sx={{ mr: 1 }}>
                         <VolumeUp />
                     </IconButton>
@@ -178,12 +182,35 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             </Stack>
 
 
-            <LinearProgress
-                variant="determinate"
-                value={(index / chunks.length) * 100}
-                sx={{ borderRadius: 5, height: 10, mb: 4, bgcolor: 'secondary.light' }}
-            />
+            <Box sx={{ position: 'relative', mb: 2 }}>
+                <LinearProgress
+                    variant="determinate"
+                    value={((index + 1) / chunks.length) * 100}
+                    sx={{ borderRadius: 5, height: 24, bgcolor: 'secondary.light' }}
+                />
+                <Typography
+                    variant="caption"
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                >
+                    {index + 1} / {chunks.length}
+                </Typography>
+            </Box>
 
+            <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 3, textAlign: 'center', fontStyle: 'italic' }}
+            >
+                All punctuation marks will be read out to you except for capital letters, hyphens and apostrophes (').
+            </Typography>
 
             <AnimatePresence mode="wait">
                 <motion.div

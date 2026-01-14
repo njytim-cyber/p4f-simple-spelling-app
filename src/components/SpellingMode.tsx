@@ -144,7 +144,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         <ArrowBack />
                     </IconButton>
                     <Typography variant="h6" color="text.secondary">
-                        Word {index + 1} of {exercise.spelling.length}
+                        Phrase {index + 1} of {exercise.spelling.length}
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>

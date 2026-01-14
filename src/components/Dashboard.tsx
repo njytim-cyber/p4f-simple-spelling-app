@@ -59,8 +59,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
             }
         }
 
+        // Add data attribute for first exercise only (for onboarding)
+        const isFirstExercise = exId === EXERCISES[0]?.id;
+        const dataAttr = isFirstExercise ? { 'data-onboarding': type } : {};
+
         return (
             <Chip
+                {...dataAttr}
                 label={label}
                 icon={best ? (best.score === best.total ? <CheckCircle sx={{ color: 'white !important' }} /> : <Sync sx={{ color: 'white !important' }} />) : <RadioButtonUnchecked />}
                 onClick={() => onSelect(EXERCISES.find(e => e.id === exId)!, type)}
@@ -81,15 +86,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
             {/* Header */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
                 <Box>
-                    <Typography variant="h4" color="primary" fontWeight="800" component={motion.h4} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                        Hello! 👋
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                        Ready to ace your spelling today?
+                    <Typography variant="h4" color="primary" fontWeight="800">
+                        Hi! 👋
                     </Typography>
                 </Box>
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                     <IconButton
+                        data-onboarding="spelling-list"
                         title="Spelling Lists"
                         onClick={() => setOpenSpellingList(true)}
                         sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
@@ -97,6 +100,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                         📑
                     </IconButton>
                     <IconButton
+                        data-onboarding="activity-log"
                         title="Activity Log"
                         onClick={() => setOpenHistory(true)}
                         sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
@@ -105,7 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     </IconButton>
                     <Chip
                         icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${getTotalXP()} XP`}
+                        label={`${getTotalXP()}`}
                         sx={{
                             bgcolor: 'primary.main',
                             color: 'white',
@@ -121,7 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
 
             {/* List Section */}
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3, opacity: 0.7 }}>
-                UPCOMING TESTS
+                Ready to ace your spelling today?
             </Typography>
 
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
@@ -147,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                                         {ex.title}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Due {ex.date}
+                                        {ex.date}
                                     </Typography>
                                 </Box>
                                 <Stack direction="row" spacing={1}>
