@@ -298,7 +298,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 Ready to ace your spelling today?
             </Typography>
             <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 1 }}>
-                This is a lightweight application. Progress is stored locally on your device.
+                Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
             </Typography>
 
             {/* Edit Dates Pill */}
