@@ -139,7 +139,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
     };
 
-    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.5x' : '1x';
+    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
 
     // Deleted ModeSwitch
 

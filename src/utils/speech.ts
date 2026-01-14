@@ -8,8 +8,9 @@ const prepForSpeech = (text: string): string => {
         .replace(/"/g, ' quote ');
 };
 
-const playAudioContent = (base64Audio: string) => {
+const playAudioContent = (base64Audio: string, rate: number = 1) => {
     const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+    audio.playbackRate = rate;
     audio.play();
 };
 
@@ -28,7 +29,7 @@ export const speak = async (text: string, rate: number = 0.85) => {
         if (response.ok) {
             const data = await response.json();
             if (data.audioContent) {
-                playAudioContent(data.audioContent);
+                playAudioContent(data.audioContent, rate);
                 return;
             }
         }

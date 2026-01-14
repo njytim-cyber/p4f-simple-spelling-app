@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard';
 import SpellingMode from './components/SpellingMode';
 import DictationMode from './components/DictationMode';
 import OnboardingOverlay from './components/OnboardingOverlay';
+import UpdateSplash from './components/UpdateSplash';
 import Confetti from 'react-confetti';
 import { Box } from '@mui/material';
 
@@ -104,6 +105,9 @@ export default function App() {
             {showOnboarding && view === 'dashboard' && (
                 <OnboardingOverlay onComplete={handleOnboardingComplete} />
             )}
+
+            {/* Version update splash - shows when app is updated */}
+            <UpdateSplash />
         </Box>
     );
 }
