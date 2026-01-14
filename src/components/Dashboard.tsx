@@ -29,6 +29,7 @@ import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercise
 import { APP_VERSION, CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
 import { TextField } from '@mui/material';
+import { chunkText } from '../utils/speech';
 
 interface DashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
@@ -121,13 +122,80 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         setOpenEditDates(false);
     };
 
-    const getTotalXP = () => history.reduce((acc, curr) => acc + (curr.score * 10), 0);
+
+
+    // ... (existing imports)
+
+    // Helper to normalize history records for display
+    // Handles transition from 1-point system to 2-point tiered system
+    const getNormalizedRecord = (record: ScoreRecord) => {
+        // Find reference exercise to get true item count
+        const refEx = exercises.find(e => e.id === record.exerciseId);
+        if (!refEx) return record; // Cannot normalize if ex not found
+
+        const itemCount = record.type === 'spelling'
+            ? refEx.spelling.length
+            : chunkText(refEx.dictation).length;
+
+        const isToday = record.date === new Date().toLocaleDateString();
+
+        // CASE 1: Obvious Bug (Score > Total)
+        // Happens when score used new logic (2pts) but total used old logic (1x)
+        if (record.score > record.total) {
+            return {
+                ...record,
+                total: record.total * 2
+            };
+        }
+
+        // CASE 2: Potential Identity Crisis (Total == Item Count)
+        // Could be Legacy (1pt max) OR Bugged New (2pt max, wrongly saved total)
+        if (record.total === itemCount) {
+            if (!isToday) {
+                // Legacy Record (Old logic)
+                // Normalize to new scale (x2) so 5/5 becomes 10/10
+                return {
+                    ...record,
+                    score: record.score * 2,
+                    total: record.total * 2
+                };
+            } else {
+                // Bugged New Record (likely from today's session before fix)
+                // Score is already 2-point based (e.g. 2 for 1 correct), Total is 1x
+                // Fix total only: 2/5 -> 2/10
+                return {
+                    ...record,
+                    total: record.total * 2
+                };
+            }
+        }
+
+        return record;
+    };
+
+
+    const getTotalXP = () => history.reduce((acc, curr) => {
+        const norm = getNormalizedRecord(curr);
+        // If we want XP to be consistent, we might calculate based on norm score?
+        // But let's stick to saved score * 10 for simplicity unless huge disparity
+        // Actually, if legacy 5/5 -> 50XP. New 10/10 -> 100XP.
+        // Users might prefer the boost. Let's use normalized score for XP!
+        return acc + (norm.score * 10);
+    }, 0);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
-        const attempts = history.filter(h => h.exerciseId === exerciseId && h.type === type);
+        const attempts = history
+            .filter(h => h.exerciseId === exerciseId && h.type === type)
+            .map(getNormalizedRecord);
+
         if (attempts.length === 0) return null;
         return attempts.reduce((max, curr) => (curr.score > max.score ? curr : max), attempts[0]);
     };
+
+    // ... inside the render ...
+    // Update the history list mapping:
+    // ...
+
 
     const StatusPill = ({ exId, type, label }: { exId: string, type: ExerciseType, label: string }) => {
         const best = getBestScore(exId, type);
@@ -370,7 +438,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                         </Box>
                     ) : (
                         <List disablePadding>
-                            {[...history].reverse().map((record, i) => {
+                            {[...history].reverse().map((rawRecord, i) => {
+                                const record = getNormalizedRecord(rawRecord);
                                 const exercise = EXERCISES.find(e => e.id === record.exerciseId);
                                 const isPerfect = record.score === record.total;
                                 return (

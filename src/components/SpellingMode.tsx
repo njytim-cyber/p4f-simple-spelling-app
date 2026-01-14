@@ -132,7 +132,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         size="large"
                         fullWidth
                         sx={{ mt: 4, py: 2 }}
-                        onClick={() => onComplete(score, exercise.spelling.length, missedItems)}
+                        onClick={() => onComplete(score, exercise.spelling.length * 2, missedItems)}
                     >
                         Return to Dashboard
                     </Button>

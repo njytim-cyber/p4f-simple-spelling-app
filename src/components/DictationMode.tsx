@@ -204,7 +204,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         size="large"
                         fullWidth
                         sx={{ mt: 4, py: 2 }}
-                        onClick={() => onComplete(score, chunks.length, missedChunks)}
+                        onClick={() => onComplete(score, chunks.length * 2, missedChunks)}
                     >
                         Finish Exercise
                     </Button>
