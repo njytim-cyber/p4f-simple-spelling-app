@@ -124,8 +124,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
             </Stack>
 
             {/* List Section */}
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3, opacity: 0.7 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1, opacity: 0.7 }}>
                 Ready to ace your spelling today?
+            </Typography>
+            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 3 }}>
+                This is a lightweight application. Progress is stored locally on your device.
             </Typography>
 
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
