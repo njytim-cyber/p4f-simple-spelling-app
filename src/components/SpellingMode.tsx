@@ -33,7 +33,6 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     const [missedItems, setMissedItems] = useState<string[]>([]);
 
     const currentWord = exercise.spelling[index];
-    const progress = (index / exercise.spelling.length) * 100;
 
     useEffect(() => {
         if (feedback === 'neutral' && !showResults) {
