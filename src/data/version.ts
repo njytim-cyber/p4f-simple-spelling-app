@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.1.1';
+export const APP_VERSION = '1.2.0';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.2.0',
+        date: '14 Jan 2026',
+        title: '🧠 Smart Dictation Feedback',
+        changes: [
+            'Smarts feedback tells you WHY you were wrong (spelling, caps, or punctuation)',
+            'Handles multiple errors simultaneously',
+            'Improved text normalization (curly quotes, dashes, spaces)',
+        ],
+    },
     {
         version: '1.1.1',
         date: '14 Jan 2026',

@@ -33,6 +33,49 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     const [showResults, setShowResults] = useState(false);
     const [missedChunks, setMissedChunks] = useState<string[]>([]);
     const [hasAttempted, setHasAttempted] = useState(false);
+    const [errorHint, setErrorHint] = useState<string[]>([]);
+
+    // Detect what types of errors the user made
+    const detectErrors = (userInput: string, correct: string): string[] => {
+        const errors: string[] = [];
+        const normInput = normalizeText(userInput);
+        const normCorrect = normalizeText(correct);
+
+        // Split into words for word-by-word comparison
+        const inputWords = normInput.split(/\s+/);
+        const correctWords = normCorrect.split(/\s+/);
+
+        let hasSpellingError = false;
+        let hasCapitalizationError = false;
+        let hasPunctuationError = false;
+
+        // Compare words
+        const maxLen = Math.max(inputWords.length, correctWords.length);
+        for (let i = 0; i < maxLen; i++) {
+            const iW = inputWords[i] || '';
+            const cW = correctWords[i] || '';
+
+            // Strip all punctuation for spelling/caps check
+            const iWClean = iW.replace(/[.,!?;:"'()-]/g, '');
+            const cWClean = cW.replace(/[.,!?;:"'()-]/g, '');
+
+            if (iWClean.toLowerCase() !== cWClean.toLowerCase()) {
+                hasSpellingError = true;
+            } else if (iWClean !== cWClean) {
+                hasCapitalizationError = true;
+            }
+
+            if (iW !== cW && iWClean === cWClean) {
+                hasPunctuationError = true;
+            }
+        }
+
+        if (hasSpellingError) errors.push('⚠️ Check your spelling');
+        if (hasCapitalizationError) errors.push('⚠️ Check your capitalization');
+        if (hasPunctuationError) errors.push('⚠️ Check your punctuation');
+
+        return errors;
+    };
 
     const chunks = useMemo(() => chunkText(exercise.dictation), [exercise.dictation]);
     const currentChunk = chunks[index];
@@ -44,8 +87,21 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         }
     }, [index, currentChunk, feedback, speed, showResults]);
 
+    // Normalize text for comparison (quotes, dashes, spaces)
+    const normalizeText = (text: string): string => {
+        return text
+            .replace(/[\u2018\u2019]/g, "'")    // curly single quotes to straight
+            .replace(/[\u201C\u201D]/g, '"')    // curly double quotes to straight
+            .replace(/[\u2013\u2014]/g, '-')    // en-dash/em-dash to hyphen
+            .replace(/\u2026/g, '...')          // ellipsis character to three dots
+            .replace(/\s+/g, ' ')               // multiple spaces to single space
+            .trim();
+    };
+
     const handleSubmit = () => {
-        const isCorrect = input.trim() === currentChunk.trim();
+        const normalizedInput = normalizeQuotes(input.trim());
+        const normalizedChunk = normalizeQuotes(currentChunk.trim());
+        const isCorrect = normalizedInput === normalizedChunk;
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
             // 2 points for first try, 1 point for retry
@@ -59,6 +115,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                 setMissedChunks(prev => [...prev, currentChunk]);
             }
             setHasAttempted(true);
+            setErrorHint(detectErrors(input, currentChunk));
         }
     };
 
@@ -70,6 +127,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             setInput('');
             setFeedback('neutral');
             setHasAttempted(false);
+            setErrorHint([]);
         } else {
             setShowResults(true);
         }
@@ -256,7 +314,12 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     )}
                     {feedback === 'wrong' && (
                         <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                            <Typography color="error" fontWeight="bold">Correct:</Typography>
+                            {errorHint.length > 0 && errorHint.map((hint, i) => (
+                                <Typography key={i} color="warning.main" fontWeight="bold" sx={{ mb: 0.5 }}>
+                                    {hint}
+                                </Typography>
+                            ))}
+                            <Typography color="error" fontWeight="bold" sx={{ mt: 1 }}>Correct:</Typography>
                             <Typography variant="body1">{currentChunk}</Typography>
                         </Box>
                     )}
