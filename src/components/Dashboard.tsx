@@ -25,7 +25,7 @@ import {
     Sync,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
-import { APP_VERSION } from '../data/version';
+import { APP_VERSION, CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
 
 interface DashboardProps {
@@ -36,6 +36,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     const [openHistory, setOpenHistory] = useState(false);
     const [openSpellingList, setOpenSpellingList] = useState(false);
+    const [openChangelog, setOpenChangelog] = useState(false);
     const getTotalXP = () => history.reduce((acc, curr) => acc + (curr.score * 10), 0);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
@@ -82,6 +83,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         );
     };
 
+    // Filter changelog for v1.2.0 and above
+    // Simple check: we assume versions are 'x.y.z'
+    // We want >= 1.2
+    const recentChanges = CHANGELOG.filter(entry => {
+        const [major, minor] = entry.version.split('.').map(Number);
+        return major > 1 || (major === 1 && minor >= 2);
+    });
+
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             {/* Header */}
@@ -95,6 +104,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     </Typography>
                 </Box>
                 <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <IconButton
+                        title="Version History"
+                        onClick={() => setOpenChangelog(true)}
+                        sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
+                    >
+                        ℹ️
+                    </IconButton>
                     <IconButton
                         data-onboarding="spelling-list"
                         title="Spelling Lists"
@@ -135,6 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 This is a lightweight application. Progress is stored locally on your device.
             </Typography>
 
+            {/* ... Rest of key components (Paper, Dialogs) ... */}
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
                 <List disablePadding>
                     {EXERCISES.map((ex, index) => (
@@ -271,6 +288,47 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenHistory(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
                         Finish
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Changelog Dialog */}
+            <Dialog open={openChangelog} onClose={() => setOpenChangelog(false)} fullWidth maxWidth="sm">
+                <DialogTitle sx={{ fontWeight: '800' }}>What's New</DialogTitle>
+                <DialogContent dividers>
+                    <List disablePadding>
+                        {recentChanges.map((entry, i) => (
+                            <Box key={entry.version}>
+                                <ListItem sx={{ px: 0, flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
+                                    <Stack direction="row" width="100%" justifyContent="space-between" alignItems="center" mb={1}>
+                                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                            v{entry.version}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {entry.date}
+                                        </Typography>
+                                    </Stack>
+                                    <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+                                        {entry.title}
+                                    </Typography>
+                                    <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                                        {entry.changes.map((change, idx) => (
+                                            <li key={idx}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {change}
+                                                </Typography>
+                                            </li>
+                                        ))}
+                                    </Box>
+                                </ListItem>
+                                {i < recentChanges.length - 1 && <Divider />}
+                            </Box>
+                        ))}
+                    </List>
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={() => setOpenChangelog(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
+                        Cool!
                     </Button>
                 </DialogActions>
             </Dialog>
