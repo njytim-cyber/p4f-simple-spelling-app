@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.1.0',
+        date: '14 Jan 2026',
+        title: '🎯 Try Again & Scoring',
+        changes: [
+            'Added Try Again button when you spell incorrectly',
+            'New scoring: 2 pts first try, 1 pt retry',
+            'Score display now shows points earned vs max possible',
+        ],
+    },
     {
         version: '1.0.0',
         date: '14 Jan 2026',

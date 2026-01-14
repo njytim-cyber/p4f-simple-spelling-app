@@ -32,6 +32,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     const [speed, setSpeed] = useState(0.85);
     const [showResults, setShowResults] = useState(false);
     const [missedChunks, setMissedChunks] = useState<string[]>([]);
+    const [hasAttempted, setHasAttempted] = useState(false);
 
     const chunks = useMemo(() => chunkText(exercise.dictation), [exercise.dictation]);
     const currentChunk = chunks[index];
@@ -47,12 +48,17 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         const isCorrect = input.toLowerCase().trim().replace(/[.,!?]$/, '') === currentChunk.toLowerCase().trim().replace(/[.,!?]$/, '');
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
-            setScore((s) => s + 1);
+            // 2 points for first try, 1 point for retry
+            const points = hasAttempted ? 1 : 2;
+            setScore((s) => s + points);
             onCorrect?.();
             // Automatically move to next chunk after a brief delay
             setTimeout(handleNext, 1200);
         } else {
-            setMissedChunks(prev => [...prev, currentChunk]);
+            if (!hasAttempted) {
+                setMissedChunks(prev => [...prev, currentChunk]);
+            }
+            setHasAttempted(true);
             speak(`Incorrect. The correct text is ${currentChunk}`, speed);
         }
     };
@@ -64,6 +70,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             setIndex((i) => i + 1);
             setInput('');
             setFeedback('neutral');
+            setHasAttempted(false);
         } else {
             setShowResults(true);
         }
@@ -78,9 +85,9 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                 <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
                         <Typography variant="h2" color="secondary" fontWeight="bold">
-                            {score} / {chunks.length}
+                            {score} / {chunks.length * 2}
                         </Typography>
-                        <Typography color="text.secondary">Correct Chunks</Typography>
+                        <Typography color="text.secondary">Points</Typography>
                     </Box>
 
                     {missedChunks.length > 0 ? (
@@ -174,7 +181,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     </IconButton>
                     <Chip
                         icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${chunks.length}`}
+                        label={`${score} / ${chunks.length * 2}`}
                         variant="outlined"
                         sx={{ fontWeight: 'bold' }}
                     />
@@ -207,9 +214,17 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mb: 3, textAlign: 'center', fontStyle: 'italic' }}
+                sx={{ mb: 1, textAlign: 'center', fontStyle: 'italic' }}
             >
                 All punctuation marks will be read out to you except for capital letters, hyphens and apostrophes (').
+            </Typography>
+
+            <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mb: 3, textAlign: 'center', display: 'block' }}
+            >
+                ⭐ 2 pts first try • 1 pt retry
             </Typography>
 
             <AnimatePresence mode="wait">
@@ -246,16 +261,33 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                             <Typography variant="body1">{currentChunk}</Typography>
                         </Box>
                     )}
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        size="large"
-                        onClick={feedback === 'neutral' ? handleSubmit : handleNext}
-                        disabled={!input && feedback === 'neutral'}
-                        color={feedback === 'correct' ? 'success' : 'primary'}
-                    >
-                        {feedback === 'neutral' ? 'Check Answer' : 'Next Chunk'}
-                    </Button>
+                    {feedback === 'neutral' && (
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            size="large"
+                            onClick={handleSubmit}
+                            disabled={!input}
+                        >
+                            Check Answer
+                        </Button>
+                    )}
+
+                    {feedback === 'wrong' && (
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={() => {
+                                setInput('');
+                                setFeedback('neutral');
+                                setHasAttempted(true);
+                            }}
+                            fullWidth
+                            sx={{ py: 1.5 }}
+                        >
+                            Try Again
+                        </Button>
+                    )}
                 </motion.div>
             </AnimatePresence>
         </Container>

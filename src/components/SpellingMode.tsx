@@ -31,6 +31,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     const [speed, setSpeed] = useState(0.85);
     const [showResults, setShowResults] = useState(false);
     const [missedItems, setMissedItems] = useState<string[]>([]);
+    const [hasAttempted, setHasAttempted] = useState(false);
 
     const currentWord = exercise.spelling[index];
 
@@ -45,13 +46,17 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         const isCorrect = input.toLowerCase().trim() === currentWord.phrase.toLowerCase().trim();
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
-            setScore((s) => s + 1);
+            // 2 points for first try, 1 point for retry
+            const points = hasAttempted ? 1 : 2;
+            setScore((s) => s + points);
             onCorrect?.();
             // Automatically move to next word after a brief delay
             setTimeout(handleNext, 1200);
         } else {
-            setMissedItems(prev => [...prev, currentWord.phrase]);
-            // Visual feedback only for wrong answers as requested
+            if (!hasAttempted) {
+                setMissedItems(prev => [...prev, currentWord.phrase]);
+            }
+            setHasAttempted(true);
         }
     };
 
@@ -62,6 +67,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             if (prevIndex < exercise.spelling.length - 1) {
                 setInput('');
                 setFeedback('neutral');
+                setHasAttempted(false);
                 return prevIndex + 1;
             } else {
                 setShowResults(true);
@@ -91,9 +97,9 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                 <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
                         <Typography variant="h2" color="primary" fontWeight="bold">
-                            {score} / {exercise.spelling.length}
+                            {score} / {exercise.spelling.length * 2}
                         </Typography>
-                        <Typography color="text.secondary">Correct Words</Typography>
+                        <Typography color="text.secondary">Points</Typography>
                     </Box>
 
                     {missedItems.length > 0 ? (
@@ -164,7 +170,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                     </IconButton>
                     <Chip
                         icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${score} / ${exercise.spelling.length}`}
+                        label={`${score} / ${exercise.spelling.length * 2}`}
                         variant="outlined"
                         sx={{ fontWeight: 'bold' }}
                     />
@@ -193,6 +199,14 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                     {index + 1} / {exercise.spelling.length}
                 </Typography>
             </Box>
+
+            <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mb: 2, textAlign: 'center', display: 'block' }}
+            >
+                ⭐ 2 pts first try • 1 pt retry
+            </Typography>
 
             <motion.div
                 key={index}
@@ -274,6 +288,22 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             sx={{ py: 2, fontSize: '1.2rem' }}
                         >
                             Check
+                        </Button>
+                    )}
+
+                    {feedback === 'wrong' && (
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={() => {
+                                setInput('');
+                                setFeedback('neutral');
+                                setHasAttempted(true);
+                            }}
+                            fullWidth
+                            sx={{ py: 2, fontSize: '1.1rem' }}
+                        >
+                            Try Again
                         </Button>
                     )}
                 </Card>
