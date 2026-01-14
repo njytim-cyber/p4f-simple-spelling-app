@@ -45,9 +45,9 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         const inputWords = normInput.split(/\s+/);
         const correctWords = normCorrect.split(/\s+/);
 
-        let hasSpellingError = false;
-        let hasCapitalizationError = false;
-        let hasPunctuationError = false;
+        let spellingErrors: string[] = [];
+        let capsErrors: string[] = [];
+        let punctErrors: string[] = [];
 
         // Compare words
         const maxLen = Math.max(inputWords.length, correctWords.length);
@@ -55,24 +55,38 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             const iW = inputWords[i] || '';
             const cW = correctWords[i] || '';
 
-            // Strip all punctuation for spelling/caps check
+            // Strip all punctuation for spelling/caps check (but keep internal apostrophes for now?)
+            // Actually, simple strip is fine as we are normalizing
             const iWClean = iW.replace(/[.,!?;:"'()-]/g, '');
             const cWClean = cW.replace(/[.,!?;:"'()-]/g, '');
 
             if (iWClean.toLowerCase() !== cWClean.toLowerCase()) {
-                hasSpellingError = true;
+                // If the word is missing or extra, it counts as spelling
+                if (iWClean) spellingErrors.push(iWClean);
             } else if (iWClean !== cWClean) {
-                hasCapitalizationError = true;
+                capsErrors.push(iWClean);
             }
 
             if (iW !== cW && iWClean === cWClean) {
-                hasPunctuationError = true;
+                // Punctuation error on this word
+                punctErrors.push(iW || 'missing punctuation');
             }
         }
 
-        if (hasSpellingError) errors.push('⚠️ Check your spelling');
-        if (hasCapitalizationError) errors.push('⚠️ Check your capitalization');
-        if (hasPunctuationError) errors.push('⚠️ Check your punctuation');
+        if (spellingErrors.length > 0) {
+            errors.push(`⚠️ Check spelling: ${spellingErrors.join(', ')}`);
+        }
+        if (capsErrors.length > 0) {
+            errors.push(`⚠️ Check capitalization: ${capsErrors.join(', ')}`);
+        }
+        if (punctErrors.length > 0) {
+            // If we caught specific word punct errors
+            if (punctErrors.length > 0) {
+                errors.push(`⚠️ Check punctuation near: ${punctErrors.join(', ')}`);
+            } else {
+                errors.push('⚠️ Check your punctuation');
+            }
+        }
 
         return errors;
     };

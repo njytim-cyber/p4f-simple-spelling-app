@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.2.1';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.2.1',
+        date: '14 Jan 2026',
+        title: '🎯 Pinpoint Feedback',
+        changes: [
+            'Feedback now points out exactly WHICH words are wrong',
+            'Lists specific spelling and capitalization errors',
+            'Highlights punctuation issues near specific words',
+        ],
+    },
     {
         version: '1.2.0',
         date: '14 Jan 2026',
