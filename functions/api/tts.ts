@@ -7,7 +7,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
 
     try {
-        const { text, speakingRate } = await request.json() as { text: string, speakingRate?: number };
+        const { text, speakingRate, languageCode, name } = await request.json() as {
+            text: string,
+            speakingRate?: number,
+            languageCode?: string,
+            name?: string
+        };
         const apiKey = env.GOOGLE_API_KEY;
 
         if (!apiKey) {
@@ -24,6 +29,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             });
         }
 
+        // Use provided voice or default to US Female
+        const voiceName = name || "en-US-Neural2-F";
+        const voiceLanguage = languageCode || "en-US";
+
         const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
             method: "POST",
             headers: {
@@ -31,8 +40,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             },
             body: JSON.stringify({
                 input: { text },
-                // using a specific high quality voice
-                voice: { languageCode: "en-US", name: "en-US-Neural2-F" },
+                voice: { languageCode: voiceLanguage, name: voiceName },
                 audioConfig: {
                     audioEncoding: "MP3",
                     speakingRate: speakingRate || 1.0

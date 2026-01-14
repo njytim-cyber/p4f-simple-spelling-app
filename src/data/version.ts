@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.3.8';
+export const APP_VERSION = '1.3.9';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,18 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.9',
+        date: '14 Jan 2026',
+        title: '🎤 Voice Selection',
+        changes: [
+            'Choose from 9 voices (US/UK English)',
+            'Voice preference saved locally',
+            'Unified media controls (speaker, speed, voice)',
+            'Improved header alignment',
+            'Navigation warning when leaving practice',
+        ],
+    },
     {
         version: '1.3.8',
         date: '14 Jan 2026',
