@@ -25,6 +25,7 @@ import {
     Sync,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
+import { APP_VERSION } from '../data/version';
 import { motion } from 'framer-motion';
 
 interface DashboardProps {
@@ -88,6 +89,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 <Box>
                     <Typography variant="h4" color="primary" fontWeight="800">
                         Hi! 👋
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                        v{APP_VERSION}
                     </Typography>
                 </Box>
                 <Stack direction="row" alignItems="center" spacing={1.5}>

@@ -63,13 +63,21 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             if (iWClean.toLowerCase() !== cWClean.toLowerCase()) {
                 // If the word is missing or extra, it counts as spelling
                 if (iWClean) spellingErrors.push(iWClean);
-            } else if (iWClean !== cWClean) {
-                capsErrors.push(iWClean);
-            }
+            } else {
+                // Base word matches (spelling is correct) via normalized check
 
-            if (iW !== cW && iWClean === cWClean) {
-                // Punctuation error on this word
-                punctErrors.push(iW || 'missing punctuation');
+                // Check Capitalization (compare clean words)
+                if (iWClean !== cWClean) {
+                    capsErrors.push(iWClean);
+                }
+
+                // Check Punctuation
+                // We compare the full token (with punct) case-insensitively.
+                // Since we know the base letters match case-insensitively, 
+                // any remaining difference must be punctuation.
+                if (iW.toLowerCase() !== cW.toLowerCase()) {
+                    punctErrors.push(iW || 'missing punctuation');
+                }
             }
         }
 
