@@ -81,7 +81,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
     };
 
-    const speedLabel = speed === 0.6 ? 'Slow' : speed === 1.1 ? 'Fast' : 'Normal';
+    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.5x' : '1x';
 
     if (showResults) {
         return (
@@ -144,19 +144,23 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         <ArrowBack />
                     </IconButton>
                     <Typography variant="h6" color="text.secondary">
-                        Phrase {index + 1} of {exercise.spelling.length}
+                        Spelling
                     </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Button
-                        size="small"
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                        label={speedLabel}
                         onClick={toggleSpeed}
-                        variant="text"
-                        sx={{ mr: 1, minWidth: 80, fontSize: '0.75rem' }}
-                    >
-                        Speed: {speedLabel}
-                    </Button>
-                    <IconButton onClick={() => speak(currentWord.phrase, speed)} color="primary" sx={{ mr: 1 }}>
+                        size="small"
+                        sx={{
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
+                            '&:hover': { bgcolor: 'primary.dark' },
+                        }}
+                    />
+                    <IconButton onClick={() => speak(currentWord.phrase, speed)} color="primary">
                         <VolumeUp />
                     </IconButton>
                     <Chip
@@ -169,11 +173,27 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             </Box>
 
 
-            <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{ borderRadius: 5, height: 10, mb: 4, bgcolor: 'secondary.light', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
-            />
+            <Box sx={{ position: 'relative', mb: 4 }}>
+                <LinearProgress
+                    variant="determinate"
+                    value={((index + 1) / exercise.spelling.length) * 100}
+                    sx={{ borderRadius: 5, height: 24, bgcolor: 'secondary.light', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
+                />
+                <Typography
+                    variant="caption"
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                >
+                    {index + 1} / {exercise.spelling.length}
+                </Typography>
+            </Box>
 
             <motion.div
                 key={index}
