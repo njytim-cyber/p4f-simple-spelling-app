@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.3.5';
+export const APP_VERSION = '1.3.6';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,15 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.6',
+        date: '14 Jan 2026',
+        title: '👆 Swipe Navigation',
+        changes: [
+            'Added swipe gestures to the About dialog',
+            'Swiftly switch between About and What\'s New',
+        ],
+    },
     {
         version: '1.3.5',
         date: '14 Jan 2026',

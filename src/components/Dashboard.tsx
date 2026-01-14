@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
     Container,
     Typography,
@@ -243,6 +243,30 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         const [major, minor] = entry.version.split('.').map(Number);
         return major > 1 || (major === 1 && minor >= 2);
     });
+
+    // Swipe Logic for Info Dialog
+    const touchStart = useRef<number | null>(null);
+    const touchEnd = useRef<number | null>(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        touchEnd.current = null;
+        touchStart.current = e.targetTouches[0].clientX;
+    }
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        touchEnd.current = e.targetTouches[0].clientX;
+    }
+
+    const onTouchEnd = () => {
+        if (!touchStart.current || !touchEnd.current) return;
+        const distance = touchStart.current - touchEnd.current;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && infoTab === 0) setInfoTab(1);
+        if (isRightSwipe && infoTab === 1) setInfoTab(0);
+    }
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
@@ -509,7 +533,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     </Tabs>
                 </Box>
 
-                <DialogContent dividers sx={{ p: 0 }}>
+                <DialogContent dividers sx={{ p: 0 }}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
                     {infoTab === 0 && (
                         <Box sx={{ p: 3 }}>
                             <Typography variant="h6" color="primary" gutterBottom fontWeight="bold">
