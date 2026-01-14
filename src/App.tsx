@@ -5,6 +5,7 @@ import SpellingMode from './components/SpellingMode';
 import DictationMode from './components/DictationMode';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import UpdateSplash from './components/UpdateSplash';
+import VersionChecker from './components/VersionChecker';
 import Confetti from 'react-confetti';
 import { Box } from '@mui/material';
 
@@ -108,6 +109,9 @@ export default function App() {
 
             {/* Version update splash - shows when app is updated */}
             <UpdateSplash />
+
+            {/* Background version checker - prompts refresh when new version deployed */}
+            <VersionChecker />
         </Box>
     );
 }
