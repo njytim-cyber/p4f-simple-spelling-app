@@ -210,10 +210,10 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
             <motion.div
                 key={index}
-                initial={{ x: 300, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -300, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 25 }}
                 style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
             >
                 <Card
