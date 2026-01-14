@@ -23,13 +23,14 @@ export const speak = async (text: string, rate: number = 0.85) => {
         const response = await fetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: textToSpeak }),
+            body: JSON.stringify({ text: textToSpeak, speakingRate: rate }),
         });
 
         if (response.ok) {
             const data = await response.json();
             if (data.audioContent) {
-                playAudioContent(data.audioContent, rate);
+                // Backend now handles the speed natively
+                playAudioContent(data.audioContent, 1.0);
                 return;
             }
         }
@@ -54,7 +55,13 @@ export const speak = async (text: string, rate: number = 0.85) => {
         utterance.voice = americanVoice;
     }
     utterance.lang = 'en-US'; // Fallback
-    utterance.rate = rate;
+
+    // Adjust rate for fallback: make slow speeds noticeably slower
+    // 0.8 -> 0.6, which is usually distinct from 1.0
+    const adjustedRate = rate < 1.0 ? rate * 0.75 : rate;
+
+    utterance.rate = adjustedRate;
+    console.log(`Fallback Speech: "${textToSpeak}" | Requested: ${rate} | Effective: ${adjustedRate}`);
     window.speechSynthesis.speak(utterance);
 };
 

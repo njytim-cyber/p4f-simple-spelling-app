@@ -5,10 +5,10 @@ import {
     Card,
     Button,
     TextField,
-    LinearProgress,
     IconButton,
     Box,
     Chip,
+    ButtonBase,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +29,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     const [input, setInput] = useState('');
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
-    const [speed, setSpeed] = useState(0.85);
+    const [speed, setSpeed] = useState(1.0);
     const [showResults, setShowResults] = useState(false);
     const [missedItems, setMissedItems] = useState<string[]>([]);
     const [hasAttempted, setHasAttempted] = useState(false);
@@ -84,10 +84,10 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     }
 
     const toggleSpeed = () => {
-        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
+        setSpeed((s) => (s === 1.0 ? 0.8 : s === 0.8 ? 1.3 : 1.0));
     };
 
-    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.1x' : '0.85x';
+    const speedLabel = speed === 1.0 ? '1.0x' : speed === 0.8 ? '0.8x' : '1.3x';
 
     if (showResults) {
         return (
@@ -120,7 +120,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             </Box>
                         </>
                     ) : (
-                        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
                             <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
                                 Perfect Score! 🏆
                             </Typography>
@@ -158,37 +158,49 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
                 {/* Center Controls */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Media Pill */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: '#f5f5f5',
+                        borderRadius: 4,
+                        px: 0.5,
+                        py: 0.5,
+                        mr: 1
+                    }}>
+                        <IconButton
+                            onClick={() => speak(currentWord.phrase, speed)}
+                            size="small"
+                            sx={{ color: 'text.secondary' }}
+                        >
+                            <VolumeUp fontSize="small" />
+                        </IconButton>
+                        <Box sx={{ width: '1px', height: '16px', bgcolor: 'divider', mx: 0.5 }} />
+                        <ButtonBase
+                            onClick={toggleSpeed}
+                            sx={{
+                                px: 1.5,
+                                fontWeight: 'bold',
+                                fontSize: '0.85rem',
+                                color: 'text.secondary',
+                                height: 32,
+                                borderRadius: 2,
+                                '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+                            }}
+                        >
+                            {speedLabel}
+                        </ButtonBase>
+                    </Box>
                     <Chip
-                        label={speedLabel}
-                        onClick={toggleSpeed}
-                        size="small"
-                        sx={{
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            bgcolor: 'primary.main',
-                            color: 'primary.contrastText',
-                            '&:hover': { bgcolor: 'primary.dark' },
-                        }}
+                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
+                        label={`${score} / ${exercise.spelling.length * 2}`}
+                        variant="outlined"
+                        sx={{ fontWeight: 'bold' }}
                     />
-                    <IconButton onClick={() => speak(currentWord.phrase, speed)} color="primary">
-                        <VolumeUp />
-                    </IconButton>
-                </Box>
-
-                {/* Honey Jar Score */}
-                <Box sx={{ mt: -2 }}>
-                    <HoneyJar currentScore={score} totalPossible={exercise.spelling.length * 2} />
                 </Box>
             </Box>
 
-            {/* Progress Text (Simple) */}
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 1, textAlign: 'center', display: 'block', fontWeight: 'bold' }}
-            >
-                Question {index + 1} of {exercise.spelling.length}
-            </Typography>
+
 
             <motion.div
                 key={index}
@@ -196,7 +208,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-                style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
+                style={{ display: 'flex', flexDirection: 'column' }}
             >
                 <Card
                     sx={{
@@ -289,8 +301,19 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                             Try Again
                         </Button>
                     )}
+                    {/* Scoring Instruction */}
+                    <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 2 }}>
+                        ⭐ 2 points first try • 1 point retry
+                    </Typography>
                 </Card>
             </motion.div>
+
+
+
+            {/* Honey Jar In Flow */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>
+                <HoneyJar currentScore={score} totalPossible={exercise.spelling.length * 2} />
+            </Box>
         </Container>
     );
 };

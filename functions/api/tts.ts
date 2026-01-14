@@ -7,7 +7,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
 
     try {
-        const { text } = await request.json() as { text: string };
+        const { text, speakingRate } = await request.json() as { text: string, speakingRate?: number };
         const apiKey = env.GOOGLE_API_KEY;
 
         if (!apiKey) {
@@ -33,7 +33,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 input: { text },
                 // using a specific high quality voice
                 voice: { languageCode: "en-US", name: "en-US-Neural2-F" },
-                audioConfig: { audioEncoding: "MP3" },
+                audioConfig: {
+                    audioEncoding: "MP3",
+                    speakingRate: speakingRate || 1.0
+                },
             }),
         });
 

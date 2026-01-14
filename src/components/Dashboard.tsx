@@ -28,7 +28,7 @@ import {
     EditCalendar,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
-import { APP_VERSION, CHANGELOG } from '../data/version';
+import { CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
 import { TextField } from '@mui/material';
 import { chunkText } from '../utils/speech';
@@ -200,19 +200,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     // ...
 
 
-    const StatusPill = ({ exId, type, label }: { exId: string, type: ExerciseType, label: string }) => {
+    const StatusTarget = ({ exId, type }: { exId: string, type: ExerciseType }) => {
         const best = getBestScore(exId, type);
 
-        let textColor = 'text.secondary';
-        let bgColor = '#f5f5f5';
+        let icon = <RadioButtonUnchecked />;
+        let color = 'text.disabled';
 
         if (best) {
             if (best.score === best.total) {
-                textColor = 'white';
-                bgColor = 'success.main';
+                icon = <CheckCircle />;
+                color = 'success.main';
             } else {
-                textColor = 'white';
-                bgColor = 'secondary.main';
+                icon = <Sync />;
+                color = 'secondary.main';
             }
         }
 
@@ -221,20 +221,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         const dataAttr = isFirstExercise ? { 'data-onboarding': type } : {};
 
         return (
-            <Chip
+            <IconButton
                 {...dataAttr}
-                label={label}
-                icon={best ? (best.score === best.total ? <CheckCircle sx={{ color: 'white !important' }} /> : <Sync sx={{ color: 'white !important' }} />) : <RadioButtonUnchecked />}
                 onClick={() => onSelect(exercises.find(e => e.id === exId)!, type)}
                 sx={{
-                    fontWeight: 'bold',
-                    bgcolor: bgColor,
-                    color: textColor,
-                    cursor: 'pointer',
-                    '&:hover': { opacity: 0.9 },
-                    '& .MuiChip-icon': { color: best ? 'white' : 'inherit' }
+                    color: color,
+                    transition: 'transform 0.2s',
+                    '&:hover': { transform: 'scale(1.2)', bgcolor: 'rgba(0,0,0,0.04)' }
                 }}
-            />
+            >
+                {icon}
+            </IconButton>
         );
     };
 
@@ -271,39 +268,52 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             {/* Header */}
+            {/* Header */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
-                <Box>
-                    <Typography variant="h4" color="primary" fontWeight="800">
-                        Hi! 👋
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                        v{APP_VERSION}
-                    </Typography>
-                </Box>
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <IconButton
-                        title="Version History"
-                        onClick={() => setOpenChangelog(true)}
-                        sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
+                <Typography
+                    variant="h4"
+                    color="primary"
+                    fontWeight="800"
+                    sx={{
+                        whiteSpace: 'nowrap',
+                        fontSize: { xs: '1.75rem', sm: '2.125rem' }
+                    }}
+                >
+                    Hi! 👋
+                </Typography>
+
+                <Stack direction="row" alignItems="center" spacing={2}>
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={0}
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5 }}
                     >
-                        ℹ️
-                    </IconButton>
-                    <IconButton
-                        data-onboarding="spelling-list"
-                        title="Spelling Lists"
-                        onClick={() => setOpenSpellingList(true)}
-                        sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
-                    >
-                        📑
-                    </IconButton>
-                    <IconButton
-                        data-onboarding="activity-log"
-                        title="Activity Log"
-                        onClick={() => setOpenHistory(true)}
-                        sx={{ bgcolor: 'white', boxShadow: 1, '&:hover': { bgcolor: '#f5f5f5' }, fontSize: '1.2rem' }}
-                    >
-                        📈
-                    </IconButton>
+                        <IconButton
+                            title="Version History"
+                            onClick={() => setOpenChangelog(true)}
+                            sx={{ fontSize: '1.2rem' }}
+                        >
+                            ℹ️
+                        </IconButton>
+                        <IconButton
+                            data-onboarding="spelling-list"
+                            title="Spelling Lists"
+                            onClick={() => setOpenSpellingList(true)}
+                            sx={{ fontSize: '1.2rem' }}
+                        >
+                            📑
+                        </IconButton>
+                        <IconButton
+                            data-onboarding="activity-log"
+                            title="Activity Log"
+                            onClick={() => setOpenHistory(true)}
+                            sx={{ fontSize: '1.2rem' }}
+                        >
+                            📈
+                        </IconButton>
+                    </Stack>
+
                     <Chip
                         icon={<Star sx={{ color: '#FFD700 !important' }} />}
                         label={`${getTotalXP()}`}
@@ -311,10 +321,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                             bgcolor: 'primary.main',
                             color: 'white',
                             fontWeight: 'bold',
-                            fontSize: '1rem',
-                            py: 2.5,
+                            fontSize: '0.9rem',
+                            height: 32,
                             px: 1,
-                            borderRadius: 2,
+                            borderRadius: 4,
                         }}
                     />
                 </Stack>
@@ -328,30 +338,55 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
             </Typography>
 
-            {/* Edit Dates Pill */}
-            <Box sx={{ mb: 3 }}>
-                <Chip
-                    icon={<EditCalendar sx={{ fontSize: '1rem !important' }} />}
-                    label="Edit Spelling Dates"
-                    size="small"
-                    variant="outlined"
-                    onClick={handleOpenEditDates}
-                    sx={{
-                        borderColor: 'divider',
-                        color: 'text.secondary',
-                        '&:hover': { bgcolor: '#f5f5f5', borderColor: 'primary.main', color: 'primary.main' }
-                    }}
-                />
-            </Box>
+
 
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
+                {/* Column Header */}
+                <Box sx={{
+                    py: 1.5,
+                    px: 3,
+                    bgcolor: '#fcfcfc',
+                    borderBottom: '1px solid #eee',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
+                            #
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                                Date
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                onClick={handleOpenEditDates}
+                                sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
+                                title="Edit Dates"
+                            >
+                                <EditCalendar sx={{ fontSize: '1rem' }} />
+                            </IconButton>
+                        </Stack>
+                    </Stack>
+
+                    <Stack direction="row" spacing={2}>
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
+                            Spelling
+                        </Typography>
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
+                            Dictation
+                        </Typography>
+                    </Stack>
+                </Box>
+
                 <List disablePadding>
                     {exercises.map((ex, index) => (
                         <Box key={ex.id}>
                             <ListItem
                                 sx={{
-                                    py: 3,
-                                    px: 4,
+                                    py: 1.0,
+                                    px: 3,
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
@@ -362,17 +397,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
                             >
-                                <Box>
-                                    <Typography variant="h6" fontWeight="bold">
+                                <Stack direction="row" spacing={2} alignItems="baseline">
+                                    <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
                                         {ex.title}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
                                         {ex.date}
                                     </Typography>
-                                </Box>
-                                <Stack direction="row" spacing={1}>
-                                    <StatusPill exId={ex.id} type="spelling" label="Spelling" />
-                                    <StatusPill exId={ex.id} type="dictation" label="Dictation" />
+                                </Stack>
+                                <Stack direction="row" spacing={2}>
+                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
+                                        <StatusTarget exId={ex.id} type="spelling" />
+                                    </Box>
+                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
+                                        <StatusTarget exId={ex.id} type="dictation" />
+                                    </Box>
                                 </Stack>
                             </ListItem>
                             {index < exercises.length - 1 && <Divider />}
@@ -523,7 +562,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 scroll="paper"
             >
                 <DialogTitle sx={{ fontWeight: '800', pb: 0 }}>
-                    About Evan's P4F Spelling App
+                    About this App
                 </DialogTitle>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>

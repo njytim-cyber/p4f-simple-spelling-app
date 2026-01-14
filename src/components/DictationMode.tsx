@@ -8,8 +8,8 @@ import {
     IconButton,
     Stack,
     Box,
-    LinearProgress,
     Chip,
+    ButtonBase,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,11 +29,14 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     const [input, setInput] = useState('');
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
-    const [speed, setSpeed] = useState(0.85);
+    const [speed, setSpeed] = useState(1.0);
     const [showResults, setShowResults] = useState(false);
     const [missedChunks, setMissedChunks] = useState<string[]>([]);
     const [hasAttempted, setHasAttempted] = useState(false);
     const [errorHint, setErrorHint] = useState<string[]>([]);
+
+
+
 
     // Detect what types of errors the user made
     const detectErrors = (userInput: string, correct: string): string[] => {
@@ -42,44 +45,103 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         const normCorrect = normalizeText(correct);
 
         // Split into words for word-by-word comparison
-        const inputWords = normInput.split(/\s+/);
-        const correctWords = normCorrect.split(/\s+/);
+        const inputWords = normInput.split(/\s+/).filter(w => w);
+        const correctWords = normCorrect.split(/\s+/).filter(w => w);
 
         let spellingErrors: string[] = [];
+        let missingWords: string[] = [];
+        let extraWords: string[] = [];
         let capsErrors: string[] = [];
         let punctErrors: string[] = [];
 
-        // Compare words
-        const maxLen = Math.max(inputWords.length, correctWords.length);
-        for (let i = 0; i < maxLen; i++) {
-            const iW = inputWords[i] || '';
-            const cW = correctWords[i] || '';
+        let i = 0; // input pointer
+        let j = 0; // correct pointer
 
-            // Strip all punctuation for spelling/caps check (but keep internal apostrophes for now?)
+        const lookahead = 3; // How far to scan for shifted words
+
+        while (i < inputWords.length || j < correctWords.length) {
+            const iW = inputWords[i] || '';
+            const cW = correctWords[j] || '';
             const iWClean = iW.replace(/[.,!?;:"'()-]/g, '');
             const cWClean = cW.replace(/[.,!?;:"'()-]/g, '');
 
-            if (iWClean.toLowerCase() !== cWClean.toLowerCase()) {
-                // If the word is missing or extra, it counts as spelling
-                if (iWClean) spellingErrors.push(iWClean);
-            } else {
-                // Base word matches (spelling is correct) via normalized check
-
-                // Check Capitalization (compare clean words)
+            // 1. Exact Match (Clean)
+            if (iWClean.toLowerCase() === cWClean.toLowerCase()) {
+                // Check Caps
                 if (iWClean !== cWClean) {
                     capsErrors.push(iWClean);
                 }
-
-                // Check Punctuation
-                // We compare the full token (with punct) case-insensitively.
-                // Since we know the base letters match case-insensitively, 
-                // any remaining difference must be punctuation.
+                // Check Punctuation (on raw word)
                 if (iW.toLowerCase() !== cW.toLowerCase()) {
-                    punctErrors.push(iW || 'missing punctuation');
+                    punctErrors.push(iW);
+                }
+                i++;
+                j++;
+                continue;
+            }
+
+            // 2. Mismatch - Try to classify (Missing vs Extra vs Substitution)
+
+            // Check if current input word matches a future correct word (Deletion/Missing in input)
+            let foundInCorrect = -1;
+            for (let k = 1; k <= lookahead && j + k < correctWords.length; k++) {
+                const nextCW = correctWords[j + k].replace(/[.,!?;:"'()-]/g, '');
+                if (iWClean.toLowerCase() === nextCW.toLowerCase()) {
+                    foundInCorrect = k;
+                    break;
+                }
+            }
+
+            // Check if current correct word matches a future input word (Insertion/Extra in input)
+            let foundInInput = -1;
+            for (let k = 1; k <= lookahead && i + k < inputWords.length; k++) {
+                const nextIW = inputWords[i + k].replace(/[.,!?;:"'()-]/g, '');
+                if (nextIW.toLowerCase() === cWClean.toLowerCase()) {
+                    foundInInput = k;
+                    break;
+                }
+            }
+
+            if (foundInCorrect !== -1 && (foundInInput === -1 || foundInCorrect <= foundInInput)) {
+                // We found the input word later in the correct string.
+                // It implies the words skipped in 'correct' are MISSING.
+                for (let k = 0; k < foundInCorrect; k++) {
+                    missingWords.push(correctWords[j + k]);
+                }
+                j += foundInCorrect;
+                // Don't advance i, we'll match it next loop
+            } else if (foundInInput !== -1) {
+                // We found the correct word later in the input string.
+                // It implies the words skipped in 'input' are EXTRA.
+                for (let k = 0; k < foundInInput; k++) {
+                    extraWords.push(inputWords[i + k]);
+                }
+                i += foundInInput;
+                // Don't advance j, we'll match it next loop
+            } else {
+                // Substitution / Typo
+                // If we are at the end of one list, assume the rest are missing/extra
+                if (i >= inputWords.length) {
+                    missingWords.push(cW);
+                    j++;
+                } else if (j >= correctWords.length) {
+                    extraWords.push(iW);
+                    i++;
+                } else {
+                    // Actual substitution
+                    spellingErrors.push(iWClean);
+                    i++;
+                    j++;
                 }
             }
         }
 
+        if (missingWords.length > 0) {
+            errors.push(`⚠️ Missing words: ${missingWords.join(', ')}`);
+        }
+        if (extraWords.length > 0) {
+            errors.push(`⚠️ Extra words: ${extraWords.join(', ')}`);
+        }
         if (spellingErrors.length > 0) {
             errors.push(`⚠️ Check spelling: ${spellingErrors.join(', ')}`);
         }
@@ -87,12 +149,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
             errors.push(`⚠️ Check capitalization: ${capsErrors.join(', ')}`);
         }
         if (punctErrors.length > 0) {
-            // If we caught specific word punct errors
-            if (punctErrors.length > 0) {
-                errors.push(`⚠️ Check punctuation near: ${punctErrors.join(', ')}`);
-            } else {
-                errors.push('⚠️ Check your punctuation');
-            }
+            errors.push(`⚠️ Check punctuation near: ${punctErrors.join(', ')}`);
         }
 
         return errors;
@@ -167,19 +224,20 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     }
 
     const toggleSpeed = () => {
-        setSpeed((s) => (s === 0.85 ? 0.6 : s === 0.6 ? 1.1 : 0.85));
+        setSpeed((s) => (s === 1.0 ? 0.8 : s === 0.8 ? 1.3 : 1.0));
     };
 
-    const speedLabel = speed === 0.6 ? '0.6x' : speed === 1.1 ? '1.1x' : '0.85x';
+    const speedLabel = speed === 1.0 ? '1.0x' : speed === 0.8 ? '0.8x' : '1.3x';
 
     if (showResults) {
         return (
             <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center">
-                    Dictation Review
-                </Typography>
-                <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+
+                <Card sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center" sx={{ mb: 4 }}>
+                            Dictation Review
+                        </Typography>
                         <Typography variant="h2" color="secondary" fontWeight="bold">
                             {score} / {chunks.length * 2}
                         </Typography>
@@ -208,7 +266,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                             </Box>
                         </>
                     ) : (
-                        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
                             <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
                                 Flawless Dictation! 🎯
                             </Typography>
@@ -244,45 +302,64 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
 
                 {/* Center Controls */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Media Pill */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: '#f5f5f5',
+                        borderRadius: 4,
+                        px: 0.5,
+                        py: 0.5,
+                        mr: 1
+                    }}>
+                        <IconButton
+                            onClick={() => speak(currentChunk, speed)}
+                            size="small"
+                            sx={{ color: 'text.secondary' }}
+                        >
+                            <VolumeUp fontSize="small" />
+                        </IconButton>
+                        <Box sx={{ width: '1px', height: '16px', bgcolor: 'divider', mx: 0.5 }} />
+                        <ButtonBase
+                            onClick={toggleSpeed}
+                            sx={{
+                                px: 1.5,
+                                fontWeight: 'bold',
+                                fontSize: '0.85rem',
+                                color: 'text.secondary',
+                                height: 32,
+                                borderRadius: 2,
+                                '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+                            }}
+                        >
+                            {speedLabel}
+                        </ButtonBase>
+                    </Box>
                     <Chip
-                        label={speedLabel}
-                        onClick={toggleSpeed}
-                        size="small"
-                        sx={{
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            bgcolor: 'primary.main',
-                            color: 'primary.contrastText',
-                            '&:hover': { bgcolor: 'primary.dark' },
-                        }}
+                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
+                        label={`${score} / ${chunks.length * 2}`}
+                        variant="outlined"
+                        sx={{ fontWeight: 'bold' }}
                     />
-                    <IconButton onClick={() => speak(currentChunk, speed)} color="secondary" sx={{ mr: 1 }}>
-                        <VolumeUp />
-                    </IconButton>
-                </Box>
-
-                {/* Honey Jar Score */}
-                <Box sx={{ mt: -2 }}>
-                    <HoneyJar currentScore={score} totalPossible={chunks.length * 2} />
                 </Box>
             </Stack>
+
+
 
             <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{ mb: 1, textAlign: 'center', fontStyle: 'italic', fontSize: '0.8rem' }}
             >
-                All punctuation marks will be read out except capital letters.
+                All punctuation marks will be read out to you except for capital letters, hyphens and apostrophes (').
             </Typography>
 
-            {/* Progress Text */}
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 2, textAlign: 'center', display: 'block', fontWeight: 'bold' }}
-            >
-                Chunk {index + 1} of {chunks.length}
+            {/* Scoring Instruction */}
+            <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 1 }}>
+                ⭐ 2 points first try • 1 point retry
             </Typography>
+
+
 
             <AnimatePresence mode="wait">
                 <motion.div
@@ -352,6 +429,11 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                     )}
                 </motion.div>
             </AnimatePresence>
+
+            {/* Honey Jar In Flow */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>
+                <HoneyJar currentScore={score} totalPossible={chunks.length * 2} />
+            </Box>
         </Container>
     );
 };

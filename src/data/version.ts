@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.3.7';
+export const APP_VERSION = '1.3.8';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,18 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.8',
+        date: '14 Jan 2026',
+        title: '🚀 Speed & Layout',
+        changes: [
+            'Native Google TTS speed control (High Quality)',
+            'Bee Encouragement System 🐝 (Speech Bubble)',
+            'Smart Dictation Validation 🧠 (Detects missing/extra words)',
+            'Refined layout: Honey Jar moves to flow',
+            'Restored Score Pill to header',
+        ],
+    },
     {
         version: '1.3.7',
         date: '14 Jan 2026',
