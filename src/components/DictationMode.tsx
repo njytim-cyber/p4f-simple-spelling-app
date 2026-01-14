@@ -45,7 +45,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
     }, [index, currentChunk, feedback, speed, showResults]);
 
     const handleSubmit = () => {
-        const isCorrect = input.toLowerCase().trim().replace(/[.,!?]$/, '') === currentChunk.toLowerCase().trim().replace(/[.,!?]$/, '');
+        const isCorrect = input.trim() === currentChunk.trim();
         setFeedback(isCorrect ? 'correct' : 'wrong');
         if (isCorrect) {
             // 2 points for first try, 1 point for retry
@@ -59,7 +59,6 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                 setMissedChunks(prev => [...prev, currentChunk]);
             }
             setHasAttempted(true);
-            speak(`Incorrect. The correct text is ${currentChunk}`, speed);
         }
     };
 

@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.1.1';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.1.1',
+        date: '14 Jan 2026',
+        title: '📝 Stricter Dictation',
+        changes: [
+            'Dictation now checks capitalization',
+            'Dictation now checks punctuation',
+            'Removed spoken feedback on wrong answers',
+        ],
+    },
     {
         version: '1.1.0',
         date: '14 Jan 2026',
