@@ -281,7 +281,7 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                 color="text.secondary"
                 sx={{ mb: 3, textAlign: 'center', display: 'block' }}
             >
-                ⭐ 2 pts first try • 1 pt retry
+                ⭐ 2 points first try • 1 point retry
             </Typography>
 
             <AnimatePresence mode="wait">

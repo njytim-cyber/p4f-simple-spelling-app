@@ -205,7 +205,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                 color="text.secondary"
                 sx={{ mb: 2, textAlign: 'center', display: 'block' }}
             >
-                ⭐ 2 pts first try • 1 pt retry
+                ⭐ 2 points first try • 1 point retry
             </Typography>
 
             <motion.div
