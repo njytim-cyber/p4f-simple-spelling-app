@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.2.2';
+export const APP_VERSION = '1.3.0';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.0',
+        date: '14 Jan 2026',
+        title: '🗓️ Editable Dates',
+        changes: [
+            'Added "Edit Spelling Dates" feature to dashboard',
+            'Dates are saved locally on your device',
+            'Added "Info" button for version history',
+        ],
+    },
     {
         version: '1.2.2',
         date: '14 Jan 2026',

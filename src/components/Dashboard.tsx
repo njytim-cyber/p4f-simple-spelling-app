@@ -23,20 +23,97 @@ import {
     CheckCircle,
     RadioButtonUnchecked,
     Sync,
+    EditCalendar,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { APP_VERSION, CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
+import { TextField } from '@mui/material';
 
 interface DashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
     history: ScoreRecord[];
 }
 
+const STORAGE_KEY_DATES = 'p4_exercises_dates';
+
 const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     const [openHistory, setOpenHistory] = useState(false);
     const [openSpellingList, setOpenSpellingList] = useState(false);
     const [openChangelog, setOpenChangelog] = useState(false);
+    const [openEditDates, setOpenEditDates] = useState(false);
+
+    // Initialize exercises from storage or default
+    const [exercises, setExercises] = useState<Exercise[]>(() => {
+        const saved = localStorage.getItem(STORAGE_KEY_DATES);
+        if (saved) {
+            try {
+                const textDates = JSON.parse(saved) as Record<string, string>;
+                // Merge saved dates into default exercises
+                return EXERCISES.map(ex => ({
+                    ...ex,
+                    date: textDates[ex.id] || ex.date
+                }));
+            } catch (e) {
+                console.error("Failed to parse saved dates", e);
+            }
+        }
+        return EXERCISES;
+    });
+
+    // Temp state for editing
+    const [editDates, setEditDates] = useState<Record<string, string>>({});
+
+    // Helper to format "24 Jan" (current year) -> "YYYY-MM-DD" for input
+    const toInputFormat = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+            // Assume current year if missing
+            const currentYear = new Date().getFullYear();
+            const date = new Date(`${dateStr} ${currentYear}`);
+            if (isNaN(date.getTime())) return ''; // Fallback
+            return date.toISOString().split('T')[0];
+        } catch (e) {
+            return '';
+        }
+    };
+
+    // Helper to format "YYYY-MM-DD" -> "24 Jan" for display/storage
+    const toDisplayFormat = (isoDate: string) => {
+        if (!isoDate) return '';
+        try {
+            const date = new Date(isoDate);
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        } catch (e) {
+            return isoDate;
+        }
+    };
+
+    const handleOpenEditDates = () => {
+        const currentDates: Record<string, string> = {};
+        // Store as YYYY-MM-DD in the edit state for easy binding to input
+        exercises.forEach(ex => {
+            currentDates[ex.id] = toInputFormat(ex.date);
+        });
+        setEditDates(currentDates);
+        setOpenEditDates(true);
+    };
+
+    const handleSaveDates = () => {
+        const newExercises = exercises.map(ex => ({
+            ...ex,
+            // Convert back to "24 Jan" format when saving
+            date: editDates[ex.id] ? toDisplayFormat(editDates[ex.id]) : ex.date
+        }));
+        setExercises(newExercises);
+
+        const dateMap: Record<string, string> = {};
+        newExercises.forEach(ex => dateMap[ex.id] = ex.date);
+        localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(dateMap));
+
+        setOpenEditDates(false);
+    };
+
     const getTotalXP = () => history.reduce((acc, curr) => acc + (curr.score * 10), 0);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
@@ -70,7 +147,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                 {...dataAttr}
                 label={label}
                 icon={best ? (best.score === best.total ? <CheckCircle sx={{ color: 'white !important' }} /> : <Sync sx={{ color: 'white !important' }} />) : <RadioButtonUnchecked />}
-                onClick={() => onSelect(EXERCISES.find(e => e.id === exId)!, type)}
+                onClick={() => onSelect(exercises.find(e => e.id === exId)!, type)}
                 sx={{
                     fontWeight: 'bold',
                     bgcolor: bgColor,
@@ -84,8 +161,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
     };
 
     // Filter changelog for v1.2.0 and above
-    // Simple check: we assume versions are 'x.y.z'
-    // We want >= 1.2
     const recentChanges = CHANGELOG.filter(entry => {
         const [major, minor] = entry.version.split('.').map(Number);
         return major > 1 || (major === 1 && minor >= 2);
@@ -147,14 +222,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1, opacity: 0.7 }}>
                 Ready to ace your spelling today?
             </Typography>
-            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 3 }}>
+            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 1 }}>
                 This is a lightweight application. Progress is stored locally on your device.
             </Typography>
 
-            {/* ... Rest of key components (Paper, Dialogs) ... */}
+            {/* Edit Dates Pill */}
+            <Box sx={{ mb: 3 }}>
+                <Chip
+                    icon={<EditCalendar sx={{ fontSize: '1rem !important' }} />}
+                    label="Edit Spelling Dates"
+                    size="small"
+                    variant="outlined"
+                    onClick={handleOpenEditDates}
+                    sx={{
+                        borderColor: 'divider',
+                        color: 'text.secondary',
+                        '&:hover': { bgcolor: '#f5f5f5', borderColor: 'primary.main', color: 'primary.main' }
+                    }}
+                />
+            </Box>
+
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
                 <List disablePadding>
-                    {EXERCISES.map((ex, index) => (
+                    {exercises.map((ex, index) => (
                         <Box key={ex.id}>
                             <ListItem
                                 sx={{
@@ -183,11 +273,40 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                                     <StatusPill exId={ex.id} type="dictation" label="Dictation" />
                                 </Stack>
                             </ListItem>
-                            {index < EXERCISES.length - 1 && <Divider />}
+                            {index < exercises.length - 1 && <Divider />}
                         </Box>
                     ))}
                 </List>
             </Paper>
+
+            {/* Edit Dates Dialog */}
+            <Dialog open={openEditDates} onClose={() => setOpenEditDates(false)} fullWidth maxWidth="xs">
+                <DialogTitle sx={{ fontWeight: '800' }}>Edit Dates</DialogTitle>
+                <DialogContent dividers>
+                    <Stack spacing={2} sx={{ pt: 1 }}>
+                        {exercises.map((ex) => (
+                            <TextField
+                                key={ex.id}
+                                label={`Date for ${ex.title}`}
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                value={editDates[ex.id] || ''}
+                                onChange={(e) => setEditDates(prev => ({ ...prev, [ex.id]: e.target.value }))}
+                                size="small"
+                                fullWidth
+                            />
+                        ))}
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={() => setOpenEditDates(false)} color="inherit">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSaveDates} variant="contained" sx={{ borderRadius: 2 }}>
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Spelling List Dialog */}
             <Dialog open={openSpellingList} onClose={() => setOpenSpellingList(false)} fullWidth maxWidth="md">
