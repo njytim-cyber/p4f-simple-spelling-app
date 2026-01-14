@@ -174,50 +174,49 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                 </Box>
 
                 {/* Center Controls */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     {/* Unified Media Pill */}
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
                         bgcolor: '#f5f5f5',
                         borderRadius: 3,
-                        px: 0.25,
-                        py: 0.25,
+                        px: 0.5,
+                        py: 0.5,
                     }}>
                         <IconButton
                             onClick={() => speak(currentWord.phrase, speed, voice)}
                             size="small"
-                            sx={{ color: 'text.secondary', p: 0.5 }}
+                            sx={{ color: 'text.secondary', p: 0.75 }}
                         >
-                            <VolumeUp sx={{ fontSize: '1.1rem' }} />
+                            <VolumeUp sx={{ fontSize: '1.25rem' }} />
                         </IconButton>
-                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
+                        <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <ButtonBase
                             onClick={toggleSpeed}
                             sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                px: 0.75,
+                                px: 1,
                                 fontWeight: 'bold',
-                                fontSize: '0.7rem',
+                                fontSize: '0.85rem',
                                 lineHeight: 1,
                                 color: 'text.secondary',
-                                height: 28,
+                                height: 32,
                                 borderRadius: 1.5,
                                 '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
                             }}
                         >
                             {speedLabel}
                         </ButtonBase>
-                        <Box sx={{ width: '1px', height: '14px', bgcolor: 'divider', mx: 0.25 }} />
+                        <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
                     <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1rem' }} />}
+                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
                         label={`${score}/${exercise.spelling.length * 2}`}
                         variant="outlined"
-                        size="small"
-                        sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}
+                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32 }}
                     />
                 </Box>
             </Box>

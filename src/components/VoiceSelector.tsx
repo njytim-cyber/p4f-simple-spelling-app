@@ -54,11 +54,11 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ currentVoiceId, onVoiceSe
                     size="small"
                     sx={{
                         color: 'text.secondary',
-                        p: 0.5,
+                        p: 0.75,
                         '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
                     }}
                 >
-                    <RecordVoiceOver sx={{ fontSize: '1.1rem' }} />
+                    <RecordVoiceOver sx={{ fontSize: '1.25rem' }} />
                 </IconButton>
             </Tooltip>
             <Menu
