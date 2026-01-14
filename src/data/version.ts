@@ -3,7 +3,7 @@
 // - MINOR: New features (backwards compatible)
 // - PATCH: Bug fixes (backwards compatible)
 
-export const APP_VERSION = '1.3.1';
+export const APP_VERSION = '1.3.2';
 
 export interface ChangelogEntry {
     version: string;
@@ -13,6 +13,14 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+    {
+        version: '1.3.2',
+        date: '14 Jan 2026',
+        title: '🗓️ 2026 Schedule',
+        changes: [
+            'Updated all default dates to 2026',
+        ],
+    },
     {
         version: '1.3.1',
         date: '14 Jan 2026',
