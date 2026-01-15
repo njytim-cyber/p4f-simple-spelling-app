@@ -18,7 +18,32 @@ const theme = createTheme({
     },
     components: {
         MuiCard: { styleOverrides: { root: { boxShadow: '0px 4px 8px 3px rgba(0,0,0,0.05)' } } },
-        MuiButton: { styleOverrides: { root: { borderRadius: 100 } } },
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 100,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:focus': {
+                        boxShadow: 'none',
+                    },
+                    '&.Mui-focusVisible': {
+                        boxShadow: 'none',
+                        outline: '2px solid #EADDFF',
+                        outlineOffset: 2
+                    }
+                },
+                contained: {
+                    boxShadow: 'none',
+                    '&:hover': {
+                        boxShadow: 'none',
+                    },
+                    '&:focus': {
+                        boxShadow: 'none',
+                    }
+                }
+            }
+        },
         MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 12 } } },
         MuiFilledInput: { styleOverrides: { root: { borderRadius: 12 } } },
     },

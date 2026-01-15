@@ -1,0 +1,37 @@
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\App.tsx
+  123:8  warning  React Hook useMemo has an unnecessary dependency: 'revisionRefreshCounter'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\components\Dashboard.tsx
+   91:18  error  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  102:18  error  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  230:41  error  Forbidden non-null assertion   @typescript-eslint/no-non-null-assertion
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\components\DictationMode.tsx
+  61:13  error  'spellingErrors' is never reassigned. Use 'const' instead  prefer-const
+  62:13  error  'missingWords' is never reassigned. Use 'const' instead    prefer-const
+  63:13  error  'extraWords' is never reassigned. Use 'const' instead      prefer-const
+  64:13  error  'capsErrors' is never reassigned. Use 'const' instead      prefer-const
+  65:13  error  'punctErrors' is never reassigned. Use 'const' instead     prefer-const
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\components\VersionChecker.tsx
+  24:17  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\components\VoiceSelector.tsx
+  23:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\utils\sounds.ts
+  11:59  error  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  61:13  error  'time' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\utils\spacedRepetition.ts
+   83:38  error  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  121:27  error  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+
+C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\utils\speech.ts
+   71:14  error    'e' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  126:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+Γ£û 17 problems (13 errors, 4 warnings)
+  6 errors and 0 warnings potentially fixable with the `--fix` option.
+

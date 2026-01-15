@@ -1,23 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy, useMemo } from 'react';
 import { Exercise, ExerciseType, ScoreRecord } from './data/exercises';
 import Dashboard from './components/Dashboard';
-import SpellingMode from './components/SpellingMode';
-import DictationMode from './components/DictationMode';
+// Lazy load exercise modes for code splitting
+const SpellingMode = lazy(() => import('./components/SpellingMode'));
+const DictationMode = lazy(() => import('./components/DictationMode'));
+const RevisionMode = lazy(() => import('./components/RevisionMode'));
 import OnboardingOverlay from './components/OnboardingOverlay';
+import ErrorBoundary from './components/ErrorBoundary';
+
 import UpdateSplash, { LAST_SEEN_VERSION_KEY } from './components/UpdateSplash';
 import VersionChecker from './components/VersionChecker';
 import { APP_VERSION } from './data/version';
 import Confetti from 'react-confetti';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
+import {
+    RevisionItem,
+    getMissedItemsFromHistory,
+    mergeWithSavedData,
+    getPriorityItems,
+    getItemsDueForReview,
+    loadRevisionData,
+} from './utils/spacedRepetition';
 
 // Simple persistence helpers
 const STORAGE_KEY_HISTORY = 'p4_spelling_history';
 const STORAGE_KEY_ONBOARDING = 'p4_onboarding_complete';
 
 export default function App() {
-    const [view, setView] = useState<'dashboard' | 'exercise'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'exercise' | 'revision'>('dashboard');
     const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
     const [activeType, setActiveType] = useState<ExerciseType>('spelling');
+    const [revisionItems, setRevisionItems] = useState<RevisionItem[]>([]);
+    const [allRevisionData, setAllRevisionData] = useState<RevisionItem[]>([]);
+    const [revisionRefreshCounter, setRevisionRefreshCounter] = useState(0);
 
     const [history, setHistory] = useState<ScoreRecord[]>(() => {
         const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
@@ -48,6 +63,18 @@ export default function App() {
         setView('exercise');
     };
 
+    const handleStartRevision = () => {
+        // Build revision data from history
+        const historyItems = getMissedItemsFromHistory(history);
+        const savedData = loadRevisionData();
+        const merged = mergeWithSavedData(historyItems, savedData);
+        const priorityItems = getPriorityItems(merged, 10);
+
+        setAllRevisionData(merged);
+        setRevisionItems(priorityItems);
+        setView('revision');
+    };
+
     const triggerConfetti = () => {
         setShowConfetti(false);
         setTimeout(() => setShowConfetti(true), 10);
@@ -70,6 +97,11 @@ export default function App() {
         }
     };
 
+    const handleRevisionComplete = () => {
+        setRevisionRefreshCounter(c => c + 1);
+        setView('dashboard');
+    };
+
     // Minimal window size hook
     function useWinSize() {
         const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -81,29 +113,62 @@ export default function App() {
         return size;
     }
 
+    // Calculate items due for revision (memoized to prevent render thrashing)
+    const revisionDueCount = useMemo(() => {
+        const historyItems = getMissedItemsFromHistory(history);
+        const savedData = loadRevisionData();
+        const merged = mergeWithSavedData(historyItems, savedData);
+        // Show TOTAL items due on the dashboard, not just the session limit
+        return getItemsDueForReview(merged).length;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [history, revisionRefreshCounter]);
+
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             {showConfetti && <Confetti recycle={false} numberOfPieces={300} width={width} height={height} />}
 
-            {view === 'dashboard' ? (
-                <Dashboard onSelect={handleSelect} history={history} />
-            ) : activeExercise ? (
-                activeType === 'spelling' ? (
-                    <SpellingMode
-                        exercise={activeExercise}
-                        onComplete={(score, total, missed) => handleComplete(score, total, 'spelling', missed)}
-                        onCorrect={triggerConfetti}
-                        onBack={() => setView('dashboard')}
-                    />
-                ) : (
-                    <DictationMode
-                        exercise={activeExercise}
-                        onComplete={(score, total, missed) => handleComplete(score, total, 'dictation', missed)}
-                        onCorrect={triggerConfetti}
-                        onBack={() => setView('dashboard')}
-                    />
-                )
-            ) : null}
+            <ErrorBoundary>
+                <Suspense fallback={
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <CircularProgress />
+                    </Box>
+                }>
+                    {view === 'dashboard' ? (
+                        <Dashboard
+                            onSelect={handleSelect}
+                            history={history}
+                            onStartRevision={handleStartRevision}
+                            revisionDueCount={revisionDueCount}
+                        />
+                    ) : view === 'revision' ? (
+                        <RevisionMode
+                            items={revisionItems}
+                            allRevisionData={allRevisionData}
+                            onComplete={handleRevisionComplete}
+                            onBack={() => {
+                                setRevisionRefreshCounter(c => c + 1);
+                                setView('dashboard');
+                            }}
+                        />
+                    ) : activeExercise ? (
+                        activeType === 'spelling' ? (
+                            <SpellingMode
+                                exercise={activeExercise}
+                                onComplete={(score, total, missed) => handleComplete(score, total, 'spelling', missed)}
+                                onCorrect={triggerConfetti}
+                                onBack={() => setView('dashboard')}
+                            />
+                        ) : (
+                            <DictationMode
+                                exercise={activeExercise}
+                                onComplete={(score, total, missed) => handleComplete(score, total, 'dictation', missed)}
+                                onCorrect={triggerConfetti}
+                                onBack={() => setView('dashboard')}
+                            />
+                        )
+                    ) : null}
+                </Suspense>
+            </ErrorBoundary>
 
             {/* Onboarding overlay - only shows on dashboard for first-time users */}
             {showOnboarding && view === 'dashboard' && (

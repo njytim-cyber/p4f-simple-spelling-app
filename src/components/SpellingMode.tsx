@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Container,
     Typography,
     Card,
     Button,
-    TextField,
     IconButton,
     Box,
     Chip,
@@ -14,13 +13,15 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
+    Tooltip,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
 import { HoneyJar } from './HoneyJar';
 import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import ExerciseCard from './ExerciseCard';
+import { playVictorySound } from '../utils/sounds';
 
 interface SpellingModeProps {
     exercise: Exercise;
@@ -32,15 +33,13 @@ interface SpellingModeProps {
 
 const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBack, onCorrect }) => {
     const [index, setIndex] = useState(0);
-    const [input, setInput] = useState('');
-    const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [score, setScore] = useState(0);
     const [speed, setSpeed] = useState(1.0);
     const [voice, setVoice] = useState(getSavedVoice);
     const [showResults, setShowResults] = useState(false);
     const [missedItems, setMissedItems] = useState<string[]>([]);
-    const [hasAttempted, setHasAttempted] = useState(false);
     const [showExitDialog, setShowExitDialog] = useState(false);
+    const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const currentWord = exercise.spelling[index];
 
@@ -54,38 +53,40 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     };
 
     useEffect(() => {
-        if (feedback === 'neutral' && !showResults) {
+        let timer: ReturnType<typeof setTimeout>;
+        if (!showResults) {
             // Small delay to ensure synthesis is ready
-            setTimeout(() => speak(currentWord.phrase, speed, voice), 300);
+            timer = setTimeout(() => speak(currentWord.phrase, speed, voice), 300);
+        } else if (missedItems.length === 0) {
+            // Play victory sound on perfect score!
+            playVictorySound();
         }
-    }, [index, currentWord, feedback, speed, voice, showResults]);
+        return () => {
+            clearTimeout(timer);
+            if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+        };
+    }, [index, currentWord, speed, voice, showResults, missedItems.length]);
 
-    const handleSubmit = () => {
-        const isCorrect = input.toLowerCase().trim() === currentWord.phrase.toLowerCase().trim();
-        setFeedback(isCorrect ? 'correct' : 'wrong');
-        if (isCorrect) {
-            // 2 points for first try, 1 point for retry
-            const points = hasAttempted ? 1 : 2;
-            setScore((s) => s + points);
-            onCorrect?.();
-            // Automatically move to next word after a brief delay
-            setTimeout(handleNext, 1200);
-        } else {
-            if (!hasAttempted) {
-                setMissedItems(prev => [...prev, currentWord.phrase]);
-            }
-            setHasAttempted(true);
-        }
+    const handleCorrect = (attempts: number) => {
+        // 2 points for first try, 1 point for retry
+        const points = attempts === 1 ? 2 : 1;
+        setScore((s) => s + points);
+        onCorrect?.();
+
+        // Automatically move to next word after a brief delay
+        advanceTimeoutRef.current = setTimeout(handleNext, 1200);
     };
 
-
+    const handleWrong = () => {
+        // Track missed item if not already tracked
+        if (!missedItems.includes(currentWord.phrase)) {
+            setMissedItems(prev => [...prev, currentWord.phrase]);
+        }
+    };
 
     const handleNext = () => {
         setIndex((prevIndex) => {
             if (prevIndex < exercise.spelling.length - 1) {
-                setInput('');
-                setFeedback('neutral');
-                setHasAttempted(false);
                 return prevIndex + 1;
             } else {
                 setShowResults(true);
@@ -93,12 +94,6 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
             }
         });
     };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && input && feedback === 'neutral') {
-            handleSubmit();
-        }
-    }
 
     const toggleSpeed = () => {
         setSpeed((s) => (s === 1.0 ? 0.8 : s === 0.8 ? 1.3 : 1.0));
@@ -109,11 +104,11 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     if (showResults) {
         return (
             <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
-                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center">
+                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center" sx={{ userSelect: 'none' }}>
                     Review
                 </Typography>
                 <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
                         <Typography variant="h2" color="primary" fontWeight="bold">
                             {score} / {exercise.spelling.length * 2}
                         </Typography>
@@ -122,16 +117,18 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
 
                     {missedItems.length > 0 ? (
                         <>
-                            <Typography variant="h6" gutterBottom color="error">
+                            <Typography variant="h6" gutterBottom color="error" sx={{ userSelect: 'none' }}>
                                 Words to Practice:
                             </Typography>
                             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
                                 {missedItems.map((item, i) => (
-                                    <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
                                         <Typography fontWeight="bold">{item}</Typography>
-                                        <IconButton size="small" onClick={() => speak(item, speed, voice)}>
-                                            <VolumeUp fontSize="small" />
-                                        </IconButton>
+                                        <Tooltip title="Listen Again">
+                                            <IconButton size="small" onClick={() => speak(item, speed, voice)}>
+                                                <VolumeUp fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
                                     </Box>
                                 ))}
                             </Box>
@@ -149,6 +146,7 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         variant="contained"
                         size="large"
                         fullWidth
+                        autoFocus
                         sx={{ mt: 4, py: 2 }}
                         onClick={() => onComplete(score, exercise.spelling.length * 2, missedItems)}
                     >
@@ -164,10 +162,12 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
     return (
         <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', pt: 4, pb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
-                        <ArrowBack />
-                    </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', userSelect: 'none' }}>
+                    <Tooltip title="Go Back">
+                        <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
+                            <ArrowBack />
+                        </IconButton>
+                    </Tooltip>
                     <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1 }}>
                         Spelling
                     </Typography>
@@ -184,31 +184,35 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         px: 0.5,
                         py: 0.5,
                     }}>
-                        <IconButton
-                            onClick={() => speak(currentWord.phrase, speed, voice)}
-                            size="small"
-                            sx={{ color: 'text.secondary', p: 0.75 }}
-                        >
-                            <VolumeUp sx={{ fontSize: '1.25rem' }} />
-                        </IconButton>
+                        <Tooltip title="Play Sound">
+                            <IconButton
+                                onClick={() => speak(currentWord.phrase, speed, voice)}
+                                size="small"
+                                sx={{ color: 'text.secondary', p: 0.75 }}
+                            >
+                                <VolumeUp sx={{ fontSize: '1.25rem' }} />
+                            </IconButton>
+                        </Tooltip>
                         <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
-                        <ButtonBase
-                            onClick={toggleSpeed}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                px: 1,
-                                fontWeight: 'bold',
-                                fontSize: '0.85rem',
-                                lineHeight: 1,
-                                color: 'text.secondary',
-                                height: 32,
-                                borderRadius: 1.5,
-                                '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
-                            }}
-                        >
-                            {speedLabel}
-                        </ButtonBase>
+                        <Tooltip title="Change Speed" arrow enterDelay={100} enterNextDelay={100}>
+                            <ButtonBase
+                                onClick={toggleSpeed}
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    px: 1,
+                                    fontWeight: 'bold',
+                                    fontSize: '0.85rem',
+                                    lineHeight: 1,
+                                    color: 'text.secondary',
+                                    height: 32,
+                                    borderRadius: 1.5,
+                                    '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
+                                }}
+                            >
+                                {speedLabel}
+                            </ButtonBase>
+                        </Tooltip>
                         <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
@@ -216,120 +220,24 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
                         label={`${score}/${exercise.spelling.length * 2}`}
                         variant="outlined"
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32 }}
+                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
                     />
                 </Box>
             </Box>
 
             {/* Scoring Instruction */}
-            <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="caption" display="block" textAlign="center" color="text.secondary" sx={{ mt: 1, userSelect: 'none' }}>
                 ⭐ 2 points first try • 1 point retry
             </Typography>
 
 
-            <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-                style={{ display: 'flex', flexDirection: 'column' }}
-            >
-                <Card
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        p: 4,
-                        borderRadius: 2,
-                        position: 'relative',
-                        overflow: 'visible'
-                    }}
-                    component={motion.div}
-                    animate={feedback === 'wrong' ? { x: [-10, 10, -10, 10, 0] } : {}}
-                >
-                    <TextField
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        variant="outlined"
-                        placeholder="Type what you hear..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        disabled={feedback !== 'neutral'}
-                        error={feedback === 'wrong'}
-                        autoFocus
-                        autoComplete="off"
-                        sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 1, fontSize: '1.5rem', fontWeight: 'bold' } }}
-                    />
-
-                    <AnimatePresence>
-                        {feedback === 'correct' && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0 }}
-                            >
-                                <Box sx={{ bgcolor: '#e8f5e9', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                                    <Typography color="success.main" variant="h5" fontWeight="bold">
-                                        Excellent! 🎉
-                                    </Typography>
-                                </Box>
-                            </motion.div>
-                        )}
-                        {feedback === 'wrong' && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                            >
-                                <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                                    <Typography color="error" fontWeight="bold">
-                                        Correct answer:
-                                    </Typography>
-                                    <Typography variant="h5" color="error.dark">
-                                        {currentWord.phrase}
-                                    </Typography>
-                                </Box>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-
-
-                    {feedback === 'neutral' && (
-                        <Button
-                            variant="contained"
-                            size="large"
-                            onClick={handleSubmit}
-                            disabled={!input}
-                            fullWidth
-                            sx={{ py: 2, fontSize: '1.2rem' }}
-                        >
-                            Check
-                        </Button>
-                    )}
-
-                    {feedback === 'wrong' && (
-                        <Button
-                            variant="contained"
-                            size="large"
-                            onClick={() => {
-                                setInput('');
-                                setFeedback('neutral');
-                                setHasAttempted(true);
-                            }}
-                            fullWidth
-                            sx={{ py: 2, fontSize: '1.1rem' }}
-                        >
-                            Try Again
-                        </Button>
-                    )}
-                </Card>
-            </motion.div>
-
-
+            {/* Main Card managed by ExerciseCard */}
+            <ExerciseCard
+                phrase={currentWord.phrase}
+                onCorrect={handleCorrect}
+                onWrong={handleWrong}
+                autoFocus
+            />
 
             {/* Honey Jar In Flow */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>

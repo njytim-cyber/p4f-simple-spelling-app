@@ -41,6 +41,10 @@ export const speak = async (text: string, rate: number = 0.85, voiceId?: string)
     const targetVoice = voiceId || AVAILABLE_VOICES[0].id;
 
     try {
+        // Create a timeout controller for the fetch
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
         // Try requesting high-quality audio from our backend
         const response = await fetch('/api/tts', {
             method: 'POST',
@@ -48,10 +52,13 @@ export const speak = async (text: string, rate: number = 0.85, voiceId?: string)
             body: JSON.stringify({
                 text: textToSpeak,
                 speakingRate: rate,
-                languageCode: targetVoice.split('-').slice(0, 2).join('-'), // en-US or en-GB
+                languageCode: targetVoice.split('-').slice(0, 2).join('-'),
                 name: targetVoice
             }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
             const data = await response.json();
@@ -61,19 +68,30 @@ export const speak = async (text: string, rate: number = 0.85, voiceId?: string)
                 return;
             }
         }
-    } catch (e) {
-        console.warn('TTS API failed, falling back to browser voice:', e);
+    } catch {
+        // Only log warning if it's not a standard 404 (which is expected on dev server)
+        // or an abort error (timeout)
+        console.warn('TTS API check skipped/failed, falling back to browser voice');
     }
 
     // FALLBACK: Browser Speech Synthesis
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
 
+    // Try to get voices. Chrome often returns empty on first call.
+    let voices = window.speechSynthesis.getVoices();
+
+    // If empty, try one more time (simple wait) or just continue and let browser pick default
+    if (voices.length === 0) {
+        // We don't want to block too long, but a tiny wait often helps
+        await new Promise(r => setTimeout(r, 50));
+        voices = window.speechSynthesis.getVoices();
+    }
+
     // Try to select an American female voice, prioritizing "Natural" or "Google" variants
-    const voices = window.speechSynthesis.getVoices();
     const americanVoice = voices.find(v =>
-        (v.lang === 'en-US' && v.name.includes('Google')) || // Prioritize Google US English
-        (v.lang === 'en-US' && v.name.includes('Natural')) || // Prioritize "Natural" voices (Edge)
-        (v.lang === 'en-US' && v.name.includes('Online')) ||  // Prioritize "Online" voices
+        (v.lang === 'en-US' && v.name.includes('Google')) ||
+        (v.lang === 'en-US' && v.name.includes('Natural')) ||
+        (v.lang === 'en-US' && v.name.includes('Online')) ||
         (v.lang === 'en-US' && v.name.includes('Female')) ||
         v.lang === 'en-US'
     );
@@ -81,7 +99,7 @@ export const speak = async (text: string, rate: number = 0.85, voiceId?: string)
     if (americanVoice) {
         utterance.voice = americanVoice;
     }
-    utterance.lang = 'en-US'; // Fallback
+    utterance.lang = 'en-US'; // Fallback locale
 
     // Adjust rate for fallback: make slow speeds noticeably slower
     // 0.8 -> 0.6, which is usually distinct from 1.0

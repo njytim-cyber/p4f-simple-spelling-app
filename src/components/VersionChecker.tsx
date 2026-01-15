@@ -19,9 +19,8 @@ const VersionChecker: React.FC = () => {
                         setUpdateAvailable(true);
                     }
                 }
-            } catch (e) {
+            } catch {
                 // Silently fail - don't bother user if version check fails
-                console.debug('Version check failed:', e);
             }
         };
 

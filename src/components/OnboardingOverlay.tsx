@@ -40,6 +40,12 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         description: 'Preview all spelling phrases and dictation texts here before you start practicing.',
         position: 'bottom',
     },
+    {
+        target: '[data-onboarding="revision"]',
+        title: 'Revision Time! 🚀',
+        description: 'Any mistakes you make in Spelling or Dictation will appear here. Practice them regularly using spaced repetition to lock them into your memory!',
+        position: 'bottom',
+    },
 ];
 
 interface OnboardingOverlayProps {

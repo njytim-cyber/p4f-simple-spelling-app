@@ -18,6 +18,7 @@ import {
     Grid,
     Tabs,
     Tab,
+    Tooltip,
 } from '@mui/material';
 import {
     Star,
@@ -26,6 +27,7 @@ import {
     RadioButtonUnchecked,
     Sync,
     EditCalendar,
+    AutoAwesome,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { CHANGELOG } from '../data/version';
@@ -36,11 +38,13 @@ import { chunkText } from '../utils/speech';
 interface DashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
     history: ScoreRecord[];
+    onStartRevision?: () => void;
+    revisionDueCount?: number;
 }
 
 const STORAGE_KEY_DATES = 'p4_exercises_dates';
 
-const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevision, revisionDueCount = 0 }) => {
     const [openHistory, setOpenHistory] = useState(false);
     const [openSpellingList, setOpenSpellingList] = useState(false);
     const [openChangelog, setOpenChangelog] = useState(false);
@@ -58,8 +62,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     ...ex,
                     date: textDates[ex.id] || ex.date
                 }));
-            } catch (e) {
-                console.error("Failed to parse saved dates", e);
+            } catch {
+                console.error("Failed to parse saved dates");
             }
         }
         return EXERCISES;
@@ -84,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
             const offset = date.getTimezoneOffset() * 60000;
             const localDate = new Date(date.getTime() - offset);
             return localDate.toISOString().split('T')[0];
-        } catch (e) {
+        } catch {
             return '';
         }
     };
@@ -95,7 +99,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         try {
             const date = new Date(isoDate);
             return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        } catch (e) {
+        } catch {
             return isoDate;
         }
     };
@@ -223,7 +227,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
         return (
             <IconButton
                 {...dataAttr}
-                onClick={() => onSelect(exercises.find(e => e.id === exId)!, type)}
+                onClick={() => {
+                    const ex = exercises.find(e => e.id === exId);
+                    if (ex) onSelect(ex, type);
+                }}
                 sx={{
                     color: color,
                     transition: 'transform 0.2s',
@@ -276,7 +283,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     fontWeight="800"
                     sx={{
                         whiteSpace: 'nowrap',
-                        fontSize: { xs: '1.75rem', sm: '2.125rem' }
+                        fontSize: { xs: '1.75rem', sm: '2.125rem' },
+                        userSelect: 'none'
                     }}
                 >
                     Hi! 👋
@@ -287,31 +295,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                         direction="row"
                         alignItems="center"
                         spacing={0}
-                        sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5 }}
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5, userSelect: 'none' }}
                     >
-                        <IconButton
-                            title="Version History"
-                            onClick={() => setOpenChangelog(true)}
-                            sx={{ fontSize: '1.2rem' }}
-                        >
-                            ℹ️
-                        </IconButton>
-                        <IconButton
-                            data-onboarding="spelling-list"
-                            title="Spelling Lists"
-                            onClick={() => setOpenSpellingList(true)}
-                            sx={{ fontSize: '1.2rem' }}
-                        >
-                            📑
-                        </IconButton>
-                        <IconButton
-                            data-onboarding="activity-log"
-                            title="Activity Log"
-                            onClick={() => setOpenHistory(true)}
-                            sx={{ fontSize: '1.2rem' }}
-                        >
-                            📈
-                        </IconButton>
+                        <Tooltip title="About" arrow enterDelay={100} enterNextDelay={100}>
+                            <IconButton
+                                onClick={() => setOpenChangelog(true)}
+                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                            >
+                                ℹ️
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Spelling Lists" arrow enterDelay={100} enterNextDelay={100}>
+                            <IconButton
+                                data-onboarding="spelling-list"
+                                onClick={() => setOpenSpellingList(true)}
+                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                            >
+                                📑
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Activity Log" arrow enterDelay={100} enterNextDelay={100}>
+                            <IconButton
+                                data-onboarding="activity-log"
+                                onClick={() => setOpenHistory(true)}
+                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                            >
+                                📈
+                            </IconButton>
+                        </Tooltip>
                     </Stack>
 
                     <Chip
@@ -325,20 +336,49 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                             height: 32,
                             px: 1,
                             borderRadius: 4,
+                            userSelect: 'none',
                         }}
                     />
                 </Stack>
             </Stack>
 
             {/* List Section */}
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1, opacity: 0.7 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1, opacity: 0.7, userSelect: 'none' }}>
                 Ready to ace your spelling today?
             </Typography>
-            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 1 }}>
+            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 2, userSelect: 'none' }}>
                 Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
             </Typography>
 
-
+            {/* Revision Button */}
+            {onStartRevision && (
+                <Button
+                    data-onboarding="revision"
+                    variant="outlined"
+                    startIcon={<AutoAwesome />}
+                    onClick={onStartRevision}
+                    disabled={revisionDueCount === 0}
+                    fullWidth
+                    sx={{
+                        mb: 3,
+                        py: 1.5,
+                        borderRadius: 2,
+                        borderWidth: 2,
+                        fontWeight: 'bold',
+                        borderColor: revisionDueCount > 0 ? 'secondary.main' : 'divider',
+                        color: revisionDueCount > 0 ? 'secondary.main' : 'text.disabled',
+                        '&:hover': {
+                            borderWidth: 2,
+                            bgcolor: 'secondary.light',
+                            borderColor: 'secondary.main',
+                        }
+                    }}
+                >
+                    {revisionDueCount > 0
+                        ? `Revision Time! (${revisionDueCount} item${revisionDueCount !== 1 ? 's' : ''} to practice)`
+                        : 'Revision (No items due)'}
+                </Button>
+            )}
 
             <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
                 {/* Column Header */}
@@ -349,7 +389,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                     borderBottom: '1px solid #eee',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    userSelect: 'none'
                 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                         <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
@@ -359,14 +400,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                             <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
                                 Date
                             </Typography>
-                            <IconButton
-                                size="small"
-                                onClick={handleOpenEditDates}
-                                sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
-                                title="Edit Dates"
-                            >
-                                <EditCalendar sx={{ fontSize: '1rem' }} />
-                            </IconButton>
+                            <Tooltip title="Edit Dates">
+                                <IconButton
+                                    size="small"
+                                    onClick={handleOpenEditDates}
+                                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
+                                >
+                                    <EditCalendar sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                            </Tooltip>
                         </Stack>
                     </Stack>
 
@@ -597,7 +639,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history }) => {
                                 Under the Hood
                             </Typography>
                             <Typography variant="body2" paragraph color="text.secondary">
-                                Powering this lightweight experience is <strong>React</strong> and <strong>TypeScript</strong>, delivered via <strong>Cloudflare</strong>. The voice is generated by <strong>Google Cloud Neural2 TTS</strong> (en-US-Neural2-F).
+                                Powering this lightweight experience is <strong>React</strong> and <strong>TypeScript</strong>, delivered via <strong>Cloudflare</strong>. The voice is generated by <strong>Google Cloud Neural2 TTS</strong>.
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 This application was developed in <strong>Google Antigravity</strong> using <strong>Claude Opus 4.5 (Thinking)</strong> and <strong>Gemini 3 Pro (High)</strong>.
