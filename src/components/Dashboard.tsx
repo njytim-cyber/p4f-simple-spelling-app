@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -27,35 +27,35 @@ import {
     RadioButtonUnchecked,
     Sync,
     EditCalendar,
-    AutoAwesome,
     Spellcheck,
     AutoFixHigh,
-    School,
-    MenuBook,
+    History,
+    Info,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
 import { TextField } from '@mui/material';
-import { chunkText } from '../utils/speech';
-import EditingDashboard, { getEditingRevisionData } from './EditingDashboard';
-import { EDITING_EXERCISES } from '../data/editing-exercises';
+import { chunkText } from '../utils/speech'
+import ExercisesDashboard from './ExercisesDashboard';
+import RevisionDashboard from './RevisionDashboard';
 
 interface DashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
     history: ScoreRecord[];
-    onStartRevision?: () => void;
+    onStartRevision?: (sourceTypes?: ExerciseType[]) => void;
     revisionDueCount?: number;
 }
 
 const STORAGE_KEY_DATES = 'p4_exercises_dates';
+const STORAGE_KEY_PRIVACY_SEEN = 'p4_privacy_message_seen';
+const STORAGE_KEY_ACTIVE_TAB = 'p4_active_tab';
 
-const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevision, revisionDueCount = 0 }) => {
-    const [openHistory, setOpenHistory] = useState(false);
+const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevision }) => {
     const [openSpellingList, setOpenSpellingList] = useState(false);
-    const [openChangelog, setOpenChangelog] = useState(false);
     const [openEditDates, setOpenEditDates] = useState(false);
     const [infoTab, setInfoTab] = useState(0);
+    const [showPrivacyMessage, setShowPrivacyMessage] = useState(false);
 
     // Initialize exercises from storage or default
     const [exercises, setExercises] = useState<Exercise[]>(() => {
@@ -77,7 +77,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
 
     // Temp state for editing
     const [editDates, setEditDates] = useState<Record<string, string>>({});
-    const [activeTab, setActiveTab] = useState<'spelling' | 'editing' | 'vocab' | 'grammar'>('spelling');
+    const [activeTab, setActiveTab] = useState<'spelling' | 'exercises' | 'revision' | 'about'>(() => {
+        const saved = localStorage.getItem(STORAGE_KEY_ACTIVE_TAB);
+        // Handle legacy tab names for backward compatibility
+        if (saved && ['editing', 'vocab', 'grammar'].includes(saved)) {
+            return 'exercises';
+        }
+        if (saved && ['spelling', 'exercises', 'revision', 'about'].includes(saved)) {
+            return saved as 'spelling' | 'exercises' | 'revision' | 'about';
+        }
+        return 'spelling';
+    });
+
+    // Revision sub-tab state
+    const [revisionTab, setRevisionTab] = useState(0);
+
+    // Show privacy message on first visit
+    useEffect(() => {
+        const hasSeenPrivacyMessage = localStorage.getItem(STORAGE_KEY_PRIVACY_SEEN);
+        if (!hasSeenPrivacyMessage) {
+            setShowPrivacyMessage(true);
+            localStorage.setItem(STORAGE_KEY_PRIVACY_SEEN, 'true');
+        }
+    }, []);
+
+    // Save active tab to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, activeTab);
+    }, [activeTab]);
 
     // Helper to format "24 Jan" or "24 Jan 2026" -> "YYYY-MM-DD" for input
     const toInputFormat = (dateStr: string) => {
@@ -136,34 +163,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         setOpenEditDates(false);
     };
 
-    // Helper to count errors in editing passages
-    const countEditingErrors = (editingText: string | undefined): number => {
-        if (!editingText) return 0;
-        const matches = editingText.match(/\{[^|]+\|[^}]+\}/g);
-        return matches ? matches.length : 0;
-    };
-
     // Helper to normalize history records for display
     // Handles transition from 1-point system to 2-point tiered system
+    // Simplified: removed async lazy loading which caused issues
     const getNormalizedRecord = (record: ScoreRecord) => {
         // Find reference exercise to get true item count
         const refEx = exercises.find(e => e.id === record.exerciseId);
 
-        // For editing exercises, try to get from EDITING_EXERCISES
-        let editingExercise: string | undefined;
-        if (record.type === 'editing') {
-            editingExercise = EDITING_EXERCISES[record.exerciseId];
-        }
-
-        if (!refEx && !editingExercise) return record; // Cannot normalize if ex not found
+        if (!refEx) return record; // Cannot normalize if ex not found
 
         const itemCount = record.type === 'spelling'
             ? (refEx?.spelling.length || 0)
             : record.type === 'dictation'
                 ? chunkText(refEx?.dictation || '').length
-                : record.type === 'editing'
-                    ? countEditingErrors(editingExercise)
-                    : record.total; // For vocab, use total as-is
+                : record.total; // For vocab/grammar/editing, use total as-is
 
         const isToday = record.date === new Date().toLocaleDateString();
 
@@ -202,21 +215,37 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
     };
 
 
-    const getTotalXP = () => history.reduce((acc, curr) => {
-        const norm = getNormalizedRecord(curr);
-        return acc + (norm.score * 10);
-    }, 0);
+    // Memoize total XP calculation to prevent recalculation on every render
+    const totalXP = useMemo(() => {
+        return history.reduce((acc, curr) => {
+            const norm = getNormalizedRecord(curr);
+            return acc + (norm.score * 10);
+        }, 0);
+    }, [history, exercises]);
+
+    const getTotalXP = () => totalXP;
+
+    // Memoize best scores to avoid recalculation
+    const bestScores = useMemo(() => {
+        const scores = new Map<string, ScoreRecord>();
+        history.forEach(record => {
+            const key = `${record.exerciseId}-${record.type}`;
+            const normalized = getNormalizedRecord(record);
+            const existing = scores.get(key);
+            if (!existing || normalized.score > existing.score) {
+                scores.set(key, normalized);
+            }
+        });
+        return scores;
+    }, [history, exercises]);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
-        const attempts = history
-            .filter(h => h.exerciseId === exerciseId && h.type === type)
-            .map(getNormalizedRecord);
-
-        if (attempts.length === 0) return null;
-        return attempts.reduce((max, curr) => (curr.score > max.score ? curr : max), attempts[0]);
+        const key = `${exerciseId}-${type}`;
+        return bestScores.get(key) || null;
     };
 
-    const StatusTarget = ({ exId, type }: { exId: string, type: ExerciseType }) => {
+    // Memoized StatusTarget component to prevent unnecessary re-renders
+    const StatusTarget = memo(({ exId, type }: { exId: string, type: ExerciseType }) => {
         const best = getBestScore(exId, type);
 
         let icon = <RadioButtonUnchecked />;
@@ -236,13 +265,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         const isFirstExercise = exId === EXERCISES[0]?.id;
         const dataAttr = isFirstExercise ? { 'data-onboarding': type } : {};
 
+        const handleClick = useCallback(() => {
+            const ex = exercises.find(e => e.id === exId);
+            if (ex) onSelect(ex, type);
+        }, [exId, type]);
+
         return (
             <IconButton
                 {...dataAttr}
-                onClick={() => {
-                    const ex = exercises.find(e => e.id === exId);
-                    if (ex) onSelect(ex, type);
-                }}
+                onClick={handleClick}
                 sx={{
                     color: color,
                     transition: 'transform 0.2s',
@@ -252,7 +283,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                 {icon}
             </IconButton>
         );
-    };
+    });
 
     // Filter changelog for v1.2.0 and above
     const recentChanges = CHANGELOG.filter(entry => {
@@ -284,8 +315,41 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         if (isRightSwipe && infoTab === 1) setInfoTab(0);
     }
 
+    // Swipe Logic for Revision Tab
+    const onRevisionTouchEnd = () => {
+        if (!touchStart.current || !touchEnd.current) return;
+        const distance = touchStart.current - touchEnd.current;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && revisionTab === 0) setRevisionTab(1);
+        if (isRightSwipe && revisionTab === 1) setRevisionTab(0);
+    }
+
     return (
         <Box sx={{ pb: 10 }}> {/* Add padding to bottom for footer */}
+            <Dialog
+                open={showPrivacyMessage}
+                onClose={() => setShowPrivacyMessage(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 'bold' }}>Privacy First</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setShowPrivacyMessage(false)}
+                        variant="contained"
+                        autoFocus
+                    >
+                        Got it
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 {/* Header Section */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
@@ -299,35 +363,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                             userSelect: 'none'
                         }}
                     >
-                        {activeTab === 'spelling' ? 'Hi! 👋' : activeTab === 'editing' ? 'Editing ✍️' : activeTab === 'vocab' ? 'Vocabulary 📚' : 'Grammar 📖'}
+                        {activeTab === 'spelling' ? 'Spelling Tests' : activeTab === 'exercises' ? 'Exercises 📝' : activeTab === 'revision' ? 'Revision 📚' : 'Hi! 👋'}
                     </Typography>
 
                     <Stack direction="row" alignItems="center" spacing={2}>
-                        <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={0}
-                            sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5, userSelect: 'none' }}
-                        >
-                            <Tooltip title="About" arrow enterDelay={100} enterNextDelay={100}>
-                                <IconButton
-                                    onClick={() => setOpenChangelog(true)}
-                                    sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
-                                >
-                                    ℹ️
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Activity Log" arrow enterDelay={100} enterNextDelay={100}>
-                                <IconButton
-                                    data-onboarding="activity-log"
-                                    onClick={() => setOpenHistory(true)}
-                                    sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
-                                >
-                                    📈
-                                </IconButton>
-                            </Tooltip>
-                        </Stack>
-
                         <Chip
                             icon={<Star sx={{ color: '#FFD700 !important' }} />}
                             label={`${getTotalXP()}`}
@@ -345,154 +384,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                     </Stack>
                 </Stack>
 
-                {/* Info Text */}
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', opacity: 0.7, userSelect: 'none' }}>
-                        {activeTab === 'spelling' ? 'Ready to ace your spelling today?' : activeTab === 'editing' ? 'Correct the spelling in each passage!' : activeTab === 'vocab' ? 'Test your vocabulary knowledge!' : 'Master grammar with MCQs!'}
-                    </Typography>
-                    {activeTab === 'spelling' && (
-                        <Tooltip title="View Spelling Lists" arrow enterDelay={100} enterNextDelay={100}>
-                            <IconButton
-                                data-onboarding="spelling-list"
-                                onClick={() => setOpenSpellingList(true)}
-                                sx={{ fontSize: '1.4rem', opacity: 0.7, '&:hover': { opacity: 1 } }}
-                            >
-                                📑
-                            </IconButton>
-                        </Tooltip>
-                    )}
-                </Stack>
-                {/* Privacy First Text (Both Tabs) */}
-                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 2, userSelect: 'none' }}>
-                    Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
-                </Typography>
-
-                {/* Revision Button - Spelling Tab */}
-                {activeTab === 'spelling' && onStartRevision && (
-                    <Button
-                        data-onboarding="revision"
-                        variant="outlined"
-                        startIcon={<AutoAwesome />}
-                        onClick={onStartRevision}
-                        disabled={revisionDueCount === 0}
-                        fullWidth
-                        sx={{
-                            mb: 3,
-                            py: 1.5,
-                            borderRadius: 2,
-                            borderWidth: 2,
-                            fontWeight: 'bold',
-                            borderColor: revisionDueCount > 0 ? 'secondary.main' : 'divider',
-                            color: revisionDueCount > 0 ? 'secondary.main' : 'text.disabled',
-                            '&:hover': {
-                                borderWidth: 2,
-                                bgcolor: 'secondary.light',
-                                borderColor: 'secondary.main',
-                            }
-                        }}
-                    >
-                        {revisionDueCount > 0
-                            ? `Revision Time! (${revisionDueCount} item${revisionDueCount !== 1 ? 's' : ''} to practice)`
-                            : 'Revision (No items due)'}
-                    </Button>
-                )}
-
-                {/* Revision Button - Editing Tab */}
-                {activeTab === 'editing' && (() => {
-                    const editingRevision = getEditingRevisionData(history);
-                    const handleEditingRevision = () => {
-                        if (!editingRevision.firstRevisionId) return;
-                        const exercise: Exercise = {
-                            id: editingRevision.firstRevisionId,
-                            title: editingRevision.firstRevisionId,
-                            date: '',
-                            spelling: [],
-                            dictation: '',
-                            editing: EDITING_EXERCISES[editingRevision.firstRevisionId]
-                        };
-                        onSelect(exercise, 'editing');
-                    };
-
-                    return (
-                        <Button
-                            variant="outlined"
-                            startIcon={<AutoAwesome />}
-                            onClick={handleEditingRevision}
-                            disabled={editingRevision.revisionCount === 0}
-                            fullWidth
-                            sx={{
-                                mb: 3,
-                                py: 1.5,
-                                borderRadius: 2,
-                                borderWidth: 2,
-                                fontWeight: 'bold',
-                                borderColor: editingRevision.revisionCount > 0 ? 'secondary.main' : 'divider',
-                                color: editingRevision.revisionCount > 0 ? 'secondary.main' : 'text.disabled',
-                                '&:hover': {
-                                    borderWidth: 2,
-                                    bgcolor: 'secondary.light',
-                                    borderColor: 'secondary.main',
-                                }
-                            }}
-                        >
-                            {editingRevision.revisionCount > 0
-                                ? `Revision (${editingRevision.revisionCount} exercise${editingRevision.revisionCount !== 1 ? 's' : ''} to improve)`
-                                : 'Revision (No exercises need improvement)'}
-                        </Button>
-                    );
-                })()}
-
-                {/* Vocab Tab Content */}
-                {activeTab === 'vocab' && (
-                    <Stack spacing={2}>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            onClick={() => onSelect({
-                                id: 'vocab-p4',
-                                title: 'Vocabulary Quiz',
-                                date: '',
-                                spelling: [],
-                                dictation: '',
-                            }, 'vocab')}
-                            sx={{
-                                py: 3,
-                                borderRadius: 2,
-                                fontWeight: 'bold',
-                                fontSize: '1.1rem'
-                            }}
-                        >
-                            Start Vocabulary Quiz (10 Questions)
-                        </Button>
-                    </Stack>
-                )}
-
-                {/* Grammar Tab Content */}
-                {activeTab === 'grammar' && (
-                    <Stack spacing={2}>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            onClick={() => onSelect({
-                                id: 'grammar-quiz',
-                                title: 'Grammar Quiz',
-                                date: '',
-                                spelling: [],
-                                dictation: '',
-                            }, 'grammar')}
-                            sx={{
-                                py: 3,
-                                borderRadius: 2,
-                                fontWeight: 'bold',
-                                fontSize: '1.1rem'
-                            }}
-                        >
-                            Start Grammar Quiz (15 Questions)
-                        </Button>
-                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontStyle: 'italic' }}>
-                            Master grammar with MCQs from 93 different topics
-                        </Typography>
-                    </Stack>
+                {/* Exercises Tab Content */}
+                {activeTab === 'exercises' && (
+                    <ExercisesDashboard onSelect={onSelect} history={history} />
                 )}
 
                 {/* Main List */}
@@ -580,8 +474,147 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                     </Paper>
                 )}
 
-                {activeTab === 'editing' && (
-                    <EditingDashboard onSelect={onSelect} history={history} />
+                {activeTab === 'revision' && onStartRevision && (
+                    <Box>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                            <Tabs value={revisionTab} onChange={(_, v) => setRevisionTab(v)} aria-label="revision tabs">
+                                <Tab label="Targeted Practice" sx={{ fontWeight: 'bold', flex: 1 }} />
+                                <Tab label="Activity History" sx={{ fontWeight: 'bold', flex: 1 }} />
+                            </Tabs>
+                        </Box>
+
+                        <Box
+                            onTouchStart={onTouchStart}
+                            onTouchMove={onTouchMove}
+                            onTouchEnd={onRevisionTouchEnd}
+                        >
+                            {revisionTab === 0 && (
+                                <RevisionDashboard
+                                    history={history}
+                                    onStartRevision={onStartRevision}
+                                />
+                            )}
+
+                            {revisionTab === 1 && (
+                                <Box sx={{ maxWidth: 'sm', mx: 'auto' }}>
+                                    {history.length === 0 ? (
+                                        <Box sx={{ textAlign: 'center', py: 6 }}>
+                                            <HistoryIcon sx={{ fontSize: 60, color: 'action.disabled', mb: 2 }} />
+                                            <Typography color="text.secondary">No activity yet. Go for it!</Typography>
+                                        </Box>
+                                    ) : (
+                                        <Stack spacing={1}>
+                                            {history.slice().reverse().map((record, i) => (
+                                                <Paper key={i} elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                                                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                                                        <Box sx={{ flex: 1 }}>
+                                                            <Typography variant="body2" fontWeight="bold">
+                                                                {record.type === 'spelling' ? `📝 ${record.exerciseId}` :
+                                                                 record.type === 'dictation' ? `🎤 ${record.exerciseId}` :
+                                                                 record.type === 'editing' ? `✍️ Editing ${record.exerciseId}` :
+                                                                 record.type === 'vocab' ? `📚 Vocabulary` :
+                                                                 `📖 Grammar`}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {record.date} at {record.time}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Chip
+                                                            label={`${record.score}/${record.total}`}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{
+                                                                borderColor: 'divider',
+                                                                color: 'text.secondary',
+                                                                fontWeight: 'normal'
+                                                            }}
+                                                        />
+                                                    </Stack>
+                                                </Paper>
+                                            ))}
+                                        </Stack>
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+                )}
+
+                {/* About Tab Content */}
+                {activeTab === 'about' && (
+                    <Box>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                            <Tabs value={infoTab} onChange={(_, v) => setInfoTab(v)} aria-label="info tabs">
+                                <Tab label="About" sx={{ fontWeight: 'bold', flex: 1 }} />
+                                <Tab label="What's New" sx={{ fontWeight: 'bold', flex: 1 }} />
+                            </Tabs>
+                        </Box>
+
+                        <Box
+                            onTouchStart={onTouchStart}
+                            onTouchMove={onTouchMove}
+                            onTouchEnd={onTouchEnd}
+                        >
+                            {infoTab === 0 && (
+                                <Box>
+                                    <Typography variant="h6" color="primary" gutterBottom fontWeight="bold">
+                                        Why we built this
+                                    </Typography>
+                                    <Typography variant="body2" paragraph color="text.secondary">
+                                        We created this to help our kids take charge of their learning. It provides a calm, focused way to master spelling without the stress.
+                                    </Typography>
+
+                                    <Typography variant="h6" color="primary" gutterBottom fontWeight="bold" sx={{ mt: 3 }}>
+                                        Privacy First
+                                    </Typography>
+                                    <Typography variant="body2" paragraph color="text.secondary">
+                                        This application is "Local-First." That means your scores, progress, and settings are stored locally on this specific device. We don't have a database, and we don't track you. If you clear your browser data, you get a fresh start.
+                                    </Typography>
+
+                                    <Typography variant="h6" color="primary" gutterBottom fontWeight="bold" sx={{ mt: 3 }}>
+                                        Under the Hood
+                                    </Typography>
+                                    <Typography variant="body2" paragraph color="text.secondary">
+                                        Powering this lightweight experience is <strong>React</strong> and <strong>TypeScript</strong>, delivered via <strong>Cloudflare</strong>. The voice is generated by <strong>Google Cloud Neural2 TTS</strong>.
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        This application was developed in <strong>Google Antigravity</strong> using <strong>Claude Opus 4.5 (Thinking)</strong> and <strong>Gemini 3 Pro (High)</strong>.
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            {infoTab === 1 && (
+                                <Stack spacing={2}>
+                                    {recentChanges.map((entry) => (
+                                        <Box key={entry.version}>
+                                            <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                                                <Stack direction="row" width="100%" justifyContent="space-between" alignItems="center" mb={1}>
+                                                    <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                                        v{entry.version}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {entry.date}
+                                                    </Typography>
+                                                </Stack>
+                                                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+                                                    {entry.title}
+                                                </Typography>
+                                                <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                                                    {entry.changes.map((change, idx) => (
+                                                        <li key={idx}>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {change}
+                                                            </Typography>
+                                                        </li>
+                                                    ))}
+                                                </Box>
+                                            </Paper>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            )}
+                        </Box>
+                    </Box>
                 )}
             </Container>
 
@@ -622,53 +655,53 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                     </Button>
 
                     <Button
-                        onClick={() => setActiveTab('editing')}
+                        onClick={() => setActiveTab('exercises')}
                         sx={{
                             flexDirection: 'column',
-                            color: activeTab === 'editing' ? 'primary.main' : 'text.disabled',
+                            color: activeTab === 'exercises' ? 'primary.main' : 'text.disabled',
                             textTransform: 'none',
                             gap: 0.5,
                             flexGrow: 1,
                             '&:hover': { bgcolor: 'transparent' }
                         }}
                     >
-                        <AutoFixHigh color={activeTab === 'editing' ? 'primary' : 'disabled'} />
-                        <Typography variant="caption" fontWeight={activeTab === 'editing' ? 'bold' : 'normal'}>
-                            Editing
+                        <AutoFixHigh color={activeTab === 'exercises' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'exercises' ? 'bold' : 'normal'}>
+                            Exercises
                         </Typography>
                     </Button>
 
                     <Button
-                        onClick={() => setActiveTab('vocab')}
+                        onClick={() => setActiveTab('revision')}
                         sx={{
                             flexDirection: 'column',
-                            color: activeTab === 'vocab' ? 'primary.main' : 'text.disabled',
+                            color: activeTab === 'revision' ? 'primary.main' : 'text.disabled',
                             textTransform: 'none',
                             gap: 0.5,
                             flexGrow: 1,
                             '&:hover': { bgcolor: 'transparent' }
                         }}
                     >
-                        <School color={activeTab === 'vocab' ? 'primary' : 'disabled'} />
-                        <Typography variant="caption" fontWeight={activeTab === 'vocab' ? 'bold' : 'normal'}>
-                            Vocab
+                        <History color={activeTab === 'revision' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'revision' ? 'bold' : 'normal'}>
+                            Revision
                         </Typography>
                     </Button>
 
                     <Button
-                        onClick={() => setActiveTab('grammar')}
+                        onClick={() => setActiveTab('about')}
                         sx={{
                             flexDirection: 'column',
-                            color: activeTab === 'grammar' ? 'primary.main' : 'text.disabled',
+                            color: activeTab === 'about' ? 'primary.main' : 'text.disabled',
                             textTransform: 'none',
                             gap: 0.5,
                             flexGrow: 1,
                             '&:hover': { bgcolor: 'transparent' }
                         }}
                     >
-                        <MenuBook color={activeTab === 'grammar' ? 'primary' : 'disabled'} />
-                        <Typography variant="caption" fontWeight={activeTab === 'grammar' ? 'bold' : 'normal'}>
-                            Grammar
+                        <Info color={activeTab === 'about' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'about' ? 'bold' : 'normal'}>
+                            About
                         </Typography>
                     </Button>
                 </Stack>
@@ -743,157 +776,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenSpellingList(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
                         Got it
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* History Dialog */}
-            <Dialog open={openHistory} onClose={() => setOpenHistory(false)} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ fontWeight: '800' }}>Activity history</DialogTitle>
-                <DialogContent dividers>
-                    {history.length === 0 ? (
-                        <Box sx={{ textAlign: 'center', py: 6 }}>
-                            <HistoryIcon sx={{ fontSize: 60, color: 'action.disabled', mb: 2 }} />
-                            <Typography color="text.secondary">No activity yet. Go for it!</Typography>
-                        </Box>
-                    ) : (
-                        <List disablePadding>
-                            {[...history].reverse().map((rawRecord, i) => {
-                                const record = getNormalizedRecord(rawRecord);
-                                const exercise = EXERCISES.find(e => e.id === record.exerciseId);
-                                const isPerfect = record.score === record.total;
-                                return (
-                                    <Box key={i}>
-                                        <ListItem sx={{ py: 2, px: 0 }}>
-                                            <Stack width="100%">
-                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                                    <Box>
-                                                        <Typography fontWeight="bold">{exercise?.title}</Typography>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
-                                                            {record.type} • {record.date} at {record.time}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Chip
-                                                        label={`${record.score}/${record.total}`}
-                                                        color={isPerfect ? 'success' : 'default'}
-                                                        variant={isPerfect ? 'filled' : 'outlined'}
-                                                        size="small"
-                                                        sx={{ fontWeight: 'bold' }}
-                                                    />
-                                                </Stack>
-                                                {!isPerfect && record.missedItems && record.missedItems.length > 0 && (
-                                                    <Box sx={{ mt: 1, p: 1, bgcolor: '#fff5f5', borderRadius: 1, borderLeft: '3px solid', borderColor: 'error.main' }}>
-                                                        <Typography variant="caption" color="error.main" fontWeight="bold" display="block" mb={0.5}>
-                                                            MISSED ITEMS:
-                                                        </Typography>
-                                                        <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                                                            {record.missedItems.join(', ')}
-                                                        </Typography>
-                                                    </Box>
-                                                )}
-                                            </Stack>
-                                        </ListItem>
-                                        {i < history.length - 1 && <Divider />}
-                                    </Box>
-                                );
-                            })}
-                        </List>
-                    )}
-                </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpenHistory(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
-                        Finish
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Info / About Dialog */}
-            <Dialog
-                open={openChangelog}
-                onClose={() => setOpenChangelog(false)}
-                fullWidth
-                maxWidth="sm"
-                scroll="paper"
-            >
-                <DialogTitle sx={{ fontWeight: '800', pb: 0 }}>
-                    About this App
-                </DialogTitle>
-
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
-                    <Tabs value={infoTab} onChange={(_, v) => setInfoTab(v)} aria-label="info tabs">
-                        <Tab label="About" sx={{ fontWeight: 'bold' }} />
-                        <Tab label="What's New" sx={{ fontWeight: 'bold' }} />
-                    </Tabs>
-                </Box>
-
-                <DialogContent dividers sx={{ p: 0 }}
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
-                >
-                    {infoTab === 0 && (
-                        <Box sx={{ p: 3 }}>
-                            <Typography variant="h6" color="primary" gutterBottom fontWeight="bold">
-                                Why we built this
-                            </Typography>
-                            <Typography variant="body2" paragraph color="text.secondary">
-                                We created this to help our kids take charge of their learning. It provides a calm, focused way to master spelling without the stress.
-                            </Typography>
-
-                            <Typography variant="h6" color="primary" gutterBottom fontWeight="bold" sx={{ mt: 3 }}>
-                                Privacy First
-                            </Typography>
-                            <Typography variant="body2" paragraph color="text.secondary">
-                                This application is "Local-First." That means your scores, progress, and settings are stored locally on this specific device. We don't have a database, and we don't track you. If you clear your browser data, you get a fresh start.
-                            </Typography>
-
-                            <Typography variant="h6" color="primary" gutterBottom fontWeight="bold" sx={{ mt: 3 }}>
-                                Under the Hood
-                            </Typography>
-                            <Typography variant="body2" paragraph color="text.secondary">
-                                Powering this lightweight experience is <strong>React</strong> and <strong>TypeScript</strong>, delivered via <strong>Cloudflare</strong>. The voice is generated by <strong>Google Cloud Neural2 TTS</strong>.
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                This application was developed in <strong>Google Antigravity</strong> using <strong>Claude Opus 4.5 (Thinking)</strong> and <strong>Gemini 3 Pro (High)</strong>.
-                            </Typography>
-                        </Box>
-                    )}
-
-                    {infoTab === 1 && (
-                        <List disablePadding>
-                            {recentChanges.map((entry, i) => (
-                                <Box key={entry.version}>
-                                    <ListItem sx={{ px: 3, flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
-                                        <Stack direction="row" width="100%" justifyContent="space-between" alignItems="center" mb={1}>
-                                            <Typography variant="subtitle1" fontWeight="bold" color="primary">
-                                                v{entry.version}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                {entry.date}
-                                            </Typography>
-                                        </Stack>
-                                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
-                                            {entry.title}
-                                        </Typography>
-                                        <Box component="ul" sx={{ pl: 2, m: 0 }}>
-                                            {entry.changes.map((change, idx) => (
-                                                <li key={idx}>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {change}
-                                                    </Typography>
-                                                </li>
-                                            ))}
-                                        </Box>
-                                    </ListItem>
-                                    {i < recentChanges.length - 1 && <Divider />}
-                                </Box>
-                            ))}
-                        </List>
-                    )}
-                </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpenChangelog(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>
-                        Cool!
                     </Button>
                 </DialogActions>
             </Dialog>
