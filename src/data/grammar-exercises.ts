@@ -248,7 +248,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 19,
         topic: "Possessive Apostrophes",
-        question: "This is the _____ collar.",
+        question: "I saw a dog playing in the park. This is the _____ collar.",
         correct_answer: "dog's",
         wrong_answers: [
             "dogs",
@@ -256,7 +256,8 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
             "dog"
         ],
         explanation: "Singular possession is marked by 's attached to the noun.",
-        reviewed: true
+        reviewed: true,
+        notes: "Added 'I saw a dog playing in the park' to clarify singular context and eliminate ambiguity with plural possessive"
     },
     {
         rank: 20,
