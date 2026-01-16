@@ -119,3 +119,26 @@ dist
 # Vite
 dist-ssr
 *.local
+
+# Development scripts and tools
+*.cjs
+*.backup*
+*-report.json
+*-suggestions.json
+*-distractors.json
+*.csv
+*.ts.before-*
+*-expansion-*.ts
+
+# Claude Code
+.claude/
+
+# Test files (keep vitest.config.ts and playwright.config.ts if needed)
+test-*.ts
+tests/
+
+# Development documentation (keep main docs)
+AUDIT-SUMMARY.md
+DISTRACTOR-QUALITY-EVOLUTION.md
+QUALITY-STANDARDS-SUMMARY.md
+QUICK-REFERENCE.md
