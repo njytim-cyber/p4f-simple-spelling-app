@@ -6,8 +6,7 @@ const SpellingMode = lazy(() => import('./components/SpellingMode'));
 const DictationMode = lazy(() => import('./components/DictationMode'));
 const RevisionMode = lazy(() => import('./components/RevisionMode'));
 const EditingMode = lazy(() => import('./components/EditingMode'));
-const VocabMode = lazy(() => import('./components/VocabMode'));
-const GrammarMode = lazy(() => import('./components/GrammarMode'));
+const ExerciseMode = lazy(() => import('./components/ExerciseMode'));
 import OnboardingOverlay from './components/OnboardingOverlay';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -66,12 +65,18 @@ export default function App() {
         setView('exercise');
     };
 
-    const handleStartRevision = () => {
+    const handleStartRevision = (sourceTypes?: ExerciseType[]) => {
         // Build revision data from history
         const historyItems = getMissedItemsFromHistory(history);
         const savedData = loadRevisionData();
         const merged = mergeWithSavedData(historyItems, savedData);
-        const priorityItems = getPriorityItems(merged, 10);
+
+        // Filter by source types if specified
+        const filtered = sourceTypes
+            ? merged.filter(item => sourceTypes.includes(item.sourceType as ExerciseType))
+            : merged;
+
+        const priorityItems = getPriorityItems(filtered, 10);
 
         setAllRevisionData(merged);
         setRevisionItems(priorityItems);
@@ -174,15 +179,18 @@ export default function App() {
                                 onComplete={(score, total, missed) => handleComplete(score, total, 'editing', missed)}
                                 onBack={() => setView('dashboard')}
                             />
-                        ) : activeType === 'vocab' ? (
-                            <VocabMode
+                        ) : /* activeType === 'vocab' ? (
+                            <ExerciseMode
+                                quizType="vocab"
+                                questionCount={10}
                                 onComplete={(score, total, missed) => handleComplete(score, total, 'vocab', missed)}
                                 onCorrect={triggerConfetti}
                                 onBack={() => setView('dashboard')}
                             />
-                        ) : (
-                            <GrammarMode
-                                questionCount={15}
+                        ) : */ (
+                            <ExerciseMode
+                                quizType="grammar"
+                                questionCount={10}
                                 onComplete={(score, total, missed) => handleComplete(score, total, 'grammar', missed)}
                                 onCorrect={triggerConfetti}
                                 onBack={() => setView('dashboard')}
