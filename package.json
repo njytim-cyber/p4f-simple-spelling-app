@@ -7,7 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "verify-standards": "node verify-quality-standards.cjs",
+    "audit:all": "node audit-grammar.cjs && node audit-vocabulary-simple.cjs && node audit-vocab-distractors.cjs && node audit-editing.cjs && node audit-question-length.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -26,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
@@ -38,6 +46,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "jsdom": "^27.4.0",
+    "playwright": "^1.57.0",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^7.3.1",

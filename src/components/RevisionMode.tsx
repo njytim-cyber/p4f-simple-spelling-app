@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -10,7 +10,7 @@ import {
     Stack,
     Tooltip,
 } from '@mui/material';
-import { ArrowBack, VolumeUp, AutoAwesome, Star } from '@mui/icons-material';
+import { ArrowBack, VolumeUp, AutoAwesome, Star, CheckCircle, Cancel } from '@mui/icons-material';
 import { speak } from '../utils/speech';
 import { HoneyJar } from './HoneyJar';
 import VoiceSelector, { getSavedVoice } from './VoiceSelector';
@@ -21,7 +21,11 @@ import {
     calculateNextReview,
     saveRevisionData,
     getEncouragement,
+    getItemsDueForReview,
+    getPriorityItems,
 } from '../utils/spacedRepetition';
+import { VOCABULARY, VocabularyItem } from '../data/vocabulary';
+import { GRAMMAR_QUESTIONS, GrammarQuestion } from '../data/grammar-exercises';
 
 interface RevisionModeProps {
     items: RevisionItem[];
@@ -30,76 +34,217 @@ interface RevisionModeProps {
     onBack: () => void;
 }
 
+// Create O(1) lookup maps once (memoized outside component)
+const VOCAB_MAP = new Map<string, VocabularyItem>(
+    VOCABULARY.map(v => [v.word.toLowerCase(), v])
+);
+
+const GRAMMAR_MAP = new Map<string, GrammarQuestion>(
+    GRAMMAR_QUESTIONS.map(q => [q.topic.toLowerCase(), q])
+);
+
+// Fisher-Yates shuffle - O(n) with uniform distribution
+const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+};
+
 const RevisionMode: React.FC<RevisionModeProps> = ({
     items,
     allRevisionData,
     onComplete,
     onBack
 }) => {
+    const [currentBatch, setCurrentBatch] = useState<RevisionItem[]>(items);
     const [index, setIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [speed, setSpeed] = useState(1.0);
     const [voice, setVoice] = useState(getSavedVoice);
     const [showResults, setShowResults] = useState(false);
-    const [updatedData, setUpdatedData] = useState<RevisionItem[]>(allRevisionData);
     const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const allRevisionDataRef = useRef<RevisionItem[]>(allRevisionData);
 
-    const currentItem = items[index];
-    const totalPossible = items.length * 2;
+    // MCQ state
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [mcqAttempts, setMcqAttempts] = useState(0);
+    const [mcqChecked, setMcqChecked] = useState(false);
 
-    // Play audio when moving to new item
+    const currentItem = currentBatch[index];
+    const totalPossible = currentBatch.length * 2;
+
+    // Calculate remaining items (excluding current batch)
+    const remainingItems = useMemo(() => {
+        const currentBatchIds = new Set(currentBatch.map(item => `${item.sourceType}:${item.phrase}`));
+        const stillDue = getItemsDueForReview(allRevisionDataRef.current).filter(
+            item => !currentBatchIds.has(`${item.sourceType}:${item.phrase}`)
+        );
+        return stillDue.length;
+    }, [currentBatch]);
+
+    // Memoized O(1) lookups - only recalculate when currentItem changes
+    const vocabItem = useMemo(() => {
+        if (!currentItem || currentItem.sourceType !== 'vocab') return undefined;
+        return VOCAB_MAP.get(currentItem.phrase.toLowerCase());
+    }, [currentItem]);
+
+    const grammarItem = useMemo(() => {
+        if (!currentItem || currentItem.sourceType !== 'grammar') return undefined;
+        return GRAMMAR_MAP.get(currentItem.phrase.toLowerCase());
+    }, [currentItem]);
+
+    // Memoized shuffled options - only recalculate when question changes
+    const shuffledOptions = useMemo(() => {
+        if (!vocabItem && !grammarItem) return [];
+
+        const correctAnswer = vocabItem ? vocabItem.word : grammarItem!.correct_answer;
+        const wrongAnswers = grammarItem
+            ? grammarItem.wrong_answers
+            : vocabItem?.wrong_answers && vocabItem.wrong_answers.length === 3
+                ? vocabItem.wrong_answers  // Use curated distractors
+                : shuffleArray(  // Fallback to random if no curated distractors
+                    Array.from(VOCAB_MAP.values())
+                        .filter(v => v.word !== vocabItem!.word)
+                )
+                    .slice(0, 3)
+                    .map(v => v.word);
+
+        return shuffleArray([correctAnswer, ...wrongAnswers]);
+    }, [vocabItem, grammarItem]);
+
+    // Cleanup timeouts on unmount
     useEffect(() => {
-        if (!showResults && currentItem) {
-            const timer = setTimeout(() => speak(currentItem.phrase, speed, voice), 300);
-            return () => {
-                clearTimeout(timer);
-                if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
-            };
-        }
-    }, [index, currentItem, speed, voice, showResults]);
+        return () => {
+            if (advanceTimeoutRef.current) {
+                clearTimeout(advanceTimeoutRef.current);
+            }
+        };
+    }, []);
 
-    // Handle victory sound
+    // Play audio when moving to new item (only for spelling/dictation/editing)
+    useEffect(() => {
+        if (!showResults && currentItem && ['spelling', 'dictation', 'editing'].includes(currentItem.sourceType)) {
+            const timer = setTimeout(() => speak(currentItem.phrase, speed, voice), 300);
+            return () => clearTimeout(timer);
+        }
+    }, [index, currentItem?.phrase, speed, voice, showResults]);
+
+    // Reset MCQ state when moving to new question
+    useEffect(() => {
+        setSelectedAnswer(null);
+        setMcqAttempts(0);
+        setMcqChecked(false);
+    }, [index]);
+
+    // Handle victory sound - only depends on showResults and score
     useEffect(() => {
         if (showResults && score === totalPossible) {
             playVictorySound();
         }
-    }, [showResults, score, totalPossible]);
+    }, [showResults, score]);
 
-    const handleCorrect = (attempts: number) => {
-        // Scoring: 2 points for first try (attempts=1), 1 point otherwise
-        const points = attempts === 1 ? 2 : 1;
-        setScore(s => s + points);
-
-        // Update spaced repetition data (Success)
-        const updated = calculateNextReview(currentItem, true);
-        updateRevisionItem(updated);
-
-        // Auto-advance
-        advanceTimeoutRef.current = setTimeout(handleNext, 1500);
-    };
-
-    const handleWrong = () => {
-        // Update spaced repetition data (Reset/fail)
-        // We do this immediately on mistake to ensure the schedule is reset even if they eventually get it right
-        const updated = calculateNextReview(currentItem, false);
-        updateRevisionItem(updated);
-    };
-
-    const updateRevisionItem = (updated: RevisionItem) => {
-        const newData = updatedData.map(item =>
+    // Memoized handlers to prevent race conditions
+    const updateRevisionItem = useCallback((updated: RevisionItem) => {
+        const newData = allRevisionDataRef.current.map((item: RevisionItem) =>
             item.id === updated.id ? updated : item
         );
-        setUpdatedData(newData);
+        allRevisionDataRef.current = newData;
         saveRevisionData(newData);
-    };
+    }, []);
 
-    const handleNext = () => {
-        if (index < items.length - 1) {
+    const handleNext = useCallback(() => {
+        if (advanceTimeoutRef.current) {
+            clearTimeout(advanceTimeoutRef.current);
+            advanceTimeoutRef.current = null;
+        }
+
+        if (index < currentBatch.length - 1) {
             setIndex(i => i + 1);
         } else {
             setShowResults(true);
         }
-    };
+    }, [index, currentBatch.length]);
+
+    const handleContinue = useCallback(() => {
+        // Get next batch of items
+        const currentBatchIds = new Set(currentBatch.map(item => `${item.sourceType}:${item.phrase}`));
+        const stillDue = getItemsDueForReview(allRevisionDataRef.current).filter(
+            item => !currentBatchIds.has(`${item.sourceType}:${item.phrase}`)
+        );
+        const nextBatch = getPriorityItems(stillDue, 10);
+
+        // Reset state for new batch
+        setCurrentBatch(nextBatch);
+        setIndex(0);
+        setScore(0);
+        setShowResults(false);
+        setSelectedAnswer(null);
+        setMcqAttempts(0);
+        setMcqChecked(false);
+    }, [currentBatch]);
+
+    const handleCorrect = useCallback((attempts: number) => {
+        // Scoring: 2 points for first try (attempts=1), 1 point otherwise
+        const points = attempts === 1 ? 2 : 1;
+        setScore(s => s + points);
+
+        // Capture currentItem in closure to prevent race condition
+        const itemToUpdate = currentItem;
+        const updated = calculateNextReview(itemToUpdate, true);
+        updateRevisionItem(updated);
+
+        // Auto-advance
+        if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+        advanceTimeoutRef.current = setTimeout(handleNext, 1500);
+    }, [currentItem, updateRevisionItem, handleNext]);
+
+    const handleWrong = useCallback(() => {
+        // Update spaced repetition data (Reset/fail)
+        const itemToUpdate = currentItem;
+        const updated = calculateNextReview(itemToUpdate, false);
+        updateRevisionItem(updated);
+    }, [currentItem, updateRevisionItem]);
+
+    const handleMcqCheck = useCallback(() => {
+        if (!selectedAnswer || mcqChecked || (!vocabItem && !grammarItem)) return;
+
+        const correctAnswer = vocabItem ? vocabItem.word : grammarItem!.correct_answer;
+        const isCorrect = selectedAnswer === correctAnswer;
+
+        setMcqChecked(true);
+        setMcqAttempts(a => a + 1);
+
+        if (isCorrect) {
+            // Correct answer
+            const attempts = mcqAttempts + 1;
+            const points = attempts === 1 ? 2 : 1;
+            setScore(s => s + points);
+
+            // Capture currentItem in closure
+            const itemToUpdate = currentItem;
+            const updated = calculateNextReview(itemToUpdate, true);
+            updateRevisionItem(updated);
+
+            // Auto-advance
+            if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+            advanceTimeoutRef.current = setTimeout(handleNext, 1500);
+        } else {
+            // Wrong answer - update spaced repetition but allow retry
+            if (mcqAttempts === 0) {
+                const itemToUpdate = currentItem;
+                const updated = calculateNextReview(itemToUpdate, false);
+                updateRevisionItem(updated);
+            }
+            // Reset for retry
+            setTimeout(() => {
+                setSelectedAnswer(null);
+                setMcqChecked(false);
+            }, 1500);
+        }
+    }, [selectedAnswer, mcqChecked, vocabItem, grammarItem, mcqAttempts, currentItem, updateRevisionItem, handleNext]);
 
     const toggleSpeed = () => {
         setSpeed(s => (s === 1.0 ? 0.8 : s === 0.8 ? 1.3 : 1.0));
@@ -137,32 +282,62 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
                         <Typography variant="h4" gutterBottom fontWeight="bold">
                             {getEncouragement('sessionComplete')}
                         </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Completed {currentBatch.length} question{currentBatch.length !== 1 ? 's' : ''}
+                        </Typography>
                         <Typography variant="h2" color="secondary" fontWeight="bold">
                             {score} / {totalPossible}
                         </Typography>
                         <Typography color="text.secondary">Points</Typography>
                     </Box>
 
-                    <Box sx={{ bgcolor: '#f0f7ff', p: 3, borderRadius: 2, mb: 4, userSelect: 'none' }}>
+                    <Box sx={{ bgcolor: '#f0f7ff', p: 3, borderRadius: 2, mb: 3, userSelect: 'none' }}>
                         <Typography variant="body1" color="text.secondary" textAlign="center">
                             <strong>Spaced Repetition Active.</strong><br />
-                            Success! The items you got right are scheduled for a future challenge. Let’s focus on the others until they are locked in.
+                            Success! The items you got right are scheduled for a future challenge. Let's focus on the others until they are locked in.
                         </Typography>
                     </Box>
 
-                    <Button
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        sx={{ py: 2 }}
-                        onClick={() => onComplete(score, totalPossible)}
-                        autoFocus
-                    >
-                        Finish Revision
-                    </Button>
+                    {remainingItems > 0 && (
+                        <Box sx={{ bgcolor: '#fff3e0', p: 2, borderRadius: 2, mb: 3, textAlign: 'center', userSelect: 'none' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                <strong>{remainingItems}</strong> more item{remainingItems !== 1 ? 's' : ''} waiting for review
+                            </Typography>
+                        </Box>
+                    )}
+
+                    <Stack spacing={2}>
+                        {remainingItems > 0 && (
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                sx={{ py: 2 }}
+                                onClick={handleContinue}
+                                autoFocus
+                            >
+                                Continue Revision ({Math.min(remainingItems, 10)} more)
+                            </Button>
+                        )}
+                        <Button
+                            variant={remainingItems > 0 ? "outlined" : "contained"}
+                            size="large"
+                            fullWidth
+                            sx={{ py: 2 }}
+                            onClick={() => onComplete(score, totalPossible)}
+                            autoFocus={remainingItems === 0}
+                        >
+                            Finish Revision
+                        </Button>
+                    </Stack>
                 </Card>
             </Container>
         );
+    }
+
+    // Safety check for currentItem
+    if (!currentItem) {
+        return null;
     }
 
     // Main revision UI
@@ -180,7 +355,9 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
                         <Typography variant="h6" sx={{ lineHeight: 1 }}>
                             Revision
                         </Typography>
-
+                        <Typography variant="caption" color="text.secondary">
+                            Question {index + 1} of {currentBatch.length}
+                        </Typography>
                     </Stack>
                 </Box>
 
@@ -242,13 +419,29 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
             {/* Source indicator */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <Chip
-                    label={currentItem.sourceType === 'spelling' ? '🔤 Spelling' : '📝 Dictation'}
+                    label={
+                        currentItem.sourceType === 'spelling' ? '🔤 Spelling' :
+                        currentItem.sourceType === 'dictation' ? '📝 Dictation' :
+                        currentItem.sourceType === 'editing' ? '✍️ Editing' :
+                        currentItem.sourceType === 'vocab' ? '📚 Vocabulary' :
+                        '📖 Grammar'
+                    }
                     size="small"
                     variant="outlined"
                     sx={{
                         fontWeight: 'bold',
-                        bgcolor: currentItem.sourceType === 'spelling' ? '#e3f2fd' : '#fff3e0',
-                        borderColor: currentItem.sourceType === 'spelling' ? '#2196f3' : '#ff9800'
+                        bgcolor:
+                            currentItem.sourceType === 'spelling' ? '#e3f2fd' :
+                            currentItem.sourceType === 'dictation' ? '#fff3e0' :
+                            currentItem.sourceType === 'editing' ? '#ffebee' :
+                            currentItem.sourceType === 'vocab' ? '#f3e5f5' :
+                            '#e8f5e9',
+                        borderColor:
+                            currentItem.sourceType === 'spelling' ? '#2196f3' :
+                            currentItem.sourceType === 'dictation' ? '#ff9800' :
+                            currentItem.sourceType === 'editing' ? '#f44336' :
+                            currentItem.sourceType === 'vocab' ? '#9c27b0' :
+                            '#4caf50'
                     }}
                 />
             </Box>
@@ -258,14 +451,94 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
                 ⭐ 2 points first try • 1 point retry
             </Typography>
 
-            {/* Main Card managed by ExerciseCard */}
-            <ExerciseCard
-                phrase={currentItem.phrase}
-                isDictation={currentItem.sourceType === 'dictation'}
-                onCorrect={handleCorrect}
-                onWrong={handleWrong}
-                autoFocus
-            />
+            {/* Main Card - Conditional rendering based on question type */}
+            {(vocabItem || grammarItem) ? (
+                // MCQ Card for Vocabulary and Grammar
+                <Card sx={{ p: 3, borderRadius: 2 }}>
+                    <Typography variant="h6" gutterBottom fontWeight="bold">
+                        {vocabItem ? vocabItem.example : grammarItem?.question || 'Question not found'}
+                    </Typography>
+
+                    <Stack spacing={1.5} sx={{ mt: 3 }}>
+                        {shuffledOptions.map((option, idx) => {
+                            const correctAnswer = vocabItem ? vocabItem.word : grammarItem?.correct_answer || '';
+                            const isCorrect = option === correctAnswer;
+                            const isSelected = option === selectedAnswer;
+                            const showFeedback = mcqChecked && isSelected;
+
+                            return (
+                                <Button
+                                    key={idx}
+                                    variant={isSelected ? 'contained' : 'outlined'}
+                                    onClick={() => !mcqChecked && setSelectedAnswer(option)}
+                                    disabled={mcqChecked}
+                                    fullWidth
+                                    sx={{
+                                        py: 2,
+                                        justifyContent: 'flex-start',
+                                        textAlign: 'left',
+                                        fontSize: '1rem',
+                                        textTransform: 'none',
+                                        bgcolor: showFeedback
+                                            ? isCorrect
+                                                ? 'success.light'
+                                                : 'error.light'
+                                            : isSelected
+                                                ? 'primary.main'
+                                                : 'transparent',
+                                        color: showFeedback
+                                            ? isCorrect
+                                                ? 'success.contrastText'
+                                                : 'error.contrastText'
+                                            : isSelected
+                                                ? 'white'
+                                                : 'text.primary',
+                                        '&:hover': mcqChecked ? {} : {
+                                            bgcolor: isSelected ? 'primary.dark' : 'action.hover',
+                                        },
+                                    }}
+                                    startIcon={
+                                        showFeedback ? (
+                                            isCorrect ? <CheckCircle /> : <Cancel />
+                                        ) : null
+                                    }
+                                >
+                                    {option}
+                                </Button>
+                            );
+                        })}
+                    </Stack>
+
+                    {selectedAnswer && !mcqChecked && (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleMcqCheck}
+                                sx={{ px: 3, py: 1, fontWeight: 'bold' }}
+                            >
+                                Check
+                            </Button>
+                        </Box>
+                    )}
+
+                    {mcqChecked && grammarItem && selectedAnswer === grammarItem.correct_answer && (
+                        <Box sx={{ mt: 3, p: 2, bgcolor: 'info.light', borderRadius: 2 }}>
+                            <Typography variant="body2" color="info.contrastText">
+                                <strong>💡 Explanation:</strong> {grammarItem.explanation}
+                            </Typography>
+                        </Box>
+                    )}
+                </Card>
+            ) : (
+                // Text Input Card for Spelling, Dictation, and Editing
+                <ExerciseCard
+                    phrase={currentItem.phrase}
+                    isDictation={currentItem.sourceType === 'dictation'}
+                    onCorrect={handleCorrect}
+                    onWrong={handleWrong}
+                    autoFocus
+                />
+            )}
 
             {/* Honey Jar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, px: 1 }}>

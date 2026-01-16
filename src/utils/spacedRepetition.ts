@@ -4,7 +4,7 @@ import { ScoreRecord } from '../data/exercises';
 export interface RevisionItem {
     id: string;              // Unique identifier
     phrase: string;          // The text to practice
-    sourceType: 'spelling' | 'dictation';  // Where it came from
+    sourceType: 'spelling' | 'dictation' | 'editing' | 'vocab' | 'grammar';  // Where it came from
     errorCount: number;      // How many times this was missed
     correctStreak: number;   // Consecutive correct answers
     lastReviewedDate: string | null;  // ISO date string
