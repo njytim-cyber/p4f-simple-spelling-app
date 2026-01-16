@@ -600,7 +600,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 46,
         topic: "Plural Possessive Apostrophes",
-        question: "The _____ changing room is occupied.",
+        question: "At the swimming pool, the _____ changing room is always busy.",
         correct_answer: "ladies'",
         wrong_answers: [
             "lady's",
@@ -608,7 +608,8 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
             "ladies"
         ],
         explanation: "Plural nouns ending in 's' take the apostrophe after the 's'.",
-        reviewed: true
+        reviewed: true,
+        notes: "Added 'At the swimming pool' and 'always busy' to clarify plural context and eliminate ambiguity with singular possessive"
     },
     {
         rank: 47,
