@@ -126,6 +126,9 @@ dist-ssr
 *-report.json
 *-suggestions.json
 *-distractors.json
+*-fixes-needed.json
+*-items.json
+*-questions.json
 *.csv
 *.ts.before-*
 *-expansion-*.ts
