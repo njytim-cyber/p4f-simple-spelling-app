@@ -1,0 +1,181 @@
+import { useMemo } from 'react';
+import {
+    Container,
+    Typography,
+    Stack,
+    Paper,
+    Box,
+    Chip,
+} from '@mui/material';
+import {
+    Spellcheck,
+    AutoFixHigh,
+    School,
+    MenuBook,
+} from '@mui/icons-material';
+import { ScoreRecord, ExerciseType } from '../data/exercises';
+import {
+    getMissedItemsFromHistory,
+    mergeWithSavedData,
+    getItemsDueForReview,
+    loadRevisionData,
+} from '../utils/spacedRepetition';
+
+interface RevisionDashboardProps {
+    history: ScoreRecord[];
+    onStartRevision: (sourceTypes: ExerciseType[]) => void;
+}
+
+interface RevisionSection {
+    title: string;
+    icon: JSX.Element;
+    sourceTypes: ExerciseType[];
+    color: string;
+    description: string;
+}
+
+export default function RevisionDashboard({ history, onStartRevision }: RevisionDashboardProps) {
+    // Calculate items due for each section - single pass optimization
+    const revisionStats = useMemo(() => {
+        const historyItems = getMissedItemsFromHistory(history);
+        const savedData = loadRevisionData();
+        const merged = mergeWithSavedData(historyItems, savedData);
+        const dueItems = getItemsDueForReview(merged);
+
+        // Single-pass counting
+        const stats = {
+            spelling: 0,
+            editing: 0,
+            // vocab: 0,
+            grammar: 0,
+        };
+
+        for (const item of dueItems) {
+            switch (item.sourceType) {
+                case 'spelling':
+                case 'dictation':
+                    stats.spelling++;
+                    break;
+                case 'editing':
+                    stats.editing++;
+                    break;
+                // case 'vocab':
+                //     stats.vocab++;
+                //     break;
+                case 'grammar':
+                    stats.grammar++;
+                    break;
+            }
+        }
+
+        return stats;
+    }, [history]);
+
+    const sections: RevisionSection[] = [
+        {
+            title: 'Spelling & Dictation',
+            icon: <Spellcheck />,
+            sourceTypes: ['spelling', 'dictation'],
+            color: '#1976d2',
+            description: 'Practice words and phrases you\'ve missed',
+        },
+        {
+            title: 'Editing',
+            icon: <AutoFixHigh />,
+            sourceTypes: ['editing'],
+            color: '#ed6c02',
+            description: 'Review corrections you got wrong',
+        },
+        // Vocab temporarily hidden - needs better questions
+        // {
+        //     title: 'Vocabulary',
+        //     icon: <School />,
+        //     sourceTypes: ['vocab'],
+        //     color: '#9c27b0',
+        //     description: 'Reinforce vocabulary words',
+        // },
+        {
+            title: 'Grammar',
+            icon: <MenuBook />,
+            sourceTypes: ['grammar'],
+            color: '#2e7d32',
+            description: 'Master grammar concepts',
+        },
+    ];
+
+    return (
+        <Container maxWidth="sm" sx={{ py: 2 }}>
+            <Stack spacing={2}>
+                {/* Compact Revision Sections */}
+                {sections.map((section) => {
+                    const count = section.sourceTypes.reduce((sum, type) =>
+                        sum + (revisionStats[type as keyof typeof revisionStats] || 0), 0
+                    );
+                    const hasItems = count > 0;
+
+                    return (
+                        <Paper
+                            key={section.title}
+                            elevation={hasItems ? 2 : 0}
+                            onClick={() => hasItems && onStartRevision(section.sourceTypes)}
+                            sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                borderLeft: hasItems ? `3px solid ${section.color}` : 'none',
+                                cursor: hasItems ? 'pointer' : 'default',
+                                opacity: hasItems ? 1 : 0.5,
+                                transition: 'all 0.2s',
+                                '&:hover': hasItems ? {
+                                    transform: 'translateX(4px)',
+                                    boxShadow: 2,
+                                } : {},
+                            }}
+                        >
+                            <Stack direction="row" alignItems="center" spacing={2}>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 1.5,
+                                        bgcolor: hasItems ? `${section.color}20` : 'action.hover',
+                                        color: hasItems ? section.color : 'text.disabled',
+                                        fontSize: '1.2rem',
+                                    }}
+                                >
+                                    {section.icon}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
+                                        {section.title}
+                                    </Typography>
+                                </Box>
+                                {hasItems ? (
+                                    <Chip
+                                        size="small"
+                                        label={count}
+                                        sx={{
+                                            bgcolor: section.color,
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            minWidth: 32,
+                                        }}
+                                    />
+                                ) : (
+                                    <Chip
+                                        size="small"
+                                        label="—"
+                                        variant="outlined"
+                                        sx={{ opacity: 0.4, minWidth: 32 }}
+                                    />
+                                )}
+                            </Stack>
+                        </Paper>
+                    );
+                })}
+            </Stack>
+        </Container>
+    );
+}
