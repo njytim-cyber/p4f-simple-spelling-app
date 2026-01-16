@@ -5,6 +5,9 @@ import Dashboard from './components/Dashboard';
 const SpellingMode = lazy(() => import('./components/SpellingMode'));
 const DictationMode = lazy(() => import('./components/DictationMode'));
 const RevisionMode = lazy(() => import('./components/RevisionMode'));
+const EditingMode = lazy(() => import('./components/EditingMode'));
+const VocabMode = lazy(() => import('./components/VocabMode'));
+const GrammarMode = lazy(() => import('./components/GrammarMode'));
 import OnboardingOverlay from './components/OnboardingOverlay';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -158,10 +161,29 @@ export default function App() {
                                 onCorrect={triggerConfetti}
                                 onBack={() => setView('dashboard')}
                             />
-                        ) : (
+                        ) : activeType === 'dictation' ? (
                             <DictationMode
                                 exercise={activeExercise}
                                 onComplete={(score, total, missed) => handleComplete(score, total, 'dictation', missed)}
+                                onCorrect={triggerConfetti}
+                                onBack={() => setView('dashboard')}
+                            />
+                        ) : activeType === 'editing' ? (
+                            <EditingMode
+                                exercise={activeExercise}
+                                onComplete={(score, total, missed) => handleComplete(score, total, 'editing', missed)}
+                                onBack={() => setView('dashboard')}
+                            />
+                        ) : activeType === 'vocab' ? (
+                            <VocabMode
+                                onComplete={(score, total, missed) => handleComplete(score, total, 'vocab', missed)}
+                                onCorrect={triggerConfetti}
+                                onBack={() => setView('dashboard')}
+                            />
+                        ) : (
+                            <GrammarMode
+                                questionCount={15}
+                                onComplete={(score, total, missed) => handleComplete(score, total, 'grammar', missed)}
                                 onCorrect={triggerConfetti}
                                 onBack={() => setView('dashboard')}
                             />

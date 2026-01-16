@@ -28,12 +28,18 @@ import {
     Sync,
     EditCalendar,
     AutoAwesome,
+    Spellcheck,
+    AutoFixHigh,
+    School,
+    MenuBook,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
 import { TextField } from '@mui/material';
 import { chunkText } from '../utils/speech';
+import EditingDashboard, { getEditingRevisionData } from './EditingDashboard';
+import { EDITING_EXERCISES } from '../data/editing-exercises';
 
 interface DashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
@@ -71,6 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
 
     // Temp state for editing
     const [editDates, setEditDates] = useState<Record<string, string>>({});
+    const [activeTab, setActiveTab] = useState<'spelling' | 'editing' | 'vocab' | 'grammar'>('spelling');
 
     // Helper to format "24 Jan" or "24 Jan 2026" -> "YYYY-MM-DD" for input
     const toInputFormat = (dateStr: string) => {
@@ -129,20 +136,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         setOpenEditDates(false);
     };
 
-
-
-    // ... (existing imports)
+    // Helper to count errors in editing passages
+    const countEditingErrors = (editingText: string | undefined): number => {
+        if (!editingText) return 0;
+        const matches = editingText.match(/\{[^|]+\|[^}]+\}/g);
+        return matches ? matches.length : 0;
+    };
 
     // Helper to normalize history records for display
     // Handles transition from 1-point system to 2-point tiered system
     const getNormalizedRecord = (record: ScoreRecord) => {
         // Find reference exercise to get true item count
         const refEx = exercises.find(e => e.id === record.exerciseId);
-        if (!refEx) return record; // Cannot normalize if ex not found
+
+        // For editing exercises, try to get from EDITING_EXERCISES
+        let editingExercise: string | undefined;
+        if (record.type === 'editing') {
+            editingExercise = EDITING_EXERCISES[record.exerciseId];
+        }
+
+        if (!refEx && !editingExercise) return record; // Cannot normalize if ex not found
 
         const itemCount = record.type === 'spelling'
-            ? refEx.spelling.length
-            : chunkText(refEx.dictation).length;
+            ? (refEx?.spelling.length || 0)
+            : record.type === 'dictation'
+                ? chunkText(refEx?.dictation || '').length
+                : record.type === 'editing'
+                    ? countEditingErrors(editingExercise)
+                    : record.total; // For vocab, use total as-is
 
         const isToday = record.date === new Date().toLocaleDateString();
 
@@ -183,10 +204,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
 
     const getTotalXP = () => history.reduce((acc, curr) => {
         const norm = getNormalizedRecord(curr);
-        // If we want XP to be consistent, we might calculate based on norm score?
-        // But let's stick to saved score * 10 for simplicity unless huge disparity
-        // Actually, if legacy 5/5 -> 50XP. New 10/10 -> 100XP.
-        // Users might prefer the boost. Let's use normalized score for XP!
         return acc + (norm.score * 10);
     }, 0);
 
@@ -198,11 +215,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         if (attempts.length === 0) return null;
         return attempts.reduce((max, curr) => (curr.score > max.score ? curr : max), attempts[0]);
     };
-
-    // ... inside the render ...
-    // Update the history list mapping:
-    // ...
-
 
     const StatusTarget = ({ exId, type }: { exId: string, type: ExerciseType }) => {
         const best = getBestScore(exId, type);
@@ -273,193 +285,393 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
     }
 
     return (
-        <Container maxWidth="sm" sx={{ py: 4 }}>
-            {/* Header */}
-            {/* Header */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
-                <Typography
-                    variant="h4"
-                    color="primary"
-                    fontWeight="800"
-                    sx={{
-                        whiteSpace: 'nowrap',
-                        fontSize: { xs: '1.75rem', sm: '2.125rem' },
-                        userSelect: 'none'
-                    }}
-                >
-                    Hi! 👋
-                </Typography>
-
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={0}
-                        sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5, userSelect: 'none' }}
+        <Box sx={{ pb: 10 }}> {/* Add padding to bottom for footer */}
+            <Container maxWidth="sm" sx={{ py: 4 }}>
+                {/* Header Section */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
+                    <Typography
+                        variant="h4"
+                        color="primary"
+                        fontWeight="800"
+                        sx={{
+                            whiteSpace: 'nowrap',
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' },
+                            userSelect: 'none'
+                        }}
                     >
-                        <Tooltip title="About" arrow enterDelay={100} enterNextDelay={100}>
-                            <IconButton
-                                onClick={() => setOpenChangelog(true)}
-                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
-                            >
-                                ℹ️
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Spelling Lists" arrow enterDelay={100} enterNextDelay={100}>
+                        {activeTab === 'spelling' ? 'Hi! 👋' : activeTab === 'editing' ? 'Editing ✍️' : activeTab === 'vocab' ? 'Vocabulary 📚' : 'Grammar 📖'}
+                    </Typography>
+
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={0}
+                            sx={{ bgcolor: '#f5f5f5', borderRadius: 5, px: 0.5, py: 0.5, userSelect: 'none' }}
+                        >
+                            <Tooltip title="About" arrow enterDelay={100} enterNextDelay={100}>
+                                <IconButton
+                                    onClick={() => setOpenChangelog(true)}
+                                    sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                                >
+                                    ℹ️
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Activity Log" arrow enterDelay={100} enterNextDelay={100}>
+                                <IconButton
+                                    data-onboarding="activity-log"
+                                    onClick={() => setOpenHistory(true)}
+                                    sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                                >
+                                    📈
+                                </IconButton>
+                            </Tooltip>
+                        </Stack>
+
+                        <Chip
+                            icon={<Star sx={{ color: '#FFD700 !important' }} />}
+                            label={`${getTotalXP()}`}
+                            sx={{
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '0.9rem',
+                                height: 32,
+                                px: 1,
+                                borderRadius: 4,
+                                userSelect: 'none',
+                            }}
+                        />
+                    </Stack>
+                </Stack>
+
+                {/* Info Text */}
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', opacity: 0.7, userSelect: 'none' }}>
+                        {activeTab === 'spelling' ? 'Ready to ace your spelling today?' : activeTab === 'editing' ? 'Correct the spelling in each passage!' : activeTab === 'vocab' ? 'Test your vocabulary knowledge!' : 'Master grammar with MCQs!'}
+                    </Typography>
+                    {activeTab === 'spelling' && (
+                        <Tooltip title="View Spelling Lists" arrow enterDelay={100} enterNextDelay={100}>
                             <IconButton
                                 data-onboarding="spelling-list"
                                 onClick={() => setOpenSpellingList(true)}
-                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
+                                sx={{ fontSize: '1.4rem', opacity: 0.7, '&:hover': { opacity: 1 } }}
                             >
                                 📑
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Activity Log" arrow enterDelay={100} enterNextDelay={100}>
-                            <IconButton
-                                data-onboarding="activity-log"
-                                onClick={() => setOpenHistory(true)}
-                                sx={{ fontSize: '1.4rem', opacity: 0.85, '&:hover': { opacity: 1 } }}
-                            >
-                                📈
-                            </IconButton>
-                        </Tooltip>
-                    </Stack>
-
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${getTotalXP()}`}
-                        sx={{
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.9rem',
-                            height: 32,
-                            px: 1,
-                            borderRadius: 4,
-                            userSelect: 'none',
-                        }}
-                    />
+                    )}
                 </Stack>
-            </Stack>
+                {/* Privacy First Text (Both Tabs) */}
+                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 2, userSelect: 'none' }}>
+                    Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
+                </Typography>
 
-            {/* List Section */}
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1, opacity: 0.7, userSelect: 'none' }}>
-                Ready to ace your spelling today?
-            </Typography>
-            <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', mb: 2, userSelect: 'none' }}>
-                Privacy First: We don't send your data to a server; it lives right here on your device. Just remember: if you clear your browser data, your progress goes with it!
-            </Typography>
-
-            {/* Revision Button */}
-            {onStartRevision && (
-                <Button
-                    data-onboarding="revision"
-                    variant="outlined"
-                    startIcon={<AutoAwesome />}
-                    onClick={onStartRevision}
-                    disabled={revisionDueCount === 0}
-                    fullWidth
-                    sx={{
-                        mb: 3,
-                        py: 1.5,
-                        borderRadius: 2,
-                        borderWidth: 2,
-                        fontWeight: 'bold',
-                        borderColor: revisionDueCount > 0 ? 'secondary.main' : 'divider',
-                        color: revisionDueCount > 0 ? 'secondary.main' : 'text.disabled',
-                        '&:hover': {
+                {/* Revision Button - Spelling Tab */}
+                {activeTab === 'spelling' && onStartRevision && (
+                    <Button
+                        data-onboarding="revision"
+                        variant="outlined"
+                        startIcon={<AutoAwesome />}
+                        onClick={onStartRevision}
+                        disabled={revisionDueCount === 0}
+                        fullWidth
+                        sx={{
+                            mb: 3,
+                            py: 1.5,
+                            borderRadius: 2,
                             borderWidth: 2,
-                            bgcolor: 'secondary.light',
-                            borderColor: 'secondary.main',
-                        }
-                    }}
-                >
-                    {revisionDueCount > 0
-                        ? `Revision Time! (${revisionDueCount} item${revisionDueCount !== 1 ? 's' : ''} to practice)`
-                        : 'Revision (No items due)'}
-                </Button>
-            )}
+                            fontWeight: 'bold',
+                            borderColor: revisionDueCount > 0 ? 'secondary.main' : 'divider',
+                            color: revisionDueCount > 0 ? 'secondary.main' : 'text.disabled',
+                            '&:hover': {
+                                borderWidth: 2,
+                                bgcolor: 'secondary.light',
+                                borderColor: 'secondary.main',
+                            }
+                        }}
+                    >
+                        {revisionDueCount > 0
+                            ? `Revision Time! (${revisionDueCount} item${revisionDueCount !== 1 ? 's' : ''} to practice)`
+                            : 'Revision (No items due)'}
+                    </Button>
+                )}
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
-                {/* Column Header */}
-                <Box sx={{
-                    py: 1.5,
-                    px: 3,
-                    bgcolor: '#fcfcfc',
-                    borderBottom: '1px solid #eee',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    userSelect: 'none'
-                }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                        <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
-                            #
-                        </Typography>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
-                                Date
-                            </Typography>
-                            <Tooltip title="Edit Dates">
-                                <IconButton
-                                    size="small"
-                                    onClick={handleOpenEditDates}
-                                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
-                                >
-                                    <EditCalendar sx={{ fontSize: '1rem' }} />
-                                </IconButton>
-                            </Tooltip>
-                        </Stack>
+                {/* Revision Button - Editing Tab */}
+                {activeTab === 'editing' && (() => {
+                    const editingRevision = getEditingRevisionData(history);
+                    const handleEditingRevision = () => {
+                        if (!editingRevision.firstRevisionId) return;
+                        const exercise: Exercise = {
+                            id: editingRevision.firstRevisionId,
+                            title: editingRevision.firstRevisionId,
+                            date: '',
+                            spelling: [],
+                            dictation: '',
+                            editing: EDITING_EXERCISES[editingRevision.firstRevisionId]
+                        };
+                        onSelect(exercise, 'editing');
+                    };
+
+                    return (
+                        <Button
+                            variant="outlined"
+                            startIcon={<AutoAwesome />}
+                            onClick={handleEditingRevision}
+                            disabled={editingRevision.revisionCount === 0}
+                            fullWidth
+                            sx={{
+                                mb: 3,
+                                py: 1.5,
+                                borderRadius: 2,
+                                borderWidth: 2,
+                                fontWeight: 'bold',
+                                borderColor: editingRevision.revisionCount > 0 ? 'secondary.main' : 'divider',
+                                color: editingRevision.revisionCount > 0 ? 'secondary.main' : 'text.disabled',
+                                '&:hover': {
+                                    borderWidth: 2,
+                                    bgcolor: 'secondary.light',
+                                    borderColor: 'secondary.main',
+                                }
+                            }}
+                        >
+                            {editingRevision.revisionCount > 0
+                                ? `Revision (${editingRevision.revisionCount} exercise${editingRevision.revisionCount !== 1 ? 's' : ''} to improve)`
+                                : 'Revision (No exercises need improvement)'}
+                        </Button>
+                    );
+                })()}
+
+                {/* Vocab Tab Content */}
+                {activeTab === 'vocab' && (
+                    <Stack spacing={2}>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={() => onSelect({
+                                id: 'vocab-p4',
+                                title: 'Vocabulary Quiz',
+                                date: '',
+                                spelling: [],
+                                dictation: '',
+                            }, 'vocab')}
+                            sx={{
+                                py: 3,
+                                borderRadius: 2,
+                                fontWeight: 'bold',
+                                fontSize: '1.1rem'
+                            }}
+                        >
+                            Start Vocabulary Quiz (10 Questions)
+                        </Button>
                     </Stack>
+                )}
 
-                    <Stack direction="row" spacing={2}>
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
+                {/* Grammar Tab Content */}
+                {activeTab === 'grammar' && (
+                    <Stack spacing={2}>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={() => onSelect({
+                                id: 'grammar-quiz',
+                                title: 'Grammar Quiz',
+                                date: '',
+                                spelling: [],
+                                dictation: '',
+                            }, 'grammar')}
+                            sx={{
+                                py: 3,
+                                borderRadius: 2,
+                                fontWeight: 'bold',
+                                fontSize: '1.1rem'
+                            }}
+                        >
+                            Start Grammar Quiz (15 Questions)
+                        </Button>
+                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontStyle: 'italic' }}>
+                            Master grammar with MCQs from 93 different topics
+                        </Typography>
+                    </Stack>
+                )}
+
+                {/* Main List */}
+                {activeTab === 'spelling' && (
+                    <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
+                        {/* Column Header */}
+                        <Box sx={{
+                            py: 1.5,
+                            px: 3,
+                            bgcolor: '#fcfcfc',
+                            borderBottom: '1px solid #eee',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            userSelect: 'none'
+                        }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
+                                    #
+                                </Typography>
+                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                                        Date
+                                    </Typography>
+                                    <Tooltip title="Edit Dates">
+                                        <IconButton
+                                            size="small"
+                                            onClick={handleOpenEditDates}
+                                            sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
+                                        >
+                                            <EditCalendar sx={{ fontSize: '1rem' }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Stack>
+                            </Stack>
+
+                            <Stack direction="row" spacing={2}>
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
+                                    Spelling
+                                </Typography>
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
+                                    Dictation
+                                </Typography>
+                            </Stack>
+                        </Box>
+
+                        <List disablePadding>
+                            {exercises.map((ex, index) => (
+                                <Box key={ex.id}>
+                                    <ListItem
+                                        sx={{
+                                            py: 1.0,
+                                            px: 3,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            '&:hover': { bgcolor: '#fafafa' },
+                                        }}
+                                        component={motion.div}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                    >
+                                        <Stack direction="row" spacing={2} alignItems="baseline">
+                                            <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
+                                                {ex.title}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                                                {ex.date}
+                                            </Typography>
+                                        </Stack>
+                                        <Stack direction="row" spacing={2}>
+                                            <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
+                                                <StatusTarget exId={ex.id} type="spelling" />
+                                            </Box>
+                                            <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
+                                                <StatusTarget exId={ex.id} type="dictation" />
+                                            </Box>
+                                        </Stack>
+                                    </ListItem>
+                                    {index < exercises.length - 1 && <Divider />}
+                                </Box>
+                            ))}
+                        </List>
+                    </Paper>
+                )}
+
+                {activeTab === 'editing' && (
+                    <EditingDashboard onSelect={onSelect} history={history} />
+                )}
+            </Container>
+
+            {/* Bottom Footer Navigation */}
+            <Paper
+                sx={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    borderRadius: 0,
+                    borderTop: '1px solid #efefef',
+                    zIndex: 1000,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    pb: 'env(safe-area-inset-bottom)'
+                }}
+                elevation={0}
+            >
+                <Stack direction="row" sx={{ width: '100%', maxWidth: 'sm', py: 1 }} justifyContent="space-around">
+                    <Button
+                        onClick={() => setActiveTab('spelling')}
+                        sx={{
+                            flexDirection: 'column',
+                            color: activeTab === 'spelling' ? 'primary.main' : 'text.disabled',
+                            textTransform: 'none',
+                            gap: 0.5,
+                            flexGrow: 1,
+                            '&:hover': { bgcolor: 'transparent' }
+                        }}
+                    >
+                        <Spellcheck color={activeTab === 'spelling' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'spelling' ? 'bold' : 'normal'}>
                             Spelling
                         </Typography>
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
-                            Dictation
-                        </Typography>
-                    </Stack>
-                </Box>
+                    </Button>
 
-                <List disablePadding>
-                    {exercises.map((ex, index) => (
-                        <Box key={ex.id}>
-                            <ListItem
-                                sx={{
-                                    py: 1.0,
-                                    px: 3,
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    '&:hover': { bgcolor: '#fafafa' },
-                                }}
-                                component={motion.div}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                            >
-                                <Stack direction="row" spacing={2} alignItems="baseline">
-                                    <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
-                                        {ex.title}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                                        {ex.date}
-                                    </Typography>
-                                </Stack>
-                                <Stack direction="row" spacing={2}>
-                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
-                                        <StatusTarget exId={ex.id} type="spelling" />
-                                    </Box>
-                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
-                                        <StatusTarget exId={ex.id} type="dictation" />
-                                    </Box>
-                                </Stack>
-                            </ListItem>
-                            {index < exercises.length - 1 && <Divider />}
-                        </Box>
-                    ))}
-                </List>
+                    <Button
+                        onClick={() => setActiveTab('editing')}
+                        sx={{
+                            flexDirection: 'column',
+                            color: activeTab === 'editing' ? 'primary.main' : 'text.disabled',
+                            textTransform: 'none',
+                            gap: 0.5,
+                            flexGrow: 1,
+                            '&:hover': { bgcolor: 'transparent' }
+                        }}
+                    >
+                        <AutoFixHigh color={activeTab === 'editing' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'editing' ? 'bold' : 'normal'}>
+                            Editing
+                        </Typography>
+                    </Button>
+
+                    <Button
+                        onClick={() => setActiveTab('vocab')}
+                        sx={{
+                            flexDirection: 'column',
+                            color: activeTab === 'vocab' ? 'primary.main' : 'text.disabled',
+                            textTransform: 'none',
+                            gap: 0.5,
+                            flexGrow: 1,
+                            '&:hover': { bgcolor: 'transparent' }
+                        }}
+                    >
+                        <School color={activeTab === 'vocab' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'vocab' ? 'bold' : 'normal'}>
+                            Vocab
+                        </Typography>
+                    </Button>
+
+                    <Button
+                        onClick={() => setActiveTab('grammar')}
+                        sx={{
+                            flexDirection: 'column',
+                            color: activeTab === 'grammar' ? 'primary.main' : 'text.disabled',
+                            textTransform: 'none',
+                            gap: 0.5,
+                            flexGrow: 1,
+                            '&:hover': { bgcolor: 'transparent' }
+                        }}
+                    >
+                        <MenuBook color={activeTab === 'grammar' ? 'primary' : 'disabled'} />
+                        <Typography variant="caption" fontWeight={activeTab === 'grammar' ? 'bold' : 'normal'}>
+                            Grammar
+                        </Typography>
+                    </Button>
+                </Stack>
             </Paper>
 
             {/* Edit Dates Dialog */}
@@ -685,7 +897,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+        </Box>
     );
 };
 

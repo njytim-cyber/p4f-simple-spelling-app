@@ -1,0 +1,1228 @@
+export interface GrammarQuestion {
+    rank: number;
+    topic: string;
+    question: string;
+    correct_answer: string;
+    wrong_answers: string[];
+    explanation: string;
+}
+
+export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
+    {
+        rank: 1,
+        topic: "Proper Nouns",
+        question: "My cousin lives in _____.",
+        correct_answer: "London",
+        wrong_answers: [
+            "london",
+            "City",
+            "town"
+        ],
+        explanation: "Proper nouns referring to specific geographical locations typically require initial capitalization.",
+        reviewed: true
+    },
+    {
+        rank: 2,
+        topic: "Common Nouns",
+        question: "Please hand me the _____ on the table.",
+        correct_answer: "book",
+        wrong_answers: [
+            "Book",
+            "Steven",
+            "London"
+        ],
+        explanation: "Common nouns refer to general classes of objects and are not capitalized unless sentence-initial.",
+        reviewed: true
+    },
+    {
+        rank: 3,
+        topic: "Personal Pronouns",
+        question: "_____ are going to the cinema tonight.",
+        correct_answer: "They",
+        wrong_answers: [
+            "Them",
+            "Their",
+            "Theirs"
+        ],
+        explanation: "'They' is the nominative (subject) case pronoun required here, whereas 'Them' is accusative.",
+        reviewed: true
+    },
+    {
+        rank: 4,
+        topic: "Concrete vs. Abstract Nouns",
+        question: "He was filled with _____ after the victory.",
+        correct_answer: "happiness",
+        wrong_answers: [
+            "trophy",
+            "medal",
+            "stadium"
+        ],
+        explanation: "'Happiness' is an abstract noun denoting an emotional state, fitting the context of internal feeling.",
+        reviewed: true
+    },
+    {
+        rank: 5,
+        topic: "Singular & Plural Morphology",
+        question: "The farmer has three _____ in the barn.",
+        correct_answer: "foxes",
+        wrong_answers: [
+            "foxs",
+            "fox",
+            "fox's"
+        ],
+        explanation: "Nouns ending in the sibilant /x/ require the morphological suffix -es for pluralization.",
+        reviewed: true
+    },
+    {
+        rank: 6,
+        topic: "Irregular Plurals",
+        question: "The dentist checked all of my _____.",
+        correct_answer: "teeth",
+        wrong_answers: [
+            "tooths",
+            "teethes",
+            "tooth"
+        ],
+        explanation: "'Tooth' undergoes vowel mutation to 'teeth' in the plural, an irregular morphological pattern.",
+        reviewed: true
+    },
+    {
+        rank: 7,
+        topic: "Definite & Indefinite Articles",
+        question: "She wants to buy _____ apple.",
+        correct_answer: "an",
+        wrong_answers: [
+            "a",
+            "the",
+            "two"
+        ],
+        explanation: "The indefinite article 'an' is required before a noun beginning with a vowel sound.",
+        reviewed: true
+    },
+    {
+        rank: 8,
+        topic: "Main Verbs (Action)",
+        question: "The athletes _____ around the track every morning.",
+        correct_answer: "run",
+        wrong_answers: [
+            "runs",
+            "runner",
+            "running"
+        ],
+        explanation: "'Run' acts as the dynamic main verb agreeing with the plural subject 'athletes'.",
+        reviewed: true,
+        notes: "Added 'every morning' to clarify present tense context"
+    },
+    {
+        rank: 9,
+        topic: "Main Verbs (Stative)",
+        question: "This cake _____ delicious right now.",
+        correct_answer: "tastes",
+        wrong_answers: [
+            "is tasting",
+            "taste",
+            "tasted"
+        ],
+        explanation: "Verbs of sense perception like 'taste' function statively to describe attributes in the present.",
+        reviewed: true,
+        notes: "Added 'right now' to clarify present tense context"
+    },
+    {
+        rank: 10,
+        topic: "Simple Present Tense",
+        question: "The sun _____ in the east.",
+        correct_answer: "rises",
+        wrong_answers: [
+            "rose",
+            "rising",
+            "rise"
+        ],
+        explanation: "The simple present is used for universal truths and scientific facts.",
+        reviewed: true
+    },
+    {
+        rank: 11,
+        topic: "Simple Past Tense (Regular)",
+        question: "Yesterday, we _____ to the park.",
+        correct_answer: "walked",
+        wrong_answers: [
+            "walk",
+            "walking",
+            "walks"
+        ],
+        explanation: "The suffix -ed marks the past tense for regular verbs.",
+        reviewed: true
+    },
+    {
+        rank: 12,
+        topic: "Simple Past Tense (Irregular)",
+        question: "I _____ a letter to my friend last week.",
+        correct_answer: "wrote",
+        wrong_answers: [
+            "writed",
+            "write",
+            "written"
+        ],
+        explanation: "'Write' is an irregular verb; the past tense form is 'wrote', not 'writed'.",
+        reviewed: true
+    },
+    {
+        rank: 13,
+        topic: "Descriptive Adjectives",
+        question: "The _____ dog barked loudly at the stranger.",
+        correct_answer: "angry",
+        wrong_answers: [
+            "angrily",
+            "anger",
+            "angries"
+        ],
+        explanation: "An attributive adjective is required to pre-modify the noun 'dog'.",
+        reviewed: true,
+        notes: "Added 'at the stranger' to provide more context"
+    },
+    {
+        rank: 14,
+        topic: "Coordinating Conjunctions (Basic)",
+        question: "I like coffee, _____ I don't like tea.",
+        correct_answer: "but",
+        wrong_answers: [
+            "and",
+            "or",
+            "so"
+        ],
+        explanation: "'But' introduces a contrast between the two independent clauses.",
+        reviewed: true
+    },
+    {
+        rank: 15,
+        topic: "Sentence Demarcation",
+        question: "_____ went to the store.",
+        correct_answer: "She",
+        wrong_answers: [
+            "she",
+            "SHE",
+            "sHE"
+        ],
+        explanation: "Sentences must begin with a capital letter according to standard demarcation rules.",
+        reviewed: true
+    },
+    {
+        rank: 16,
+        topic: "Question Formation",
+        question: "_____ you like some water?",
+        correct_answer: "Would",
+        wrong_answers: [
+            "Do",
+            "Are",
+            "Have"
+        ],
+        explanation: "'Would' is the modal auxiliary used here to form a polite offer/question.",
+        reviewed: true
+    },
+    {
+        rank: 17,
+        topic: "Imperative Mood",
+        question: "_____ your homework immediately.",
+        correct_answer: "Do",
+        wrong_answers: [
+            "You do",
+            "Doing",
+            "Does"
+        ],
+        explanation: "The imperative mood uses the base form of the verb without an explicit subject.",
+        reviewed: true
+    },
+    {
+        rank: 18,
+        topic: "Possessive Determiners",
+        question: "John lost _____ keys.",
+        correct_answer: "his",
+        wrong_answers: [
+            "he",
+            "him",
+            "he's"
+        ],
+        explanation: "'His' is the masculine singular possessive determiner required to modify 'keys'.",
+        reviewed: true
+    },
+    {
+        rank: 19,
+        topic: "Possessive Apostrophes",
+        question: "This is the _____ collar.",
+        correct_answer: "dog's",
+        wrong_answers: [
+            "dogs",
+            "dogs'",
+            "dog"
+        ],
+        explanation: "Singular possession is marked by 's attached to the noun.",
+        reviewed: true
+    },
+    {
+        rank: 20,
+        topic: "Demonstrative Pronouns",
+        question: "_____ books over there are mine.",
+        correct_answer: "Those",
+        wrong_answers: [
+            "These",
+            "This",
+            "That"
+        ],
+        explanation: "'Those' is the plural distal demonstrative pronoun.",
+        reviewed: true
+    },
+    {
+        rank: 21,
+        topic: "Prepositions of Place",
+        question: "The cat is hiding _____ the sofa.",
+        correct_answer: "behind",
+        wrong_answers: [
+            "at",
+            "to",
+            "of"
+        ],
+        explanation: "'Behind' indicates spatial relationship/position relative to the sofa.",
+        reviewed: true
+    },
+    {
+        rank: 22,
+        topic: "Prepositions of Time",
+        question: "The meeting starts _____ 9:00 AM.",
+        correct_answer: "at",
+        wrong_answers: [
+            "on",
+            "in",
+            "to"
+        ],
+        explanation: "'At' is the specific preposition used for precise clock times.",
+        reviewed: true
+    },
+    {
+        rank: 23,
+        topic: "Compound Nouns",
+        question: "We need to buy some _____.",
+        correct_answer: "toothpaste",
+        wrong_answers: [
+            "tooth paste",
+            "teethpaste",
+            "tooth-paste"
+        ],
+        explanation: "'Toothpaste' is a standard closed compound noun.",
+        reviewed: true
+    },
+    {
+        rank: 24,
+        topic: "Exclamative Sentences",
+        question: "_____ a surprise!",
+        correct_answer: "What",
+        wrong_answers: [
+            "How",
+            "Which",
+            "So"
+        ],
+        explanation: "'What' introduces exclamatives focused on noun phrases ('a surprise').",
+        reviewed: true
+    },
+    {
+        rank: 25,
+        topic: "Suffixation (Comparative/Superlative)",
+        question: "This is the _____ building in the city.",
+        correct_answer: "tallest",
+        wrong_answers: [
+            "taller",
+            "tall",
+            "most tall"
+        ],
+        explanation: "The superlative -est is required when comparing more than two entities.",
+        reviewed: true
+    },
+    {
+        rank: 26,
+        topic: "Present Continuous Tense",
+        question: "I _____ for the bus right now.",
+        correct_answer: "am waiting",
+        wrong_answers: [
+            "wait",
+            "waiting",
+            "waited"
+        ],
+        explanation: "Auxiliary 'am' + participle 'waiting' forms the present continuous.",
+        reviewed: true
+    },
+    {
+        rank: 27,
+        topic: "Past Continuous Tense",
+        question: "It _____ raining when we left.",
+        correct_answer: "was",
+        wrong_answers: [
+            "is",
+            "were",
+            "been"
+        ],
+        explanation: "Past continuous requires the past singular auxiliary 'was' with the participle.",
+        reviewed: true
+    },
+    {
+        rank: 28,
+        topic: "Future Simple (Will)",
+        question: "I think it _____ snow tomorrow.",
+        correct_answer: "will",
+        wrong_answers: [
+            "shall",
+            "is",
+            "going to"
+        ],
+        explanation: "'Will' is used for predictions based on opinion rather than present evidence.",
+        reviewed: true
+    },
+    {
+        rank: 29,
+        topic: "Future (Going to)",
+        question: "Look at those clouds! It _____ rain.",
+        correct_answer: "is going to",
+        wrong_answers: [
+            "will",
+            "shall",
+            "rains"
+        ],
+        explanation: "'Going to' is used for predictions based on present physical evidence.",
+        reviewed: true
+    },
+    {
+        rank: 30,
+        topic: "Coordinating Conjunctions (FANBOYS)",
+        question: "He was tired, _____ he kept working.",
+        correct_answer: "yet",
+        wrong_answers: [
+            "so",
+            "nor",
+            "for"
+        ],
+        explanation: "'Yet' functions as a coordinating conjunction indicating contrast/concession.",
+        reviewed: true
+    },
+    {
+        rank: 31,
+        topic: "Subordinating Conjunctions (Time/Place)",
+        question: "Please close the door _____ you leave.",
+        correct_answer: "before",
+        wrong_answers: [
+            "where",
+            "because",
+            "so"
+        ],
+        explanation: "'Before' establishes the temporal sequence of the subordinate clause.",
+        reviewed: true
+    },
+    {
+        rank: 32,
+        topic: "Subordinating Conjunctions (Causal)",
+        question: "I stayed home _____ I was sick.",
+        correct_answer: "because",
+        wrong_answers: [
+            "although",
+            "unless",
+            "but"
+        ],
+        explanation: "'Because' introduces the subordinate causal clause.",
+        reviewed: true
+    },
+    {
+        rank: 33,
+        topic: "Main Clause vs. Subordinate Clause",
+        question: "Although it was cold, _____.",
+        correct_answer: "we went swimming",
+        wrong_answers: [
+            "because we went swimming",
+            "swimming went we",
+            "and we went swimming"
+        ],
+        explanation: "A main independent clause is required to complete the sentence started by a subordinate clause.",
+        reviewed: true
+    },
+    {
+        rank: 34,
+        topic: "Expanded Noun Phrases",
+        question: "The _____ sat on the fence.",
+        correct_answer: "big black cat with green eyes",
+        wrong_answers: [
+            "cat",
+            "black cat",
+            "big cat"
+        ],
+        explanation: "This option represents the most expanded noun phrase with multiple modifiers.",
+        reviewed: true
+    },
+    {
+        rank: 35,
+        topic: "Adverbs of Manner",
+        question: "He spoke _____ to the audience.",
+        correct_answer: "clearly",
+        wrong_answers: [
+            "clear",
+            "clearness",
+            "cleared"
+        ],
+        explanation: "'Clearly' is the adverb of manner modifying the verb 'spoke'.",
+        reviewed: true
+    },
+    {
+        rank: 36,
+        topic: "Adverbs of Frequency",
+        question: "She _____ arrives on time.",
+        correct_answer: "always",
+        wrong_answers: [
+            "yesterday",
+            "quick",
+            "late"
+        ],
+        explanation: "'Always' denotes frequency and is positioned before the main verb.",
+        reviewed: true
+    },
+    {
+        rank: 37,
+        topic: "Adverbs of Time & Place",
+        question: "Let's go _____.",
+        correct_answer: "outside",
+        wrong_answers: [
+            "careful",
+            "loud",
+            "happy"
+        ],
+        explanation: "'Outside' functions as an adverb of place.",
+        reviewed: true
+    },
+    {
+        rank: 38,
+        topic: "Present Perfect Simple",
+        question: "I _____ that movie already.",
+        correct_answer: "have seen",
+        wrong_answers: [
+            "saw",
+            "see",
+            "seen"
+        ],
+        explanation: "Present perfect (have + participle) indicates indefinite past action with present relevance.",
+        reviewed: true
+    },
+    {
+        rank: 39,
+        topic: "Subject-Verb Agreement",
+        question: "The collection of books _____ heavy.",
+        correct_answer: "is",
+        wrong_answers: [
+            "are",
+            "were",
+            "have"
+        ],
+        explanation: "The subject 'collection' is singular, requiring the singular verb 'is'.",
+        reviewed: true
+    },
+    {
+        rank: 40,
+        topic: "Direct Speech",
+        question: "He asked, \"_____?\"",
+        correct_answer: "Where are you going",
+        wrong_answers: [
+            "where are you going",
+            "Where you are going",
+            "where you going"
+        ],
+        explanation: "Direct speech requires initial capitalization and standard interrogative syntax.",
+        reviewed: true
+    },
+    {
+        rank: 41,
+        topic: "Reflexive Pronouns",
+        question: "She made the dress _____.",
+        correct_answer: "herself",
+        wrong_answers: [
+            "she",
+            "her",
+            "hers"
+        ],
+        explanation: "Reflexive/emphatic usage emphasizing the subject as the agent.",
+        reviewed: true
+    },
+    {
+        rank: 42,
+        topic: "Quantifiers",
+        question: "There isn't _____ milk left.",
+        correct_answer: "much",
+        wrong_answers: [
+            "many",
+            "few",
+            "a few"
+        ],
+        explanation: "'Much' is used with uncountable nouns like 'milk' in negative contexts.",
+        reviewed: true
+    },
+    {
+        rank: 43,
+        topic: "Zero Conditional",
+        question: "If you mix red and blue, you _____ purple.",
+        correct_answer: "get",
+        wrong_answers: [
+            "got",
+            "will get",
+            "would get"
+        ],
+        explanation: "Zero conditional uses present simple in the result clause for general facts.",
+        reviewed: true
+    },
+    {
+        rank: 44,
+        topic: "First Conditional",
+        question: "If he studies hard, he _____ the exam.",
+        correct_answer: "will pass",
+        wrong_answers: [
+            "pass",
+            "would pass",
+            "passes"
+        ],
+        explanation: "First conditional uses 'will' + base verb in the result clause.",
+        reviewed: true
+    },
+    {
+        rank: 45,
+        topic: "Fronted Adverbials",
+        question: "_____, the hero saved the day.",
+        correct_answer: "Bravely",
+        wrong_answers: [
+            "Brave",
+            "Bravery",
+            "Braved"
+        ],
+        explanation: "'Bravely' is an adverb of manner fronted for emphasis.",
+        reviewed: true
+    },
+    {
+        rank: 46,
+        topic: "Plural Possessive Apostrophes",
+        question: "The _____ changing room is occupied.",
+        correct_answer: "ladies'",
+        wrong_answers: [
+            "lady's",
+            "ladie's",
+            "ladies"
+        ],
+        explanation: "Plural nouns ending in 's' take the apostrophe after the 's'.",
+        reviewed: true
+    },
+    {
+        rank: 47,
+        topic: "Prefixation",
+        question: "He was _____ to finish the task.",
+        correct_answer: "unable",
+        wrong_answers: [
+            "disable",
+            "inable",
+            "nonable"
+        ],
+        explanation: "The prefix un- is used with 'able' to form the negation.",
+        reviewed: true
+    },
+    {
+        rank: 48,
+        topic: "Word Families",
+        question: "The _____ caused a lot of damage.",
+        correct_answer: "explosion",
+        wrong_answers: [
+            "explode",
+            "explosive",
+            "exploded"
+        ],
+        explanation: "The noun form 'explosion' is required as the subject.",
+        reviewed: true
+    },
+    {
+        rank: 49,
+        topic: "Determiners (General)",
+        question: "_____ car is parked outside?",
+        correct_answer: "Whose",
+        wrong_answers: [
+            "Who",
+            "Who's",
+            "Which's"
+        ],
+        explanation: "'Whose' is the interrogative determiner asking about possession.",
+        reviewed: true
+    },
+    {
+        rank: 50,
+        topic: "Object Pronouns",
+        question: "Please give _____ the book.",
+        correct_answer: "me",
+        wrong_answers: [
+            "I",
+            "my",
+            "mine"
+        ],
+        explanation: "'Me' is the objective case pronoun functioning as the indirect object.",
+        reviewed: true
+    },
+    {
+        rank: 51,
+        topic: "Past Perfect Simple",
+        question: "When I arrived, the train _____ already left.",
+        correct_answer: "had",
+        wrong_answers: [
+            "has",
+            "have",
+            "was"
+        ],
+        explanation: "Past perfect 'had left' indicates an action completed before another past action.",
+        reviewed: true
+    },
+    {
+        rank: 52,
+        topic: "Present Perfect Continuous",
+        question: "I _____ waiting here for two hours.",
+        correct_answer: "have been",
+        wrong_answers: [
+            "am",
+            "was",
+            "had been"
+        ],
+        explanation: "Focuses on the duration of an action starting in the past and continuing to present.",
+        reviewed: true
+    },
+    {
+        rank: 53,
+        topic: "Passive Voice (Present/Past)",
+        question: "The letter _____ by the secretary yesterday.",
+        correct_answer: "was written",
+        wrong_answers: [
+            "wrote",
+            "is written",
+            "writes"
+        ],
+        explanation: "Past passive requires 'was' + past participle 'written'.",
+        reviewed: true
+    },
+    {
+        rank: 54,
+        topic: "Relative Clauses (Defining)",
+        question: "The man _____ lives next door is a doctor.",
+        correct_answer: "who",
+        wrong_answers: [
+            "which",
+            "whose",
+            "whom"
+        ],
+        explanation: "'Who' is the relative pronoun for people in subject position.",
+        reviewed: true
+    },
+    {
+        rank: 55,
+        topic: "Relative Clauses (Non-Defining)",
+        question: "My brother, _____ lives in Sydney, is coming to visit.",
+        correct_answer: "who",
+        wrong_answers: [
+            "that",
+            "which",
+            "whom"
+        ],
+        explanation: "'Who' introduces the non-essential clause; 'that' is not used in non-defining clauses.",
+        reviewed: true
+    },
+    {
+        rank: 56,
+        topic: "Modal Verbs (Possibility/Ability)",
+        question: "I _____ swim when I was five.",
+        correct_answer: "could",
+        wrong_answers: [
+            "can",
+            "may",
+            "should"
+        ],
+        explanation: "'Could' expresses past ability.",
+        reviewed: true
+    },
+    {
+        rank: 57,
+        topic: "Modal Verbs (Obligation/Advice)",
+        question: "You _____ wear a seatbelt in a car.",
+        correct_answer: "must",
+        wrong_answers: [
+            "might",
+            "can",
+            "may"
+        ],
+        explanation: "'Must' expresses strong obligation/legal requirement.",
+        reviewed: true,
+        notes: "Added 'in a car' to strengthen the legal requirement context"
+    },
+    {
+        rank: 58,
+        topic: "Second Conditional",
+        question: "If I _____ rich, I would travel the world.",
+        correct_answer: "were",
+        wrong_answers: [
+            "am",
+            "was",
+            "be"
+        ],
+        explanation: "Subjunctive 'were' is standard in the if-clause of hypothetical conditionals.",
+        reviewed: true
+    },
+    {
+        rank: 59,
+        topic: "Reported Speech (Backshifting)",
+        question: "She said she _____ busy.",
+        correct_answer: "was",
+        wrong_answers: [
+            "is",
+            "be",
+            "been"
+        ],
+        explanation: "Tense backshift from present 'is' to past 'was' in reported speech.",
+        reviewed: true
+    },
+    {
+        rank: 60,
+        topic: "Connective Adverbs",
+        question: "It was raining; _____, we went out.",
+        correct_answer: "however",
+        wrong_answers: [
+            "and",
+            "but",
+            "so"
+        ],
+        explanation: "'However' is a conjunctive adverb indicating contrast.",
+        reviewed: true
+    },
+    {
+        rank: 61,
+        topic: "Parenthesis (Commas)",
+        question: "The suspect, who was wearing a mask, fled the scene.",
+        correct_answer: "commas around the parenthetical clause",
+        wrong_answers: [
+            "dashes",
+            "semicolons",
+            "colons"
+        ],
+        explanation: "Commas are commonly used to mark parenthetical information.",
+        reviewed: true,
+        notes: "Reformatted question to be clearer - asking which punctuation is used"
+    },
+    {
+        rank: 62,
+        topic: "Colons",
+        question: "I need three things _____ eggs, milk, and bread.",
+        correct_answer: ":",
+        wrong_answers: [
+            ";",
+            ",",
+            "."
+        ],
+        explanation: "A colon introduces a list following an independent clause.",
+        reviewed: true
+    },
+    {
+        rank: 63,
+        topic: "Semi-colons (Linking Clauses)",
+        question: "I love reading _____ my brother prefers sports.",
+        correct_answer: ";",
+        wrong_answers: [
+            ",",
+            ":",
+            "."
+        ],
+        explanation: "A semi-colon joins two closely related independent clauses without a conjunction.",
+        reviewed: true
+    },
+    {
+        rank: 64,
+        topic: "Semi-colons (Complex Lists)",
+        question: "We visited London, England; Paris, France; and Rome, Italy. Which punctuation separates the cities?",
+        correct_answer: "semicolons",
+        wrong_answers: [
+            "commas only",
+            "colons",
+            "periods"
+        ],
+        explanation: "Semi-colons separate list items that contain internal commas.",
+        reviewed: true,
+        notes: "Reformatted to ask which punctuation is used"
+    },
+    {
+        rank: 65,
+        topic: "Hyphens",
+        question: "He is a _____ writer.",
+        correct_answer: "well-known",
+        wrong_answers: [
+            "well known",
+            "wellknown",
+            "well_known"
+        ],
+        explanation: "Hyphens join compound adjectives modifying a noun.",
+        reviewed: true
+    },
+    {
+        rank: 66,
+        topic: "Ellipsis",
+        question: "To be or not to be _____ that is the question.",
+        correct_answer: "...",
+        wrong_answers: [
+            ".",
+            ",",
+            ";"
+        ],
+        explanation: "Ellipsis indicates a pause or omitted words.",
+        reviewed: true
+    },
+    {
+        rank: 67,
+        topic: "Active vs. Passive Voice",
+        question: "Active: The chef cooked the meal. Passive: The meal _____ by the chef.",
+        correct_answer: "was cooked",
+        wrong_answers: [
+            "cooked",
+            "is cooked",
+            "cooks"
+        ],
+        explanation: "Transformation to passive requires 'be' auxiliary + past participle.",
+        reviewed: true
+    },
+    {
+        rank: 68,
+        topic: "Subject-Verb Inversion",
+        question: "Rarely _____ seen such beauty.",
+        correct_answer: "have I",
+        wrong_answers: [
+            "I have",
+            "did I",
+            "was I"
+        ],
+        explanation: "Negative adverbial 'Rarely' triggers subject-auxiliary inversion. 'Have' is required for the perfect aspect.",
+        reviewed: true
+    },
+    {
+        rank: 69,
+        topic: "Prepositional Phrases as Adverbials",
+        question: "_____ the morning, we drink coffee.",
+        correct_answer: "In",
+        wrong_answers: [
+            "On",
+            "At",
+            "By"
+        ],
+        explanation: "'In the morning' functions as a temporal adverbial.",
+        reviewed: true
+    },
+    {
+        rank: 70,
+        topic: "Verb Patterns (Gerund vs. Infinitive)",
+        question: "He promised _____ me.",
+        correct_answer: "to help",
+        wrong_answers: [
+            "helping",
+            "help",
+            "helped"
+        ],
+        explanation: "'Promise' takes the to-infinitive pattern.",
+        reviewed: true
+    },
+    {
+        rank: 71,
+        topic: "Tag Questions",
+        question: "You're coming, _____?",
+        correct_answer: "aren't you",
+        wrong_answers: [
+            "isn't it",
+            "don't you",
+            "won't you"
+        ],
+        explanation: "Tag aligns with the auxiliary 'are' and subject 'you', inverted and negated.",
+        reviewed: true
+    },
+    {
+        rank: 72,
+        topic: "Cleft Sentences (It-clefts)",
+        question: "_____ was John who called.",
+        correct_answer: "It",
+        wrong_answers: [
+            "There",
+            "He",
+            "This"
+        ],
+        explanation: "It-clefts follow the structure It + be + focus + relative clause.",
+        reviewed: true
+    },
+    {
+        rank: 73,
+        topic: "Participle Phrases",
+        question: "_____, the dog ran away.",
+        correct_answer: "Frightened",
+        wrong_answers: [
+            "Frighten",
+            "Frightens",
+            "To frighten"
+        ],
+        explanation: "Past participle phrase functioning as an adjective modifying 'the dog'.",
+        reviewed: true
+    },
+    {
+        rank: 74,
+        topic: "Nominalisation",
+        question: "The _____ of the project took three months.",
+        correct_answer: "completion",
+        wrong_answers: [
+            "complete",
+            "completed",
+            "completing"
+        ],
+        explanation: "Nominalisation converts the verb 'complete' to the noun 'completion'.",
+        reviewed: true
+    },
+    {
+        rank: 75,
+        topic: "Antonyms & Synonyms",
+        question: "'Happy' is a synonym for 'joyful', while 'sad' is an _____.",
+        correct_answer: "antonym",
+        wrong_answers: [
+            "homonym",
+            "acronym",
+            "synonym"
+        ],
+        explanation: "Antonyms are words with opposite meanings.",
+        reviewed: true
+    },
+    {
+        rank: 76,
+        topic: "Third Conditional",
+        question: "If I had known, I _____ gone.",
+        correct_answer: "would have",
+        wrong_answers: [
+            "will have",
+            "would had",
+            "had"
+        ],
+        explanation: "Third conditional requires 'would have' + past participle in the result clause.",
+        reviewed: true
+    },
+    {
+        rank: 77,
+        topic: "Mixed Conditionals",
+        question: "If I had studied harder in school, I _____ a better job now.",
+        correct_answer: "would have",
+        wrong_answers: [
+            "would have had",
+            "will have",
+            "had"
+        ],
+        explanation: "Mixed conditional: Past condition (had studied) with present result (would have).",
+        reviewed: true,
+        notes: "Added 'in school' to clarify past context; answer is 'would have' for present result"
+    },
+    {
+        rank: 78,
+        topic: "Subjunctive Mood (Mandative)",
+        question: "I suggest that he _____ immediately.",
+        correct_answer: "leave",
+        wrong_answers: [
+            "leaves",
+            "left",
+            "leaving"
+        ],
+        explanation: "Mandative subjunctive uses the base form 'leave' regardless of subject.",
+        reviewed: true
+    },
+    {
+        rank: 79,
+        topic: "Subjunctive Mood (Formulaic)",
+        question: "God _____ the King!",
+        correct_answer: "save",
+        wrong_answers: [
+            "saves",
+            "saved",
+            "saving"
+        ],
+        explanation: "Formulaic subjunctive uses the base form in set expressions.",
+        reviewed: true
+    },
+    {
+        rank: 80,
+        topic: "Subjunctive Mood (Were)",
+        question: "I wish I _____ taller.",
+        correct_answer: "were",
+        wrong_answers: [
+            "am",
+            "was",
+            "be"
+        ],
+        explanation: "'Were' is the subjunctive form used for counter-factual wishes.",
+        reviewed: true
+    },
+    {
+        rank: 81,
+        topic: "Future Perfect",
+        question: "By next year, I _____ graduated.",
+        correct_answer: "will have",
+        wrong_answers: [
+            "will",
+            "have",
+            "had"
+        ],
+        explanation: "Future perfect (will have + pp) describes completion before a future time.",
+        reviewed: true
+    },
+    {
+        rank: 82,
+        topic: "Future Perfect Continuous",
+        question: "By 5 PM, I _____ working for 8 hours.",
+        correct_answer: "will have been",
+        wrong_answers: [
+            "will be",
+            "have been",
+            "am"
+        ],
+        explanation: "Emphasizes duration up to a future point.",
+        reviewed: true
+    },
+    {
+        rank: 83,
+        topic: "Passive Voice (Complex/Impersonal)",
+        question: "It _____ that the economy is improving.",
+        correct_answer: "is believed",
+        wrong_answers: [
+            "believes",
+            "believed",
+            "is believing"
+        ],
+        explanation: "Impersonal passive structure 'It is + pp + that...'.",
+        reviewed: true
+    },
+    {
+        rank: 84,
+        topic: "Causative Form",
+        question: "I need to _____ my car repaired.",
+        correct_answer: "get",
+        wrong_answers: [
+            "make",
+            "do",
+            "let"
+        ],
+        explanation: "Causative 'get/have object done' implies arranging for someone else to do the action.",
+        reviewed: true
+    },
+    {
+        rank: 85,
+        topic: "Inversion (Negative Adverbials)",
+        question: "I am truly shocked; never _____ I been so insulted!",
+        correct_answer: "have",
+        wrong_answers: [
+            "had",
+            "did",
+            "was"
+        ],
+        explanation: "The present tense context ('am shocked') necessitates the Present Perfect 'have' rather than the Past Perfect 'had'.",
+        reviewed: true
+    },
+    {
+        rank: 86,
+        topic: "Inversion (Conditional)",
+        question: "_____ you need any help, please call me.",
+        correct_answer: "Should",
+        wrong_answers: [
+            "If",
+            "Unless",
+            "When"
+        ],
+        explanation: "Inverted conditional 'Should you...' replaces 'If you should...'.",
+        reviewed: true
+    },
+    {
+        rank: 87,
+        topic: "Verbless Clauses",
+        question: "When _____, take one tablet.",
+        correct_answer: "necessary",
+        wrong_answers: [
+            "is necessary",
+            "it necessary",
+            "necessity"
+        ],
+        explanation: "Elliptical clause omitting 'it is'.",
+        reviewed: true
+    },
+    {
+        rank: 88,
+        topic: "Absolute Phrases",
+        question: "The weather _____, we went for a walk.",
+        correct_answer: "improving",
+        wrong_answers: [
+            "improved",
+            "improve",
+            "was improving"
+        ],
+        explanation: "Noun + present participle construction modifying the main clause.",
+        reviewed: true,
+        notes: "Present participle 'improving' indicates ongoing improvement"
+    },
+    {
+        rank: 89,
+        topic: "Discourse Markers",
+        question: "_____, I agree with your point.",
+        correct_answer: "Admittedly",
+        wrong_answers: [
+            "Admit",
+            "Admitting",
+            "Admitted"
+        ],
+        explanation: "Discourse markers orient the listener/reader to the speaker's stance.",
+        reviewed: true
+    },
+    {
+        rank: 90,
+        topic: "Modals of Deduction (Past)",
+        question: "He _____ missed the train; he's usually on time.",
+        correct_answer: "must have",
+        wrong_answers: [
+            "should have",
+            "can have",
+            "will have"
+        ],
+        explanation: "'Must have' expresses logical deduction about a past event.",
+        reviewed: true
+    },
+    {
+        rank: 91,
+        topic: "Reduced Relative Clauses",
+        question: "The students _____ the exam looked tired.",
+        correct_answer: "taking",
+        wrong_answers: [
+            "taken",
+            "took",
+            "who taking"
+        ],
+        explanation: "Active relative clause 'who were taking' reduced to present participle 'taking'.",
+        reviewed: true
+    },
+    {
+        rank: 92,
+        topic: "Dummy Subjects",
+        question: "_____ is raining heavily.",
+        correct_answer: "It",
+        wrong_answers: [
+            "There",
+            "This",
+            "That"
+        ],
+        explanation: "'It' serves as the dummy subject for weather verbs.",
+        reviewed: true
+    },
+    {
+        rank: 93,
+        topic: "Subordinate Clause Positioning",
+        question: "_____ I was tired, I went to bed.",
+        correct_answer: "As",
+        wrong_answers: [
+            "So",
+            "Therefore",
+            "However"
+        ],
+        explanation: "Initial subordinate clause introduced by causal 'As'.",
+        reviewed: true
+    }
+];
