@@ -13,7 +13,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 1,
         topic: "Proper Nouns",
-        question: "My cousin lives in _____.",
+        question: "My cousin moved to England last year and now lives in _____.",
         correct_answer: "London",
         wrong_answers: [
             "london",
@@ -26,7 +26,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 2,
         topic: "Common Nouns",
-        question: "Please hand me the _____ on the table.",
+        question: "Please hand me the _____ that is sitting on the table right now.",
         correct_answer: "book",
         wrong_answers: [
             "Book",
@@ -65,7 +65,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 5,
         topic: "Singular & Plural Morphology",
-        question: "The farmer has three _____ in the barn.",
+        question: "The farmer has three _____ in the barn near the old farmhouse.",
         correct_answer: "foxes",
         wrong_answers: [
             "foxs",
@@ -78,7 +78,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 6,
         topic: "Irregular Plurals",
-        question: "The dentist checked all of my _____.",
+        question: "The dentist checked all of my _____ during the appointment this morning.",
         correct_answer: "teeth",
         wrong_answers: [
             "tooths",
@@ -104,7 +104,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 8,
         topic: "Main Verbs (Action)",
-        question: "Every day, the athletes _____ around the track.",
+        question: "Every day, the athletes _____ around the track during their morning practice.",
         correct_answer: "run",
         wrong_answers: [
             "runs",
@@ -118,7 +118,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 9,
         topic: "Main Verbs (Stative)",
-        question: "This cake _____ delicious right now.",
+        question: "This freshly baked chocolate cake _____ absolutely delicious right now to me.",
         correct_answer: "tastes",
         wrong_answers: [
             "is tasting",
@@ -132,7 +132,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 10,
         topic: "Simple Present Tense",
-        question: "The sun always _____ in the east.",
+        question: "The sun always _____ in the east every single morning without fail.",
         correct_answer: "rises",
         wrong_answers: [
             "rose",
@@ -145,7 +145,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 11,
         topic: "Simple Past Tense (Regular)",
-        question: "Yesterday, we _____ to the park.",
+        question: "Yesterday afternoon, we _____ to the park together with our friends.",
         correct_answer: "walked",
         wrong_answers: [
             "walk",
@@ -158,7 +158,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 12,
         topic: "Simple Past Tense (Irregular)",
-        question: "I _____ a letter to my friend last week.",
+        question: "I _____ a long and detailed letter to my friend last week.",
         correct_answer: "wrote",
         wrong_answers: [
             "writed",
@@ -171,7 +171,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 13,
         topic: "Descriptive Adjectives",
-        question: "The _____ dog barked loudly at the stranger.",
+        question: "The _____ dog barked loudly at the stranger who was approaching the house.",
         correct_answer: "angry",
         wrong_answers: [
             "angrily",
@@ -290,7 +290,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 22,
         topic: "Prepositions of Time",
-        question: "I wake up _____ 6 o'clock every morning.",
+        question: "I wake up _____ 6 o'clock every single morning without an alarm.",
         correct_answer: "at",
         wrong_answers: [
             "on",
@@ -329,7 +329,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 25,
         topic: "Suffixation (Comparative/Superlative)",
-        question: "This is the _____ building in the city.",
+        question: "This is the _____ building in the entire city according to recent surveys.",
         correct_answer: "tallest",
         wrong_answers: [
             "taller",
@@ -355,7 +355,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 27,
         topic: "Past Continuous Tense",
-        question: "Yesterday, it _____ raining when we left.",
+        question: "Yesterday, it _____ raining heavily when we left the building for home.",
         correct_answer: "was",
         wrong_answers: [
             "is",
@@ -511,7 +511,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 39,
         topic: "Subject-Verb Agreement",
-        question: "Right now, the collection of books _____ heavy.",
+        question: "Right now, the entire collection of books on the shelf _____ very heavy.",
         correct_answer: "is",
         wrong_answers: [
             "are",
@@ -746,7 +746,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 57,
         topic: "Modal Verbs (Obligation/Advice)",
-        question: "You _____ wear a seatbelt in a car.",
+        question: "You _____ always wear a seatbelt in a car for safety reasons.",
         correct_answer: "must",
         wrong_answers: [
             "might",
@@ -773,7 +773,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 59,
         topic: "Reported Speech (Backshifting)",
-        question: "She said yesterday that she _____ busy.",
+        question: "She said yesterday afternoon that she _____ too busy to come to visit.",
         correct_answer: "was",
         wrong_answers: [
             "is",
@@ -892,7 +892,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 68,
         topic: "Subject-Verb Inversion",
-        question: "Rarely _____ seen such beauty.",
+        question: "Rarely _____ seen such incredible beauty in all of my life before.",
         correct_answer: "have I",
         wrong_answers: [
             "I have",
