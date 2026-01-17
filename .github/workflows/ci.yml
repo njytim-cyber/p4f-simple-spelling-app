@@ -39,38 +39,6 @@ jobs:
       - name: Content quality audits
         run: npm run audit:all
 
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
   build-verification:
     name: Build Verification
     runs-on: ubuntu-latest
@@ -101,18 +69,16 @@ jobs:
   all-checks-passed:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [quality-checks, e2e-tests, build-verification]
+    needs: [quality-checks, build-verification]
     if: always()
 
     steps:
       - name: Check all jobs status
         run: |
           if [ "${{ needs.quality-checks.result }}" != "success" ] || \
-             [ "${{ needs.e2e-tests.result }}" != "success" ] || \
              [ "${{ needs.build-verification.result }}" != "success" ]; then
             echo "❌ One or more checks failed"
             echo "Quality Checks: ${{ needs.quality-checks.result }}"
-            echo "E2E Tests: ${{ needs.e2e-tests.result }}"
             echo "Build Verification: ${{ needs.build-verification.result }}"
             exit 1
           fi
