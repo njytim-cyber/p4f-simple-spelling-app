@@ -1,0 +1,21 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Type checking and build
+echo "📦 Type checking..."
+npm run build || exit 1
+
+# Linting
+echo "🧹 Linting code..."
+npm run lint || exit 1
+
+# Content quality audits
+echo "📝 Running content quality audits..."
+npm run audit:all || exit 1
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+echo "ℹ️  Unit and E2E tests will run in CI"

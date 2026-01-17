@@ -12,17 +12,12 @@ import {
 } from '@mui/material';
 import { RecordVoiceOver, Check } from '@mui/icons-material';
 import { AVAILABLE_VOICES } from '../utils/speech';
+import { saveVoice } from '../utils/storage';
 
 interface VoiceSelectorProps {
     currentVoiceId: string;
     onVoiceSelect: (voiceId: string) => void;
 }
-
-const STORAGE_KEY_VOICE = 'p4_voice_preference';
-
-export const getSavedVoice = (): string => {
-    return localStorage.getItem(STORAGE_KEY_VOICE) || AVAILABLE_VOICES[0].id;
-};
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ currentVoiceId, onVoiceSelect }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -37,7 +32,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ currentVoiceId, onVoiceSe
     };
 
     const handleSelect = (voiceId: string) => {
-        localStorage.setItem(STORAGE_KEY_VOICE, voiceId);
+        saveVoice(voiceId);
         onVoiceSelect(voiceId);
         handleClose();
     };

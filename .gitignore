@@ -119,3 +119,31 @@ dist
 # Vite
 dist-ssr
 *.local
+
+# Development scripts and tools
+scripts/legacy/
+*.backup*
+*-report.json
+*-suggestions.json
+*-suggested.json
+*-distractors.json
+*-fixes-needed.json
+*-items.json
+*-questions.json
+*.csv
+*.ts.before-*
+*-expansion-*.ts
+
+# Claude Code
+.claude/
+
+# Test reports and artifacts
+test-results/
+playwright-report/
+coverage/
+
+# Development documentation (keep main docs)
+AUDIT-SUMMARY.md
+DISTRACTOR-QUALITY-EVOLUTION.md
+QUALITY-STANDARDS-SUMMARY.md
+QUICK-REFERENCE.md

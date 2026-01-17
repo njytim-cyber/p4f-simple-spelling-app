@@ -123,7 +123,6 @@ export const speak = async (text: string, rate: number = 0.85, voiceId?: string)
     }
 
     utterance.rate = adjustedRate;
-    console.log(`Fallback Speech: "${textToSpeak}" | Voice: ${targetVoice} | Rate: ${adjustedRate}`);
     window.speechSynthesis.speak(utterance);
 };
 
