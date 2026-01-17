@@ -137,9 +137,10 @@ scripts/legacy/
 # Claude Code
 .claude/
 
-# Test files (keep vitest.config.ts and playwright.config.ts if needed)
-test-*.ts
-tests/
+# Test reports and artifacts
+test-results/
+playwright-report/
+coverage/
 
 # Development documentation (keep main docs)
 AUDIT-SUMMARY.md
