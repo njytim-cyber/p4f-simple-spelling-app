@@ -3,7 +3,7 @@ import { PlayArrow } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType } from '../data/exercises';
 import { EDITING_EXERCISES } from '../data/editing-exercises';
 
-interface EditingDashboardProps {
+interface EditingDashboardProps{
     onSelect: (ex: Exercise, type: ExerciseType) => void;
     history: ScoreRecord[];
 }
@@ -105,15 +105,3 @@ export default function EditingDashboard({ onSelect, history }: EditingDashboard
     );
 }
 
-// Export revision data for use in Dashboard
-export function getEditingRevisionData(history: ScoreRecord[]) {
-    const revisionExercises = history
-        .filter(record => record.type === 'editing' && record.score < record.total)
-        .map(record => record.exerciseId)
-        .filter((id, index, self) => self.indexOf(id) === index); // unique
-
-    return {
-        revisionCount: revisionExercises.length,
-        firstRevisionId: revisionExercises[0],
-    };
-}

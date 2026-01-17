@@ -121,7 +121,7 @@ dist-ssr
 *.local
 
 # Development scripts and tools
-*.cjs
+scripts/legacy/
 *.backup*
 *-report.json
 *-suggestions.json

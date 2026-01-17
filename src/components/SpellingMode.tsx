@@ -18,8 +18,9 @@ import {
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
+import { getSavedVoice } from '../utils/storage';
 import { HoneyJar } from './HoneyJar';
-import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import VoiceSelector from './VoiceSelector';
 import ExerciseCard from './ExerciseCard';
 import { playVictorySound } from '../utils/sounds';
 

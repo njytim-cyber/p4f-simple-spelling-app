@@ -17,6 +17,7 @@ import {
 import { Exercise } from '../data/exercises';
 import Confetti from 'react-confetti';
 import { playVictorySound } from '../utils/sounds';
+import { useWindowSize } from '../hooks/useWindowSize';
 
 interface EditingModeProps {
     exercise: Exercise;
@@ -31,15 +32,10 @@ interface Segment {
     id?: number;
 }
 
-// Helper to interact with browser window size for confetti
-function useWindowSize() {
-    const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
-    useEffect(() => {
-        const handleResize = () => setSize({ width: window.innerWidth, height: window.innerHeight });
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    return size;
+interface ErrorSegment extends Segment {
+    type: 'error';
+    answer: string;
+    id: number;
 }
 
 export default function EditingMode({ exercise, onComplete, onBack }: EditingModeProps) {
@@ -90,31 +86,26 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
         return parts;
     }, [exercise.editing]);
 
-    const errorSegments = segments.filter(s => s.type === 'error');
+    const errorSegments = segments.filter((s): s is ErrorSegment => s.type === 'error');
     const totalQuestions = errorSegments.length;
     const totalPossible = totalQuestions * 2;
 
     const handleCheck = () => {
         // Calculate score with 2-point system
-        let score = 0;
         const missed: string[] = [];
         const newAttemptCount = { ...attemptCount };
 
         errorSegments.forEach(seg => {
-            const userAnswer = (answers[seg.id!] || '').trim().toLowerCase();
-            const correctAnswer = (seg.answer || '').trim().toLowerCase();
+            const userAnswer = (answers[seg.id] || '').trim().toLowerCase();
+            const correctAnswer = seg.answer.trim().toLowerCase();
 
             if (userAnswer === correctAnswer) {
                 // Track attempts for this question
-                const attempts = (attemptCount[seg.id!] || 0) + 1;
-                newAttemptCount[seg.id!] = attempts;
-
-                // 2 points for first try, 1 point for retry
-                const points = attempts === 1 ? 2 : 1;
-                score += points;
+                const attempts = (attemptCount[seg.id] || 0) + 1;
+                newAttemptCount[seg.id] = attempts;
             } else {
                 // Track failed attempt
-                newAttemptCount[seg.id!] = (attemptCount[seg.id!] || 0) + 1;
+                newAttemptCount[seg.id] = (attemptCount[seg.id] || 0) + 1;
                 missed.push(`${seg.answer} (not ${seg.content})`);
             }
         });
@@ -139,14 +130,14 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
         let score = 0;
         const missed: string[] = [];
         errorSegments.forEach(seg => {
-            const userAnswer = (answers[seg.id!] || '').trim().toLowerCase();
-            const correctAnswer = (seg.answer || '').trim().toLowerCase();
+            const userAnswer = (answers[seg.id] || '').trim().toLowerCase();
+            const correctAnswer = seg.answer.trim().toLowerCase();
             if (userAnswer === correctAnswer) {
-                const attempts = attemptCount[seg.id!] || 1;
+                const attempts = attemptCount[seg.id] || 1;
                 const points = attempts === 1 ? 2 : 1;
                 score += points;
             } else {
-                missed.push(`${seg.answer}`);
+                missed.push(seg.answer);
             }
         });
         return { score, missed };
@@ -353,7 +344,9 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                                     {lineIdx < arr.length - 1 && <br />}
                                 </span>
                             ));
-                        } else {
+                        } else if (seg.type === 'error' && seg.id !== undefined && seg.answer !== undefined) {
+                            // TypeScript now knows this is an ErrorSegment
+                            const errorSeg = seg as ErrorSegment;
                             return (
                                 <Box
                                     component="span"
@@ -390,7 +383,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                                             color="error.main"
                                             sx={{ fontSize: 'inherit' }}
                                         >
-                                            {seg.content}
+                                            {errorSeg.content}
                                         </Typography>
                                     </Box>
 
@@ -405,14 +398,14 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                                         <TextField
                                             variant="outlined"
                                             size="small"
-                                            value={answers[seg.id!] || ''}
-                                            onChange={(e) => setAnswers(prev => ({ ...prev, [seg.id!]: e.target.value }))}
+                                            value={answers[errorSeg.id] || ''}
+                                            onChange={(e) => setAnswers(prev => ({ ...prev, [errorSeg.id]: e.target.value }))}
                                             placeholder="..."
                                             sx={{
                                                 width: {
-                                                    xs: Math.min(100, Math.max(80, (seg.answer?.length || 5) * 12)) + 'px',
-                                                    sm: Math.min(140, Math.max(100, (seg.answer?.length || 5) * 14)) + 'px',
-                                                    md: Math.max(120, (seg.answer?.length || 5) * 16 + 40) + 'px'
+                                                    xs: Math.min(100, Math.max(80, (errorSeg.answer.length || 5) * 12)) + 'px',
+                                                    sm: Math.min(140, Math.max(100, (errorSeg.answer.length || 5) * 14)) + 'px',
+                                                    md: Math.max(120, (errorSeg.answer.length || 5) * 16 + 40) + 'px'
                                                 },
                                                 '& .MuiInputBase-root': {
                                                     height: { xs: '1.75rem', sm: '2rem' },
@@ -429,6 +422,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                                 </Box>
                             );
                         }
+                        return null;
                     })}
                 </Typography>
             </Paper>

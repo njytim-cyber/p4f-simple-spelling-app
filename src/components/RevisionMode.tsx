@@ -12,8 +12,9 @@ import {
 } from '@mui/material';
 import { ArrowBack, VolumeUp, AutoAwesome, Star, CheckCircle, Cancel } from '@mui/icons-material';
 import { speak } from '../utils/speech';
+import { getSavedVoice } from '../utils/storage';
 import { HoneyJar } from './HoneyJar';
-import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import VoiceSelector from './VoiceSelector';
 import ExerciseCard from './ExerciseCard';
 import { playVictorySound } from '../utils/sounds';
 import {
@@ -26,6 +27,7 @@ import {
 } from '../utils/spacedRepetition';
 import { VOCABULARY, VocabularyItem } from '../data/vocabulary';
 import { GRAMMAR_QUESTIONS, GrammarQuestion } from '../data/grammar-exercises';
+import { shuffleArray } from '../hooks/useShuffleArray';
 
 interface RevisionModeProps {
     items: RevisionItem[];
@@ -42,16 +44,6 @@ const VOCAB_MAP = new Map<string, VocabularyItem>(
 const GRAMMAR_MAP = new Map<string, GrammarQuestion>(
     GRAMMAR_QUESTIONS.map(q => [q.topic.toLowerCase(), q])
 );
-
-// Fisher-Yates shuffle - O(n) with uniform distribution
-const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-};
 
 const RevisionMode: React.FC<RevisionModeProps> = ({
     items,
@@ -100,19 +92,26 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
     const shuffledOptions = useMemo(() => {
         if (!vocabItem && !grammarItem) return [];
 
-        const correctAnswer = vocabItem ? vocabItem.word : grammarItem!.correct_answer;
-        const wrongAnswers = grammarItem
-            ? grammarItem.wrong_answers
-            : vocabItem?.wrong_answers && vocabItem.wrong_answers.length === 3
+        if (grammarItem) {
+            const correctAnswer = grammarItem.correct_answer;
+            const wrongAnswers = grammarItem.wrong_answers;
+            return shuffleArray([correctAnswer, ...wrongAnswers]);
+        }
+
+        if (vocabItem) {
+            const correctAnswer = vocabItem.word;
+            const wrongAnswers = vocabItem.wrong_answers && vocabItem.wrong_answers.length === 3
                 ? vocabItem.wrong_answers  // Use curated distractors
                 : shuffleArray(  // Fallback to random if no curated distractors
                     Array.from(VOCAB_MAP.values())
-                        .filter(v => v.word !== vocabItem!.word)
+                        .filter(v => v.word !== vocabItem.word)
                 )
                     .slice(0, 3)
                     .map(v => v.word);
+            return shuffleArray([correctAnswer, ...wrongAnswers]);
+        }
 
-        return shuffleArray([correctAnswer, ...wrongAnswers]);
+        return [];
     }, [vocabItem, grammarItem]);
 
     // Cleanup timeouts on unmount
@@ -211,7 +210,7 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
     const handleMcqCheck = useCallback(() => {
         if (!selectedAnswer || mcqChecked || (!vocabItem && !grammarItem)) return;
 
-        const correctAnswer = vocabItem ? vocabItem.word : grammarItem!.correct_answer;
+        const correctAnswer = vocabItem ? vocabItem.word : grammarItem?.correct_answer || '';
         const isCorrect = selectedAnswer === correctAnswer;
 
         setMcqChecked(true);
