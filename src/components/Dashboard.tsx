@@ -166,7 +166,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
     // Helper to normalize history records for display
     // Handles transition from 1-point system to 2-point tiered system
     // Simplified: removed async lazy loading which caused issues
-    const getNormalizedRecord = (record: ScoreRecord) => {
+    const getNormalizedRecord = useCallback((record: ScoreRecord) => {
         // Find reference exercise to get true item count
         const refEx = exercises.find(e => e.id === record.exerciseId);
 
@@ -212,7 +212,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         }
 
         return record;
-    };
+    }, [exercises]);
 
 
     // Memoize total XP calculation to prevent recalculation on every render
@@ -221,7 +221,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
             const norm = getNormalizedRecord(curr);
             return acc + (norm.score * 10);
         }, 0);
-    }, [history, exercises]);
+    }, [history, getNormalizedRecord]);
 
     const getTotalXP = () => totalXP;
 
@@ -237,7 +237,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
             }
         });
         return scores;
-    }, [history, exercises]);
+    }, [history, getNormalizedRecord]);
 
     const getBestScore = (exerciseId: string, type: ExerciseType) => {
         const key = `${exerciseId}-${type}`;

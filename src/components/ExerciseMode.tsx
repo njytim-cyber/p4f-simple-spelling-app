@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -78,28 +78,8 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         : (dataLoaded.grammar?.length || 0);
     const remainingQuestions = totalAvailable - usedQuestionIds.size;
 
-    // Load data and generate questions on mount
-    useEffect(() => {
-        const loadData = async () => {
-            setIsLoading(true);
-            try {
-                if (quizType === 'vocab') {
-                    const vocab = await loadVocabulary();
-                    setDataLoaded({ vocab });
-                    generateVocabQuestions(vocab);
-                } else {
-                    const grammar = await loadGrammarQuestions();
-                    setDataLoaded({ grammar });
-                    generateGrammarQuestions(grammar);
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadData();
-    }, [quizType, questionCount]);
-
-    const generateVocabQuestions = (vocabulary: VocabularyItem[]) => {
+    // Generate questions functions - defined before useEffect to avoid hoisting issues
+    const generateVocabQuestions = useCallback((vocabulary: VocabularyItem[]) => {
         // Filter for good quality vocabulary (exclude generic meanings and already used)
         const levelVocab = vocabulary.filter(v =>
             v.level === 'p4' &&
@@ -155,9 +135,9 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         });
 
         setQuestions(generatedQuestions);
-    };
+    }, [usedQuestionIds, questionCount]);
 
-    const generateGrammarQuestions = (grammarQuestions: GrammarQuestion[]) => {
+    const generateGrammarQuestions = useCallback((grammarQuestions: GrammarQuestion[]) => {
         // Exclude already used questions
         const availableQuestions = grammarQuestions.filter(q => !usedQuestionIds.has(q.topic));
         const shuffled = [...availableQuestions].sort(() => Math.random() - 0.5);
@@ -183,7 +163,28 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         });
 
         setQuestions(generatedQuestions);
-    };
+    }, [usedQuestionIds, questionCount]);
+
+    // Load data and generate questions on mount
+    useEffect(() => {
+        const loadData = async () => {
+            setIsLoading(true);
+            try {
+                if (quizType === 'vocab') {
+                    const vocab = await loadVocabulary();
+                    setDataLoaded({ vocab });
+                    generateVocabQuestions(vocab);
+                } else {
+                    const grammar = await loadGrammarQuestions();
+                    setDataLoaded({ grammar });
+                    generateGrammarQuestions(grammar);
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, [quizType, questionCount, generateVocabQuestions, generateGrammarQuestions]);
 
     const currentQuestion = questions[index];
 

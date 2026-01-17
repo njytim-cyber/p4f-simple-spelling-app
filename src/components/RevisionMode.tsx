@@ -129,7 +129,7 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
             const timer = setTimeout(() => speak(currentItem.phrase, speed, voice), 300);
             return () => clearTimeout(timer);
         }
-    }, [index, currentItem?.phrase, speed, voice, showResults]);
+    }, [index, currentItem, speed, voice, showResults]);
 
     // Reset MCQ state when moving to new question
     useEffect(() => {
@@ -143,7 +143,7 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
         if (showResults && score === totalPossible) {
             playVictorySound();
         }
-    }, [showResults, score]);
+    }, [showResults, score, totalPossible]);
 
     // Memoized handlers to prevent race conditions
     const updateRevisionItem = useCallback((updated: RevisionItem) => {

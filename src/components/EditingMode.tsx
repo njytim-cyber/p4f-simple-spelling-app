@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     Box,
     Typography,
@@ -126,7 +126,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
     const progress = (answeredCount / totalQuestions) * 100;
 
     // Calculate final score and missed items for results
-    const calculateResults = () => {
+    const calculateResults = useCallback(() => {
         let score = 0;
         const missed: string[] = [];
         errorSegments.forEach(seg => {
@@ -141,7 +141,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
             }
         });
         return { score, missed };
-    };
+    }, [errorSegments, answers, attemptCount]);
 
     // Play victory sound on results screen with perfect score
     useEffect(() => {
@@ -151,7 +151,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                 playVictorySound();
             }
         }
-    }, [showResults]);
+    }, [showResults, calculateResults]);
 
     // Results screen
     if (showResults) {
@@ -221,7 +221,7 @@ export default function EditingMode({ exercise, onComplete, onBack }: EditingMod
                                 Corrections to Review:
                             </Typography>
                             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-                                {missed.map((item, i) => (
+                                {missed.map((item: string, i: number) => (
                                     <Box
                                         key={i}
                                         sx={{
