@@ -62,12 +62,14 @@ A comprehensive educational application for Primary 4 students (age 10) focusing
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 20+ and npm (required for Vite 7)
 
 ### Installation
 ```bash
-npm install
+npm install  # Also installs pre-commit hooks automatically
 ```
+
+⚠️ **IMPORTANT:** This project uses automated pre-commit hooks (Husky) that run quality checks before allowing commits. If your commit is blocked, you must fix all issues first. See [ENFORCEMENT-RULES.md](ENFORCEMENT-RULES.md) for details.
 
 ### Development
 ```bash

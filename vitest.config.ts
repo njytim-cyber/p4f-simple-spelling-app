@@ -8,5 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     css: true,
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/e2e/**',
+      '**/*.spec.ts', // Exclude Playwright E2E tests
+    ],
   },
 });

@@ -1,5 +1,22 @@
 # Enforcement Rules
 
+## 🔒 Automated Pre-Commit Hooks
+
+**This repository uses [Husky](https://typicode.github.io/husky/) to automatically enforce quality checks BEFORE commits are allowed.**
+
+When you run `git commit`, the following checks will run automatically:
+1. ✅ Type checking (`npm run build`)
+2. ✅ Code linting (`npm run lint`)
+3. ✅ Content quality audits (`npm run audit:all`)
+
+**If ANY check fails, the commit will be BLOCKED.** You must fix all issues before you can commit.
+
+This means:
+- ❌ You **CANNOT** commit broken code
+- ❌ You **CANNOT** skip quality checks
+- ✅ You **MUST** fix all issues first
+- ✅ Quality is enforced automatically, not optionally
+
 ## Mandatory Pre-Commit Requirements
 
 **ALL changes must pass these checks before committing:**
@@ -75,10 +92,34 @@ Before merging any PR:
 ## Enforcement
 
 ### Local Enforcement
-Developers are responsible for running all applicable checks before:
-- Creating commits
-- Pushing to remote
-- Creating pull requests
+
+#### Automated Pre-Commit Hooks (Husky)
+Pre-commit hooks are automatically installed when you run `npm install` (via the `prepare` script).
+
+**First-time setup:**
+```bash
+npm install  # Automatically installs Husky hooks
+```
+
+**What happens on commit:**
+1. You run `git commit -m "your message"`
+2. Husky intercepts the commit
+3. Runs all quality checks automatically
+4. If all pass → Commit succeeds ✅
+5. If any fail → Commit is blocked ❌
+
+**Manual bypass (STRONGLY DISCOURAGED):**
+```bash
+git commit --no-verify -m "message"  # Bypasses hooks - DO NOT USE
+```
+⚠️ **WARNING:** Using `--no-verify` is a violation of project rules. Only use in genuine emergencies (e.g., fixing broken hooks). The CI will still catch issues and block merging.
+
+#### Developer Responsibility
+Even with automated hooks, developers are responsible for:
+- Understanding why checks exist
+- Running checks during development (not just at commit time)
+- Writing tests for new features
+- Maintaining code quality standards
 
 ### Automated Enforcement (CI/CD)
 GitHub Actions automatically runs all checks on:
