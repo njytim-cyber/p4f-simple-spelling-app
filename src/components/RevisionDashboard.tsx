@@ -10,7 +10,6 @@ import {
 import {
     Spellcheck,
     AutoFixHigh,
-    School,
     MenuBook,
 } from '@mui/icons-material';
 import { ScoreRecord, ExerciseType } from '../data/exercises';
