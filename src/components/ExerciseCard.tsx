@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { Card, TextField, Button, Box, Typography } from '@mui/material';
+import Card from '@mui/material/Card';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getEncouragement } from '../utils/spacedRepetition';
 import { playCorrectSound } from '../utils/sounds';

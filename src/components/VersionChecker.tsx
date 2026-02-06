@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Snackbar, Button, Alert } from '@mui/material';
-import { Refresh } from '@mui/icons-material';
+import Snackbar from '@mui/material/Snackbar';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
+import Refresh from '@mui/icons-material/Refresh';
 import { APP_VERSION, isNewerVersion } from '../data/version';
 
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes

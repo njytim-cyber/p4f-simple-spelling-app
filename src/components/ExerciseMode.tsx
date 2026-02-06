@@ -1,23 +1,24 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    Container,
-    Typography,
-    Card,
-    Button,
-    IconButton,
-    Box,
-    Chip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-    Stack,
-    Paper,
-    LinearProgress,
-    CircularProgress,
-} from '@mui/material';
-import { ArrowBack, Star, CheckCircle, Cancel } from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
+import LinearProgress from '@mui/material/LinearProgress';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import Star from '@mui/icons-material/Star';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import Cancel from '@mui/icons-material/Cancel';
 import type { VocabularyItem } from '../data/vocabulary';
 import type { GrammarQuestion } from '../data/grammar-exercises';
 import { loadVocabulary, loadGrammarQuestions } from '../data/loaders';

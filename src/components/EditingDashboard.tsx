@@ -1,5 +1,9 @@
-import { Box, Paper, Stack, Typography, LinearProgress } from '@mui/material';
-import { PlayArrow } from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
+import PlayArrow from '@mui/icons-material/PlayArrow';
 import { Exercise, ScoreRecord, ExerciseType } from '../data/exercises';
 import { EDITING_EXERCISES } from '../data/editing-exercises';
 

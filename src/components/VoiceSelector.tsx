@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import {
-    IconButton,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText,
-    Typography,
-    Divider,
-    Box,
-    Tooltip
-} from '@mui/material';
-import { RecordVoiceOver, Check } from '@mui/icons-material';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
+import RecordVoiceOver from '@mui/icons-material/RecordVoiceOver';
+import Check from '@mui/icons-material/Check';
 import { AVAILABLE_VOICES } from '../utils/speech';
 import { saveVoice } from '../utils/storage';
 

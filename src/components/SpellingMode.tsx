@@ -1,21 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-    Container,
-    Typography,
-    Card,
-    Button,
-    IconButton,
-    Box,
-    Chip,
-    ButtonBase,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-    Tooltip,
-} from '@mui/material';
-import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import ButtonBase from '@mui/material/ButtonBase';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Tooltip from '@mui/material/Tooltip';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import VolumeUp from '@mui/icons-material/VolumeUp';
+import Star from '@mui/icons-material/Star';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
 import { getSavedVoice } from '../utils/storage';

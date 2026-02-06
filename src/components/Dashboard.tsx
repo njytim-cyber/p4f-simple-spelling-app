@@ -1,41 +1,37 @@
 import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
-import {
-    Container,
-    Typography,
-    Button,
-    Chip,
-    Stack,
-    Box,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    List,
-    ListItem,
-    Divider,
-    Paper,
-    Grid,
-    Tabs,
-    Tab,
-    Tooltip,
-} from '@mui/material';
-import {
-    Star,
-    History as HistoryIcon,
-    CheckCircle,
-    RadioButtonUnchecked,
-    Sync,
-    EditCalendar,
-    Spellcheck,
-    AutoFixHigh,
-    History,
-    Info,
-} from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import Divider from '@mui/material/Divider';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Tooltip from '@mui/material/Tooltip';
+import Star from '@mui/icons-material/Star';
+import HistoryIcon from '@mui/icons-material/History';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import RadioButtonUnchecked from '@mui/icons-material/RadioButtonUnchecked';
+import Sync from '@mui/icons-material/Sync';
+import EditCalendar from '@mui/icons-material/EditCalendar';
+import Spellcheck from '@mui/icons-material/Spellcheck';
+import AutoFixHigh from '@mui/icons-material/AutoFixHigh';
+import History from '@mui/icons-material/History';
+import Info from '@mui/icons-material/Info';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
-import { TextField } from '@mui/material';
+import TextField from '@mui/material/TextField';
 import { chunkText } from '../utils/speech'
 import ExercisesDashboard from './ExercisesDashboard';
 import RevisionDashboard from './RevisionDashboard';

@@ -1,6 +1,10 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Container, Card } from '@mui/material';
-import { Refresh } from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Card from '@mui/material/Card';
+import Refresh from '@mui/icons-material/Refresh';
 
 interface Props {
     children?: ReactNode;

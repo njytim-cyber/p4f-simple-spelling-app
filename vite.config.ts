@@ -11,18 +11,18 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
+                manualChunks(id) {
                     // Split large data files into separate chunks
-                    'grammar-data': ['./src/data/grammar-exercises'],
-                    'vocabulary-data': ['./src/data/vocabulary'],
-                    'editing-data': ['./src/data/editing-exercises'],
-                    // Split vendor libraries
-                    'mui-core': ['@mui/material', '@mui/icons-material'],
+                    if (id.includes('src/data/grammar-exercises')) return 'grammar-data';
+                    if (id.includes('src/data/vocabulary')) return 'vocabulary-data';
+                    if (id.includes('src/data/editing-exercises')) return 'editing-data';
+                    // Group MUI + Emotion into a cacheable vendor chunk
+                    if (id.includes('@mui/') || id.includes('@emotion/')) return 'mui-vendor';
                 }
             }
         },
         // Increase chunk size warning limit since we're intentionally splitting
-        chunkSizeWarningLimit: 600,
+        chunkSizeWarningLimit: 500,
         // Use esbuild minification (default and faster than terser)
         minify: 'esbuild'
     }

@@ -14,7 +14,8 @@ import UpdateSplash, { LAST_SEEN_VERSION_KEY } from './components/UpdateSplash';
 import VersionChecker from './components/VersionChecker';
 import { APP_VERSION } from './data/version';
 import Confetti from 'react-confetti';
-import { Box, CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import {
     RevisionItem,
     getMissedItemsFromHistory,

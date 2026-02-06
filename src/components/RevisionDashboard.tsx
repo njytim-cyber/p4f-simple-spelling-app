@@ -1,17 +1,13 @@
 import { useMemo } from 'react';
-import {
-    Container,
-    Typography,
-    Stack,
-    Paper,
-    Box,
-    Chip,
-} from '@mui/material';
-import {
-    Spellcheck,
-    AutoFixHigh,
-    MenuBook,
-} from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Spellcheck from '@mui/icons-material/Spellcheck';
+import AutoFixHigh from '@mui/icons-material/AutoFixHigh';
+import MenuBook from '@mui/icons-material/MenuBook';
 import { ScoreRecord, ExerciseType } from '../data/exercises';
 import {
     getMissedItemsFromHistory,

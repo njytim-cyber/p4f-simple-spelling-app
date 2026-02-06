@@ -1,19 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import {
-    Box,
-    Typography,
-    Paper,
-    TextField,
-    Button,
-    Container,
-    Stack,
-    LinearProgress,
-    IconButton,
-    Card,
-} from '@mui/material';
-import {
-    ArrowBack,
-} from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
+import LinearProgress from '@mui/material/LinearProgress';
+import IconButton from '@mui/material/IconButton';
+import Card from '@mui/material/Card';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Exercise } from '../data/exercises';
 import Confetti from 'react-confetti';
 import { playVictorySound } from '../utils/sounds';

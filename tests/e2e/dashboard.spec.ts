@@ -2,81 +2,67 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
+    // Skip onboarding, update splash, and privacy dialog
+    await page.addInitScript(() => {
+      localStorage.setItem('p4_onboarding_complete', 'true');
+      localStorage.setItem('p4f-spelling-last-seen-version', '999.0.0');
+      localStorage.setItem('p4_privacy_message_seen', 'true');
+    });
     await page.goto('/');
-    // Wait for the app to load
     await page.waitForLoadState('networkidle');
-
-    // Close onboarding if present
-    const onboardingButton = page.getByRole('button', { name: /get started|got it/i });
-    if (await onboardingButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await onboardingButton.click();
-    }
   });
 
   test('should display the dashboard with header', async ({ page }) => {
-    await expect(page.getByText('Hi! 👋')).toBeVisible();
+    await expect(page.getByText('Spelling Tests')).toBeVisible();
   });
 
   test('should display XP counter', async ({ page }) => {
-    const xpChip = page.locator('[class*="MuiChip"]').filter({ hasText: /^\d+$/ });
-    await expect(xpChip).toBeVisible();
+    // The XP chip shows a star icon + number
+    await expect(page.locator('[class*="MuiChip"]').first()).toBeVisible();
   });
 
   test('should display exercise list with dates', async ({ page }) => {
-    // Check for exercise items
     await expect(page.getByText('#', { exact: true })).toBeVisible();
     await expect(page.getByText('Date')).toBeVisible();
   });
 
-  test('should open spelling list dialog', async ({ page }) => {
-    const spellingListButton = page.locator('[data-onboarding="spelling-list"]');
-    await spellingListButton.click();
-
-    await expect(page.getByText('Master Spelling List')).toBeVisible();
-
-    // Close dialog
-    await page.getByRole('button', { name: /got it/i }).click();
+  test('should display bottom navigation tabs', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /spelling/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /exercises/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /revision/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /about/i })).toBeVisible();
   });
 
-  test('should open activity log dialog', async ({ page }) => {
-    const activityLogButton = page.locator('[data-onboarding="activity-log"]');
-    await activityLogButton.click();
-
-    await expect(page.getByText('Activity history')).toBeVisible();
-
-    // Close dialog
-    await page.getByRole('button', { name: /finish/i }).click();
-  });
-
-  test('should switch between spelling and editing tabs', async ({ page }) => {
+  test('should switch between tabs', async ({ page }) => {
     // Initially on spelling tab
+    await expect(page.getByText('Spelling Tests')).toBeVisible();
+
+    // Click exercises tab
+    await page.getByRole('button', { name: /exercises/i }).click();
+    await expect(page.getByText('Exercises 📝')).toBeVisible();
+
+    // Click revision tab
+    await page.getByRole('button', { name: /revision/i }).click();
+    await expect(page.getByText('Revision 📚')).toBeVisible();
+
+    // Click about tab
+    await page.getByRole('button', { name: /about/i }).click();
     await expect(page.getByText('Hi! 👋')).toBeVisible();
 
-    // Click editing tab
-    await page.getByRole('button', { name: /editing/i }).last().click();
-    await expect(page.getByText('Editing ✍️')).toBeVisible();
-
-    // Click back to spelling tab
-    await page.getByRole('button', { name: /spelling/i }).last().click();
-    await expect(page.getByText('Hi! 👋')).toBeVisible();
-  });
-
-  test('should display revision button', async ({ page }) => {
-    const revisionButton = page.locator('[data-onboarding="revision"]');
-    await expect(revisionButton).toBeVisible();
-    await expect(revisionButton).toContainText(/revision/i);
+    // Click back to spelling
+    await page.getByRole('button', { name: /spelling/i }).click();
+    await expect(page.getByText('Spelling Tests')).toBeVisible();
   });
 
   test('should have clickable exercise icons', async ({ page }) => {
-    // Find first spelling exercise icon
-    const firstSpellingIcon = page.locator('[data-onboarding="spelling"]').first();
-    await expect(firstSpellingIcon).toBeVisible();
+    // Find first exercise row icon (spelling or dictation)
+    const firstIcon = page.locator('[data-onboarding="spelling"]').first();
+    await expect(firstIcon).toBeVisible();
 
-    // Click should navigate to exercise
-    await firstSpellingIcon.click();
+    await firstIcon.click();
 
     // Should leave dashboard
-    await expect(page.getByText('Hi! 👋')).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Spelling Tests')).not.toBeVisible({ timeout: 5000 });
   });
 
   test('should open edit dates dialog', async ({ page }) => {
@@ -89,19 +75,15 @@ test.describe('Dashboard', () => {
     await page.getByRole('button', { name: /cancel/i }).click();
   });
 
-  test('should open about dialog and show tabs', async ({ page }) => {
-    // Click info button (ℹ️)
-    const infoButton = page.getByRole('button').filter({ hasText: 'ℹ️' });
-    await infoButton.click();
-
-    await expect(page.getByText('About this App')).toBeVisible();
+  test('should show about section with tabs', async ({ page }) => {
+    await page.getByRole('button', { name: /about/i }).click();
+    await expect(page.getByText('Why we built this')).toBeVisible();
     await expect(page.getByRole('tab', { name: /about/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /what's new/i })).toBeVisible();
+  });
 
-    // Switch to "What's New" tab
-    await page.getByRole('tab', { name: /what's new/i }).click();
-
-    // Close dialog
-    await page.getByRole('button', { name: /cool!/i }).click();
+  test('should show revision section', async ({ page }) => {
+    await page.getByRole('button', { name: /revision/i }).click();
+    await expect(page.getByText('Revision 📚')).toBeVisible();
   });
 });

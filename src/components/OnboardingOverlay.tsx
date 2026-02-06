@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-    Box,
-    Typography,
-    Button,
-    Paper,
-    Stack,
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface OnboardingStep {
