@@ -9,7 +9,7 @@ test.describe('Dashboard', () => {
       localStorage.setItem('p4_privacy_message_seen', 'true');
     });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should display the dashboard with header', async ({ page }) => {

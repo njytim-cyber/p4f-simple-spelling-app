@@ -9,7 +9,7 @@ test.describe('Editing Mode', () => {
       localStorage.setItem('p4_privacy_message_seen', 'true');
     });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Navigate to exercises tab (which contains editing)
     await page.getByRole('button', { name: /exercises/i }).click();
