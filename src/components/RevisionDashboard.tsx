@@ -30,22 +30,18 @@ interface RevisionSection {
     icon: JSX.Element;
     sourceTypes: ExerciseType[];
     color: string;
-    description: string;
 }
 
 export default function RevisionDashboard({ history, onStartRevision }: RevisionDashboardProps) {
-    // Calculate items due for each section - single pass optimization
     const revisionStats = useMemo(() => {
         const historyItems = getMissedItemsFromHistory(history);
         const savedData = loadRevisionData();
         const merged = mergeWithSavedData(historyItems, savedData);
         const dueItems = getItemsDueForReview(merged);
 
-        // Single-pass counting
         const stats = {
             spelling: 0,
             editing: 0,
-            // vocab: 0,
             grammar: 0,
         };
 
@@ -58,9 +54,6 @@ export default function RevisionDashboard({ history, onStartRevision }: Revision
                 case 'editing':
                     stats.editing++;
                     break;
-                // case 'vocab':
-                //     stats.vocab++;
-                //     break;
                 case 'grammar':
                     stats.grammar++;
                     break;
@@ -76,36 +69,24 @@ export default function RevisionDashboard({ history, onStartRevision }: Revision
             icon: <Spellcheck />,
             sourceTypes: ['spelling', 'dictation'],
             color: '#1976d2',
-            description: 'Practice words and phrases you\'ve missed',
         },
         {
             title: 'Editing',
             icon: <AutoFixHigh />,
             sourceTypes: ['editing'],
             color: '#ed6c02',
-            description: 'Review corrections you got wrong',
         },
-        // Vocab temporarily hidden - needs better questions
-        // {
-        //     title: 'Vocabulary',
-        //     icon: <School />,
-        //     sourceTypes: ['vocab'],
-        //     color: '#9c27b0',
-        //     description: 'Reinforce vocabulary words',
-        // },
         {
             title: 'Grammar',
             icon: <MenuBook />,
             sourceTypes: ['grammar'],
             color: '#2e7d32',
-            description: 'Master grammar concepts',
         },
     ];
 
     return (
         <Container maxWidth="sm" sx={{ py: 2 }}>
             <Stack spacing={2}>
-                {/* Compact Revision Sections */}
                 {sections.map((section) => {
                     const count = section.sourceTypes.reduce((sum, type) =>
                         sum + (revisionStats[type as keyof typeof revisionStats] || 0), 0

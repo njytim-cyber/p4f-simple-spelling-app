@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 import { Card, TextField, Button, Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getEncouragement } from '../utils/spacedRepetition';
@@ -7,11 +7,10 @@ import { playCorrectSound } from '../utils/sounds';
 interface ExerciseCardProps {
     phrase: string;
     isDictation?: boolean;
-    onCorrect: (attempts: number) => void; // Parent handles score/progression
-    onWrong: () => void; // Parent might track mistakes
-    onGiveUp?: () => void; // Optional: if we want to allow skipping
+    onCorrect: (attempts: number) => void;
+    onWrong: () => void;
     autoFocus?: boolean;
-    customValidator?: (input: string) => { isCorrect: boolean; feedbackMessage?: string | React.ReactNode };
+    customValidator?: (input: string) => { isCorrect: boolean; feedbackMessage?: string | ReactNode };
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({
@@ -24,48 +23,45 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 }) => {
     const [input, setInput] = useState('');
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
-    const [feedbackMessage, setFeedbackMessage] = useState<string | React.ReactNode>('');
-    const [attempts, setAttempts] = useState(0); // Track attempts for this specific card instance
+    const [feedbackMessage, setFeedbackMessage] = useState<string | ReactNode>('');
+    const [attempts, setAttempts] = useState(0);
 
-    // Reset state when phrase changes
+    const inputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         setInput('');
         setFeedback('neutral');
         setFeedbackMessage('');
         setAttempts(0);
         if (autoFocus) {
-            // Small timeout to ensure render visibility before focus
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [phrase, autoFocus]);
 
-    const inputRef = useRef<HTMLInputElement>(null);
-
     const handleSubmit = () => {
         let isCorrect = false;
-        let message: string | React.ReactNode = '';
+        let message: string | ReactNode = '';
 
         if (customValidator) {
             const result = customValidator(input);
             isCorrect = result.isCorrect;
             message = result.feedbackMessage;
         } else {
-            const normalizedInput = input.trim().toLowerCase();
-            const normalizedPhrase = phrase.trim().toLowerCase();
-            isCorrect = normalizedInput === normalizedPhrase;
+            isCorrect = input.trim().toLowerCase() === phrase.trim().toLowerCase();
         }
+
+        const displayMessage = customValidator && message
+            ? message
+            : getEncouragement(isCorrect ? 'correct' : 'incorrect');
 
         if (isCorrect) {
             setFeedback('correct');
-            setFeedbackMessage(customValidator && message ? message : getEncouragement('correct'));
+            setFeedbackMessage(displayMessage);
             playCorrectSound();
-            // Notify parent after a short delay or immediately?
-            // Usually parent auto-advances. 
-            // We'll call onCorrect immediately, parent triggers transition.
             onCorrect(attempts + 1);
         } else {
             setFeedback('wrong');
-            setFeedbackMessage(customValidator && message ? message : getEncouragement('incorrect'));
+            setFeedbackMessage(displayMessage);
             setAttempts(prev => prev + 1);
             onWrong();
         }
@@ -75,13 +71,12 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         setInput('');
         setFeedback('neutral');
         setFeedbackMessage('');
-        // Small timeout to ensure disabled state is removed before focusing
         setTimeout(() => inputRef.current?.focus(), 10);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Prevent newline
+            e.preventDefault();
             if (feedback === 'neutral' && input.trim()) {
                 handleSubmit();
             } else if (feedback === 'wrong') {
@@ -93,7 +88,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                key={phrase} // Re-animate on new phrase
+                key={phrase}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -141,7 +136,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         }}
                     />
 
-                    {/* Feedback Section */}
                     <AnimatePresence>
                         {feedback === 'correct' && (
                             <motion.div
@@ -177,7 +171,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         )}
                     </AnimatePresence>
 
-                    {/* Buttons */}
                     {feedback === 'neutral' && (
                         <Button
                             variant="contained"
@@ -203,10 +196,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                             Try Again
                         </Button>
                     )}
-
-                    {/* Correct state doesn't need a button usually as it auto-advances, 
-                        but could add 'Next' if auto-advance is disabled in parent props? 
-                        For now, assuming auto-advance handled by parent effects. */}
                 </Card>
             </motion.div>
         </AnimatePresence>

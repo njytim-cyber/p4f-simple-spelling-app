@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     IconButton,
     Menu,
@@ -37,9 +37,25 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ currentVoiceId, onVoiceSe
         handleClose();
     };
 
-    // Group voices by region
     const usVoices = AVAILABLE_VOICES.filter(v => v.lang === 'US');
     const gbVoices = AVAILABLE_VOICES.filter(v => v.lang === 'GB');
+
+    const renderVoiceList = (voices: typeof AVAILABLE_VOICES) =>
+        voices.map((voice) => (
+            <MenuItem
+                key={voice.id}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelect(voice.id);
+                }}
+                selected={voice.id === currentVoiceId}
+            >
+                <ListItemIcon>
+                    {voice.id === currentVoiceId && <Check fontSize="small" />}
+                </ListItemIcon>
+                <ListItemText>{voice.label}</ListItemText>
+            </MenuItem>
+        ));
 
     return (
         <>
@@ -84,46 +100,14 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ currentVoiceId, onVoiceSe
                 <Box sx={{ px: 2, py: 1 }}>
                     <Typography variant="subtitle2" color="text.secondary">US English</Typography>
                 </Box>
-                {usVoices.map((voice) => (
-                    <MenuItem
-                        key={voice.id}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelect(voice.id);
-                        }}
-                        selected={voice.id === currentVoiceId}
-                    >
-                        <ListItemIcon>
-                            {voice.id === currentVoiceId && <Check fontSize="small" />}
-                        </ListItemIcon>
-                        <ListItemText>
-                            {voice.label}
-                        </ListItemText>
-                    </MenuItem>
-                ))}
+                {renderVoiceList(usVoices)}
 
                 <Divider />
 
                 <Box sx={{ px: 2, py: 1 }}>
                     <Typography variant="subtitle2" color="text.secondary">UK English</Typography>
                 </Box>
-                {gbVoices.map((voice) => (
-                    <MenuItem
-                        key={voice.id}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelect(voice.id);
-                        }}
-                        selected={voice.id === currentVoiceId}
-                    >
-                        <ListItemIcon>
-                            {voice.id === currentVoiceId && <Check fontSize="small" />}
-                        </ListItemIcon>
-                        <ListItemText>
-                            {voice.label}
-                        </ListItemText>
-                    </MenuItem>
-                ))}
+                {renderVoiceList(gbVoices)}
             </Menu>
         </>
     );

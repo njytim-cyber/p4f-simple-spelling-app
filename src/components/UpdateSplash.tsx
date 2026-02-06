@@ -26,9 +26,6 @@ const UpdateSplash: React.FC = () => {
     useEffect(() => {
         const lastSeenVersion = localStorage.getItem(LAST_SEEN_VERSION_KEY);
 
-        // Show splash if:
-        // 1. First time user (no stored version)
-        // 2. App version is newer than last seen version
         if (!lastSeenVersion || isNewerVersion(APP_VERSION, lastSeenVersion)) {
             setOpen(true);
         }

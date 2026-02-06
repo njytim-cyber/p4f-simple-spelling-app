@@ -114,12 +114,16 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
         return [];
     }, [vocabItem, grammarItem]);
 
+    const miscTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
     // Cleanup timeouts on unmount
     useEffect(() => {
+        const miscTimers = miscTimersRef.current;
         return () => {
             if (advanceTimeoutRef.current) {
                 clearTimeout(advanceTimeoutRef.current);
             }
+            miscTimers.forEach(clearTimeout);
         };
     }, []);
 
@@ -238,10 +242,11 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
                 updateRevisionItem(updated);
             }
             // Reset for retry
-            setTimeout(() => {
+            const t = setTimeout(() => {
                 setSelectedAnswer(null);
                 setMcqChecked(false);
             }, 1500);
+            miscTimersRef.current.push(t);
         }
     }, [selectedAnswer, mcqChecked, vocabItem, grammarItem, mcqAttempts, currentItem, updateRevisionItem, handleNext]);
 

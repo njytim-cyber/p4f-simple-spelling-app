@@ -33,10 +33,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         const voiceName = name || "en-US-Neural2-F";
         const voiceLanguage = languageCode || "en-US";
 
-        const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
+        const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-Goog-Api-Key": apiKey,
             },
             body: JSON.stringify({
                 input: { text },

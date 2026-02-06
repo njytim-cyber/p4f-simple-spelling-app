@@ -66,13 +66,13 @@ The money raised will be used to purchase new books for the school library, whic
         title: 'Birthday Party Invitation',
         passage: `Dear Sarah,
 
-I hope this email finds you well. I'm writing to invite you to my {birfday|birthday} party on Saturday, 15th March. The party will start at 2 o'clock in the {afternoon|aftenoon} at my house.
+I hope this email finds you well. I'm writing to invite you to my {birfday|birthday} party on Saturday, 15th March. The party will start at 2 o'clock in the {aftenoon|afternoon} at my house.
 
 We're going to have lots of fun {activites|activities}, including games in the garden and a treasure hunt. Mum is making her {fameous|famous} chocolate cake, which I know you love!
 
-Please let me know if you can {atend|attend} by next Wednesday. I really hope you can make it as it wouldn't be the same {without|whithout} you there.
+Please let me know if you can {atend|attend} by next Wednesday. I really hope you can make it as it wouldn't be the same {whithout|without} you there.
 
-Looking forward to {hearing|hering} from you soon.
+Looking forward to {hering|hearing} from you soon.
 
 Best wishes,
 Emma`
@@ -101,7 +101,7 @@ When we finally completed the route, I felt {incredably|incredibly} proud of mys
 
 In the centre of the garden stood a {magnificient|magnificent} fountain, now dry and covered in moss. Sarah approached it {cautiosly|cautiously}, her heart beating {rappidly|rapidly}. There was something both beautiful and melancholy about this forgotten place.
 
-Suddenly, she noticed something glinting in the {fountains|fountain's} basin. She reached down and discovered a small silver locket, {tarnisshed|tarnished} with age. Her fingers trembled as she opened it, revealing a faded {photograph|photograf} inside.
+Suddenly, she noticed something glinting in the {fountains|fountain's} basin. She reached down and discovered a small silver locket, {tarnisshed|tarnished} with age. Her fingers trembled as she opened it, revealing a faded {photograf|photograph} inside.
 
 The discovery filled her with an {overwelming|overwhelming} curiosity. Who had left this here? What story did it hold?`
     },
@@ -110,11 +110,11 @@ The discovery filled her with an {overwelming|overwhelming} curiosity. Who had l
         level: 'p6',
         style: 'news',
         title: 'Climate Scientists Issue Warning',
-        passage: `Leading climate scientists have issued an urgent warning about the {accelerating|accellerating} rate of global warming. The report, published this week, highlights {signifigant|significant} changes in weather patterns across the globe.
+        passage: `Leading climate scientists have issued an urgent warning about the {accellerating|accelerating} rate of global warming. The report, published this week, highlights {signifigant|significant} changes in weather patterns across the globe.
 
 Dr Emily Chen, a climate researcher at the University of Cambridge, {emphasied|emphasised} the need for immediate action. "We are witnessing {unpresidented|unprecedented} changes in our climate system," she stated during a press {conferance|conference}.
 
-The report recommends several measures to reduce carbon {emisssions|emissions}, including increased use of renewable energy and improved public {transport|transprot}. Governments worldwide are being urged to implement these {recomendations|recommendations} without delay.
+The report recommends several measures to reduce carbon {emisssions|emissions}, including increased use of renewable energy and improved public {transprot|transport}. Governments worldwide are being urged to implement these {recomendations|recommendations} without delay.
 
 Environmental groups have welcomed the report, calling it a wake-up call for world leaders to take {responsability|responsibility} seriously.`
     },
@@ -127,9 +127,9 @@ Environmental groups have welcomed the report, calling it a wake-up call for wor
 
 Begin by sifting the flour into a large bowl to remove any lumps. Make a well in the centre and crack the eggs into it. Add a {quorter|quarter} of the milk and whisk {vigerously|vigorously} until smooth.
 
-{Gradualy|Gradually} add the {remaining|remainning} milk, whisking continuously to avoid lumps. The {consistancy|consistency} should be similar to single cream. Let the batter rest for at least {twenty|tweny} minutes.
+{Gradualy|Gradually} add the {remainning|remaining} milk, whisking continuously to avoid lumps. The {consistancy|consistency} should be similar to single cream. Let the batter rest for at least {tweny|twenty} minutes.
 
-Heat a non-stick frying pan over {medium|meduim} heat. Pour in a small amount of batter and swirl to coat the pan evenly. Cook until bubbles appear on the surface, then flip {carfully|carefully}. Serve immediately with your favourite toppings.`
+Heat a non-stick frying pan over {meduim|medium} heat. Pour in a small amount of batter and swirl to coat the pan evenly. Cook until bubbles appear on the surface, then flip {carfully|carefully}. Serve immediately with your favourite toppings.`
     },
 
     // SEC1 (Age 13) - Business communications and formal writing
@@ -144,7 +144,7 @@ I am writing to apply for the position of Junior Marketing {Assistent|Assistant}
 
 I am currently completing my GCSEs with predicted grades of A* in English and Mathematics. During my work {experiance|experience} at a local bookshop, I developed strong customer service skills and learned the {importants|importance} of effective {comunication|communication}.
 
-I am particularly interested in digital marketing and have completed an online course in social media {managment|management}. I am proficient in various software {applications|aplication} including Microsoft Office and Adobe Photoshop.
+I am particularly interested in digital marketing and have completed an online course in social media {managment|management}. I am proficient in various software {aplication|applications} including Microsoft Office and Adobe Photoshop.
 
 I am a {reliabel|reliable} and {enthusiatic|enthusiastic} individual who works well both independently and as part of a team. I would welcome the {oportunity|opportunity} to discuss my application further.
 
@@ -171,7 +171,7 @@ The report recommends {comprihensive|comprehensive} teacher training programmes 
         title: 'New Fitness Centre Opening',
         passage: `Transform Your Life at FitZone – Opening Soon!
 
-Are you ready to {achieve|acheive} your fitness goals? FitZone, the area's most {sofisticated|sophisticated} fitness centre, opens its doors next month with an {exclusive|exclucive} introductory offer.
+Are you ready to {acheive|achieve} your fitness goals? FitZone, the area's most {sofisticated|sophisticated} fitness centre, opens its doors next month with an {exclusive|exclucive} introductory offer.
 
 Our state-of-the-art {facilities|facilites} include a fully-equipped gym, Olympic-sized swimming pool, and {specialiced|specialised} studios for yoga and Pilates. Our team of {proffessional|professional} trainers are dedicated to helping you succeed.
 
@@ -209,7 +209,7 @@ Revenue increased {substantially|substantialy}, reaching £4.2 million compared 
 
 However, certain {challenges|challanges} persist. Supply chain disruptions continue to affect production {schedules|scheduals}, and labour costs have risen by 8% due to market {compitition|competition}. Additionally, maintaining quality {standards|standeds} while scaling operations remains a priority concern.
 
-Looking ahead, we recommend investing in {automation|automaton} technology and strengthening supplier {relationships|relationshps}. These {iniatives|initiatives} will position us favourably for sustained growth in the upcoming fiscal year.`
+Looking ahead, we recommend investing in {automattion|automation} technology and strengthening supplier {relationships|relationshps}. These {iniatives|initiatives} will position us favourably for sustained growth in the upcoming fiscal year.`
     },
     {
         id: 'sec2-3',
@@ -254,7 +254,7 @@ P.S. Whiskers says {helo|hello} too!`
         level: 'p4',
         style: 'story',
         title: 'The Lost Puppy',
-        passage: `Jake was walking home from school when he heard a {quiet|queit} whimpering sound. He looked around and saw a tiny puppy hiding {behinde|behind} a bush. The poor puppy looked {frightend|frightened} and lost.
+        passage: `Jake was walking home from school when he heard a {queit|quiet} whimpering sound. He looked around and saw a tiny puppy hiding {behinde|behind} a bush. The poor puppy looked {frightend|frightened} and lost.
 Jake {carefuly|carefully} picked up the puppy and noticed it was wearing a collar with a name tag. "Don't worry, Buster," he said {softley|softly}. "I'll help you find your home."
 He knocked on several doors until he {finaly|finally} found Buster's owner, Mrs Patel. She was so {relievd|relieved} and {gratefull|grateful} to see her pet again.
 "Thank you so much!" she said, giving Jake a big smile. Jake felt {hapy|happy} that he could help.`
@@ -357,7 +357,7 @@ Daniel Cooper`
         title: 'School Captain Speech',
         passage: `Good morning {everyone|evryone}. My name is Aisha and I'm standing for School Captain.
 If elected, I promise to represent all students {fairley|fairly} and listen to your ideas. I believe our school is {allready|already} great, but together we can make it even better!
-My first priority would be to {organize|organise} more sports clubs and {activites|activities} during lunch breaks. Many students have told me they would like more {oportunities|opportunities} to try new things.
+My first priority would be to organise more sports clubs and {activites|activities} during lunch breaks. Many students have told me they would like more {oportunities|opportunities} to try new things.
 I would also work to improve {comunication|communication} between students and teachers. I want to set up a suggestions box where you can share your ideas {anonymusly|anonymously}.
 I'm {reliabel|reliable}, hard-working, and {passionat|passionate} about making our school the best it can be. Please vote for me on Friday. Thank you!`
     },
@@ -369,7 +369,7 @@ I'm {reliabel|reliable}, hard-working, and {passionat|passionate} about making o
         passage: `How I Learned to Code – Week 1
 Last Monday, I started learning how to code using an online {platform|platfrom} called CodeAcademy. I've always been {intrested|interested} in how video games and apps are made, so I {desided|decided} to give it a try.
 At first, it seemed really {dificult|difficult} and confusing. All those brackets and symbols didn't make much sense! But I watched some {tutoriel|tutorial} videos and {slowley|slowly} things started to click.
-By the end of the week, I had created my first simple {program|programme} – it asks your name and age, then tells you what year you were born. It's not {amazeing|amazing}, but I'm really proud of it!
+By the end of the week, I had created my first simple programme – it asks your name and age, then tells you what year you were born. It's not {amazeing|amazing}, but I'm really proud of it!
 My goal is to create a simple game by the end of the month. I'll keep you {updateed|updated} on my progress. If you're {thinkng|thinking} about learning to code, I definitely recommend giving it a go!`
     },
     {
@@ -426,7 +426,7 @@ James is now working with a charity to test his design in rural areas of Kenya. 
         passage: `To: dofe@oakwoodschool.co.uk
 Subject: Bronze Award {Application|Aplication}
 Dear Mr Thompson,
-I am writing to apply for a place on the Duke of Edinburgh Bronze Award {program|programme} starting in September. I am {extremly|extremely} interested in this {oportunity|opportunity} and believe it would help me develop {valuabel|valuable} skills.
+I am writing to apply for a place on the Duke of Edinburgh Bronze Award programme starting in September. I am {extremly|extremely} interested in this {oportunity|opportunity} and believe it would help me develop {valuabel|valuable} skills.
 For my physical {activty|activity}, I would like to continue with my weekly swimming training. I am currently working towards my {advansed|advanced} swimming certificate. For my skill section, I plan to learn {photografy|photography}, as I have {recenly|recently} joined the school photography club.
 I am {particulary|particularly} excited about the expedition aspect of the award. I enjoy outdoor {activites|activities} and have some experience with camping and map reading from Scouts.
 I understand the programme requires {commitiment|commitment} and dedication, and I am fully prepared to meet these expectations. Please let me know if you need any further information.
@@ -507,7 +507,7 @@ The question isn't whether we can make a {diference|difference} – it's whether
         style: 'blog',
         title: 'Learning a Musical Instrument',
         passage: `Six Months of Piano Practice: My Progress
-When I started learning piano last September, I could barely manage "Twinkle Twinkle Little Star". Now, six months later, I'm working on a piece by Beethoven. Here's what I've {learned|learnt} about the {jurney|journey}.
+When I started learning piano last September, I could barely manage "Twinkle Twinkle Little Star". Now, six months later, I'm working on a piece by Beethoven. Here's what I've learnt about the {jurney|journey}.
 Progress isn't linear. Some weeks I improved {dramaticaly|dramatically}; other weeks I felt like I was going {backwords|backwards}. That's {completly|completely} normal! The key is {consistant|consistent} practice, even when it's frustrating.
 My teacher, Mrs Wong, {emphisises|emphasises} the {importence|importance} of proper technique. At first, I found her {corections|corrections} annoying, but now I understand why they matter. Good {tecnique|technique} prevents injury and makes playing easier.
 I've also discovered that performing for others, even just family, helps build {confidense|confidence}. The first time was terrifying, but it gets easier!
@@ -636,11 +636,11 @@ The government has promised to {publsh|publish} draft {legislaton|legislation} b
         title: 'Corporate Social Responsibility Report',
         passage: `Annual CSR Report: GreenTech Solutions Ltd
 Executive Overview
-This report outlines our {organisation's|organisations} Corporate Social {Responsability|Responsibility} initiatives for the fiscal year 2023-2024. We remain {comitted|committed} to {sustainabel|sustainable} business practices and positive community impact.
+This report outlines our {organisations|organisation's} Corporate Social {Responsability|Responsibility} initiatives for the fiscal year 2023-2024. We remain {comitted|committed} to {sustainabel|sustainable} business practices and positive community impact.
 Environmental Initiatives
 We have {sucessfully|successfully} reduced our carbon emissions by 34% through {implementacion|implementation} of renewable energy sources and improved {eficiency|efficiency} measures. Our {manufaturing|manufacturing} processes now utilise 85% recycled materials.
 Community Engagement
-Our employee volunteer {program|programme} contributed over 2,000 hours to local {charitabel|charitable} organisations. We {establshed|established} three new {apprentiship|apprenticeship} schemes, providing {oportunities|opportunities} for young people in disadvantaged areas.
+Our employee volunteer programme contributed over 2,000 hours to local {charitabel|charitable} organisations. We {establshed|established} three new {apprentiship|apprenticeship} schemes, providing {oportunities|opportunities} for young people in disadvantaged areas.
 Looking Forward
 Next year, we plan to achieve carbon {neutralty|neutrality} and expand our {educacional|educational} {parterships|partnerships}. We recognise that {corprate|corporate} success depends on {enviromental|environmental} and social {sustainabilty|sustainability}.
 Our commitment to responsible business practices remains unwavering.`
@@ -803,7 +803,7 @@ Emma Watson`
 Q: How long have you been cooking school meals?
 A: I've been the school chef for fifteen years. I {absalutely|absolutely} love my job and enjoy creating {nutritious|nutritius} meals for students.
 Q: What's the most {chalenging|challenging} part?
-A: Catering for different {dietry|dietary} requirements can be {dificult|difficult}. Some students are {vegitarian|vegetarian}, others have {alergiesdifferent|allergies}. I make sure everyone has {delishus|delicious} options.
+A: Catering for different {dietry|dietary} requirements can be {dificult|difficult}. Some students are {vegitarian|vegetarian}, others have different {alergies|allergies}. I make sure everyone has {delishus|delicious} options.
 Q: What's your {favourit|favourite} meal to prepare?
 A: I love making {tradisional|traditional} Sunday roasts. The students really {apreciate|appreciate} home-cooked food.`
     },
@@ -847,7 +847,7 @@ This {experiance|experience} has {confirmd|confirmed} my ambition to become a ve
         style: 'letter',
         title: 'University Application',
         passage: `Dear Admissions Officer,
-I am writing to apply for a place on your {prestijus|prestigious} Medicine degree {programme|program}. I believe I possess the {necesary|necessary} qualities and {dedikation|dedication} to succeed in this {chalenging|challenging} field.
+I am writing to apply for a place on your {prestijus|prestigious} Medicine degree {program|programme}. I believe I possess the {necesary|necessary} qualities and {dedikation|dedication} to succeed in this {chalenging|challenging} field.
 My {acadamic|academic} record demonstrates consistent {excelence|excellence}. I am predicted A* grades in Biology, Chemistry, and Mathematics. {Additionaly|Additionally}, I have undertaken {extensiv|extensive} voluntary work at my local hospital, gaining {invaluabel|invaluable} insight into medical practice.
 I am {particulary|particularly} interested in {cardio-vascular|cardiovasculer} medicine. Recent {advancments|advancements} in this field {fasinate|fascinate} me, and I hope to {contribut|contribute} to future research.
 I would be {honered|honoured} to study at your {instituion|institution}.
@@ -1033,7 +1033,7 @@ Subject: Application for Saturday Assistant Position
 
 Dear Mr Patel,
 I am writing to {enquier|enquire} about my application for the Saturday Assistant position, which I submitted two weeks ago.
-I am {particulerly|particularly} interested in this role because I am {passionat|passionate} about books and have {exelent|excellent} customer service skills. Last summer, I {volonteered|volunteered} at the library, where I helped {organise|organisd} the children's reading club.
+I am {particulerly|particularly} interested in this role because I am {passionat|passionate} about books and have {exelent|excellent} customer service skills. Last summer, I {volonteered|volunteered} at the library, where I helped {organisd|organised} the children's reading club.
 I understand you must {recieve|receive} many applications, but I would be {gratefull|grateful} if you could confirm whether my application is still under {consideracion|consideration}.
 I am available for an interview at your {conveniance|convenience}.
 Thank you for your time.
@@ -1127,7 +1127,7 @@ Tomorrow is the final day. I can't believe we've {acheived|achieved} this much a
         passage: `When the solicitor finished reading the will, Marcus sat in stunned silence. His grandfather had left him the entire estate – {approximatley|approximately} £2 million.
 "This is {extraordinery|extraordinary}," he {whisperd|whispered}. He'd expected perhaps a small bequest, but this was beyond his {wildist|wildest} imagination.
 The solicitor {continewed|continued}: "There is, however, one condition. You must {sucessfully|successfully} manage the family business for five years before you can inherit the full amount."
-Marcus felt {simultaneous|simultanious} excitement and {trepidation|trepadation}. He had no business experience. Could he {posibly|possibly} meet this {chalenging|challenging} requirement?
+Marcus felt {simultanious|simultaneous} excitement and {trepidation|trepadation}. He had no business experience. Could he {posibly|possibly} meet this {chalenging|challenging} requirement?
 "I understand the {stipulacion|stipulation}," he said, trying to sound more {confident|confadent} than he felt. This would be the most {signifikant|significant} challenge of his life.`
     },
     {
@@ -1342,7 +1342,7 @@ Human Resources Department
 TechFuture Ltd
 Dear Hiring Manager,
 I am writing to apply for the position of Junior Software Developer advertised on your company website. I believe my {qualificatons|qualifications} and enthusiasm make me an ideal candidate.
-I am currently studying Computer Science A-Level and am predicted an A* grade. I have developed strong programming skills in Python, Java, and JavaScript through both {acadamic|academic} study and {independant|independent} projects. Last year, I created a mobile app to help students {organize|organise} their revision, which has been downloaded over 500 times.
+I am currently studying Computer Science A-Level and am predicted an A* grade. I have developed strong programming skills in Python, Java, and JavaScript through both {acadamic|academic} study and {independant|independent} projects. Last year, I created a mobile app to help students organise their revision, which has been downloaded over 500 times.
 I completed work {experiance|experience} at a software {developement|development} company last summer, where I assisted with testing and debugging. This {experiance|experience} gave me valuable insight into {profesional|professional} software {developement|development} practices and strengthened my {determenation|determination} to pursue this career.
 I am {particulary|particularly} interested in your company's work on {artifisial|artificial} intelligence and machine learning. I have been following your recent projects with great interest and would be {honered|honoured} to {contribut|contribute} to your team.
 I am {enthusiasic|enthusiastic}, hard-working, and eager to learn. I would welcome the {oportunity|opportunity} to discuss my application further.
@@ -1483,7 +1483,7 @@ The school plans to use the {vegitables|vegetables} in the {dinnng|dining} hall.
 Give your child an {unforgetable|unforgettable} summer {experiance|experience}! Our action-packed camp offers {excitng|exciting} activities for ages 8-14.
 Activities include: Rock climbing, {kayakking|kayaking}, archery, nature walks, and team-building games. All activities are {supervized|supervised} by {qualifyed|qualified} instructors.
 {Acommodation|Accommodation}: {Comfertable|Comfortable} cabins with all modern {facilitys|facilities}. Delicious, {nutrishus|nutritious} meals provided daily.
-Dates: 15th July - 29th July ({fortnight|fortnite})
+Dates: 15th July - 29th July ({fortnite|fortnight})
 Cost: £650 per child ({includs|includes} all activities, {acommodation|accommodation}, and meals)
 Early bird discount: Book before 1st June and save {fifety|fifty} pounds!
 Don't let your child miss this {incredibel|incredible} {oportunity|opportunity} to make new friends and try new adventures. Spaces are {limitid|limited} - book today!
@@ -1523,7 +1523,7 @@ Have you read this book? Let me know your {thoghts|thoughts} in the comments!`
         passage: `Good morning everyone,
 My name is Aisha and I'm running for Class President. I {belive|believe} I would make an {excelent|excellent} representative for our year group.
 Firstly, I'm a good listener. I want to hear your ideas and {sugestions|suggestions} about how we can improve our school {enviroment|environment}. Every voice {maters|matters}!
-Secondly, I'm {organized|organised} and {responsibel|responsible}. Last year, I {sucessfully|successfully} {co-ordinated|coordinated} the charity bake sale which raised over £200 for the local animal shelter.
+Secondly, I'm organised and {responsibel|responsible}. Last year, I {sucessfully|successfully} coordinated the charity bake sale which raised over £200 for the local animal shelter.
 If elected, I {promis|promise} to work hard on three main goals: {improvng|improving} our library {facilitys|facilities}, organizing more sports events, and arranging fun {charitey|charity} fundraisers.
 I'm {passionet|passionate} about making our school the best it can be. Together, we can achieve great things. Please vote for me and let's make this year {unforgetable|unforgettable}!
 Thank you for your time and {considaration|consideration}.`
@@ -1583,7 +1583,7 @@ The class gasped. "That's {incredibel|incredible}!" said Mia. "Space is {absalut
         passage: `Autumn's Arrival
 The leaves had begun their {magnificant|magnificent} {transformacion|transformation}, painting the {forrest|forest} in shades of amber, crimson, and gold. A crisp breeze rustled through the branches, carrying the {earthy|earfy} scent of fallen leaves.
 Sarah walked slowly along the {familar|familiar} path, her boots crunching on the carpet of dried leaves beneath her feet. The morning mist clung to the ground like a {wisperd|whispered} secret, {graduly|gradually} lifting as the sun climbed higher.
-In the distance, she could hear the {ocasional|occasional} call of a crow and the gentle rustling of a squirrel {busily|busyly} {gatherng|gathering} acorns for winter. The whole {forrest|forest} seemed to be {prepairng|preparing} for the cold months ahead.
+In the distance, she could hear the {ocasional|occasional} call of a crow and the gentle rustling of a squirrel {busyly|busily} {gatherng|gathering} acorns for winter. The whole {forrest|forest} seemed to be {prepairng|preparing} for the cold months ahead.
 This was her {favorit|favourite} time of year - when nature displayed its most {spectaculer|spectacular} colours before the winter's sleep. She breathed deeply, trying to capture this {perfekt|perfect} moment in her memory forever.`
     },
     {
@@ -1764,7 +1764,7 @@ Reporter: Thank you for your time and {inspiracion|inspiration}!`
         passage: `Breaking the Stigma: Teen Mental Health Matters
 Mental health is just as important as {fizical|physical} health, yet many teenagers struggle in silence due to stigma and {missunderstanding|misunderstanding}.
 The {statistiks|statistics} are alarming: approximately one in six young people {experiances|experiences} a mental health problem. Anxiety and depression are {increacingly|increasingly} common, often triggered by academic {presure|pressure}, social media, and the challenges of adolescence.
-So why don't more teens seek help? The answer is {complecated|complicated}. Many fear being judged or {labelled|labled}. Some worry they'll be seen as weak or {atention|attention}-seeking. Others simply don't {reconize|recognise} that what they're {experiancng|experiencing} isn't normal.
+So why don't more teens seek help? The answer is {complecated|complicated}. Many fear being judged or {labled|labelled}. Some worry they'll be seen as weak or {atention|attention}-seeking. Others simply don't {reconize|recognise} that what they're {experiancng|experiencing} isn't normal.
 It's {cruciel|crucial} that we change this narrative. {Strugglng|Struggling} with mental health doesn't make you weak - it makes you human. {Seeking|Seekng} help is actually {incredibley|incredibly} brave.
 If you're {worrid|worried} about your mental health, talk to someone you trust - a parent, teacher, or school counsellor. {Professionel|Professional} support is {avalable|available} through organizations like Childline and YoungMinds.
 Remember: it's okay not to be okay. {Raching|Reaching} out is the first step towards feeling better. You're not alone, and you deserve support.
@@ -1992,7 +1992,7 @@ Dear Admissions {Commitee|Committee},
 I am writing to apply for a place on your {Biomedical|Biomedicle} Science degree programme, and I am {incredibley|incredibly} {enthusiastick|enthusiastic} about the {prospekt|prospect} of studying at your {prestigous|prestigious} institution.
 My {fascinacion|fascination} with human biology began when I {volunt|volunteered} at a local hospital, observing doctors diagnose and treat patients. Witnessing the {aplicacion|application} of scientific knowledge to {aleviate|alleviate} suffering was {profoundley|profoundly} inspiring. I {realiced|realised} that {Biomedical|Biomedicle} Science {ofered|offered} the {perfekt|perfect} {combinacion|combination} of my interests in research and {medisin|medicine}.
 {Academicaly|Academically}, I am predicted A* grades in Biology, Chemistry, and Mathematics. I have {consistantly|consistently} {acheived|achieved} top marks in my cohort and {recieved|received} the Science {Acheivement|Achievement} Award last year. Beyond {curriculam|curriculum} study, I completed an online course in {Genetics|Geneticks} through FutureLearn and {regularley|regularly} read scientific {journels|journals} to stay {currant|current} with {reserch|research} {developemants|developments}.
-I have {demonstratted|demonstrated} {leadership|leadrship} as head of the Science Society, where I {organized|organised} lectures from guest speakers and {co-ordinated|coordinated} laboratory demonstrations for younger students. These {experiances|experiences} have {strengthend|strengthened} my {comunication|communication} skills and {reinforsed|reinforced} my {commitant|commitment} to scientific {educacion|education}.
+I have {demonstratted|demonstrated} {leadership|leadrship} as head of the Science Society, where I organised lectures from guest speakers and coordinated laboratory demonstrations for younger students. These {experiances|experiences} have {strengthend|strengthened} my {comunication|communication} skills and {reinforsed|reinforced} my {commitant|commitment} to scientific {educacion|education}.
 Cambridge's {worl|world}-leading research facilities and {exceptionel|exceptional} teaching staff make it my first choice. I am {particulerly|particularly} interested in Professor Ahmed's work on {celular|cellular} {regeneracion|regeneration}, which I find {uterly|utterly} {fasinating|fascinating}.
 I am {comitted|committed}, {passionet|passionate}, and ready to {emerse|immerse} myself in {rigerus|rigorous} {academick|academic} study. I would be {honoured|honered} to {contribut|contribute} to the {vibrent|vibrant} {intellectuel|intellectual} {comunity|community} at Cambridge.
 Thank you for considering my application. I look forward to {hering|hearing} from you.
@@ -2038,7 +2038,7 @@ Final Verdict: "Midnight Reverie" is an {essenshel|essential} listen for anyone 
         title: 'Gap Year Programme Advertisement',
         passage: `GLOBAL HORIZONS GAP YEAR PROGRAMME
 {Transformativ|Transformative} {Experiances|Experiences} - {Lifellong|Lifelong} Impact
-Are you finishing A-Levels and seeking {somthing|something} more meaningful than {imidiate|immediate} university {enrollmant|enrollment}? Our {comprehensiv|comprehensive} gap year programme offers {unparaleled|unparalleled} {oportunities|opportunities} for personal growth and global {awarness|awareness}.
+Are you finishing A-Levels and seeking {somthing|something} more meaningful than {imidiate|immediate} university {enrollmant|enrolment}? Our {comprehensiv|comprehensive} gap year programme offers {unparaleled|unparalleled} {oportunities|opportunities} for personal growth and global {awarness|awareness}.
 What We Offer:
 {Voluntering|Volunteering} Projects: {Contribut|Contribute} to {comunity|community} {developement|development} in locations across Africa, Asia, and South America. Previous {participents|participants} have taught English, built schools, and worked on {conservacion|conservation} projects.
 Cultural {Imersion|Immersion}: Live with local families, learn new languages, and gain {authetic|authentic} {understaning|understanding} of different cultures. This {experiance|experience} develops {independence|independance}, {adaptabilaty|adaptability}, and cross-cultural {competense|competence} - skills {increacingly|increasingly} valued by employers and universities.

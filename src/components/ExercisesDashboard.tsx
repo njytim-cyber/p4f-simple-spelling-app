@@ -3,38 +3,53 @@ import { TrendingUp } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType } from '../data/exercises';
 import { EDITING_EXERCISES } from '../data/editing-exercises';
 
+const TARGET_GRAMMAR_SESSIONS = 50;
+
+const activityCardSx = {
+    flex: 1,
+    textAlign: 'center',
+    cursor: 'pointer',
+    p: { xs: 1.5, md: 2 },
+    borderRadius: { xs: 1.5, md: 2 },
+    border: '2px solid',
+    borderColor: 'rgba(103, 80, 164, 0.2)',
+    bgcolor: 'white',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+        borderColor: 'primary.main',
+        bgcolor: 'rgba(103, 80, 164, 0.04)',
+        boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
+        transform: { md: 'translateY(-2px)' }
+    },
+    '&:active': {
+        transform: 'translateY(0px)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }
+} as const;
+
 interface ExercisesDashboardProps {
     onSelect: (ex: Exercise, type: ExerciseType) => void;
     history: ScoreRecord[];
 }
 
 export default function ExercisesDashboard({ onSelect, history }: ExercisesDashboardProps) {
-    // Get all editing exercise IDs
     const editingExerciseIds = Object.keys(EDITING_EXERCISES).sort();
 
-    // Calculate completed exercises from history
     const completedEditingExercises = new Set(
         history
             .filter(record => record.type === 'editing' && record.score === record.total)
             .map(record => record.exerciseId)
     );
 
-    // Calculate overall exercise stats
-    // const vocabAttempts = history.filter(r => r.type === 'vocab').length;
     const grammarAttempts = history.filter(r => r.type === 'grammar').length;
     const editingCompleted = completedEditingExercises.size;
     const totalEditingExercises = editingExerciseIds.length;
 
-    // Target sessions for vocab and grammar
-    // const TARGET_VOCAB_SESSIONS = 50;
-    const TARGET_GRAMMAR_SESSIONS = 50;
-
-    // Overall progress calculation (simple: sum of all activities)
     const totalActivities = grammarAttempts + editingCompleted;
     const possibleActivities = totalEditingExercises + TARGET_GRAMMAR_SESSIONS;
     const overallProgress = Math.min((totalActivities / possibleActivities) * 100, 100);
 
-    // Dynamic motivational messages based on progress
     const getMotivationalMessage = () => {
         const messages = {
             starter: [
@@ -74,12 +89,9 @@ export default function ExercisesDashboard({ onSelect, history }: ExercisesDashb
         else category = 'expert';
 
         const options = messages[category];
-        // Use total activities as seed for consistent message during session
-        const index = totalActivities % options.length;
-        return options[index];
+        return options[totalActivities % options.length];
     };
 
-    // Find next editing exercise
     const nextExerciseId = editingExerciseIds.find(id => !completedEditingExercises.has(id)) || editingExerciseIds[0];
 
     const handleStartEditing = () => {
@@ -93,16 +105,6 @@ export default function ExercisesDashboard({ onSelect, history }: ExercisesDashb
         };
         onSelect(exercise, 'editing');
     };
-
-    // const handleStartVocab = () => {
-    //     onSelect({
-    //         id: 'vocab-p4',
-    //         title: 'Vocabulary Quiz',
-    //         date: '',
-    //         spelling: [],
-    //         dictation: '',
-    //     }, 'vocab');
-    // };
 
     const handleStartGrammar = () => {
         onSelect({
@@ -158,28 +160,7 @@ export default function ExercisesDashboard({ onSelect, history }: ExercisesDashb
             >
                 <Box
                     onClick={handleStartEditing}
-                    sx={{
-                        flex: 1,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        p: { xs: 1.5, md: 2 },
-                        borderRadius: { xs: 1.5, md: 2 },
-                        border: '2px solid',
-                        borderColor: 'rgba(103, 80, 164, 0.2)',
-                        bgcolor: 'white',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                            borderColor: 'primary.main',
-                            bgcolor: 'rgba(103, 80, 164, 0.04)',
-                            boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
-                            transform: { md: 'translateY(-2px)' }
-                        },
-                        '&:active': {
-                            transform: 'translateY(0px)',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }
-                    }}
+                    sx={activityCardSx}
                 >
                     <Typography
                         variant="h5"
@@ -197,72 +178,9 @@ export default function ExercisesDashboard({ onSelect, history }: ExercisesDashb
                         Editing
                     </Typography>
                 </Box>
-                {/* Vocab card temporarily hidden - needs better questions */}
-                {/* <Box
-                    onClick={handleStartVocab}
-                    sx={{
-                        flex: 1,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        p: { xs: 1.5, md: 2 },
-                        borderRadius: { xs: 1.5, md: 2 },
-                        border: '2px solid',
-                        borderColor: 'rgba(103, 80, 164, 0.2)',
-                        bgcolor: 'white',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                            borderColor: 'primary.main',
-                            bgcolor: 'rgba(103, 80, 164, 0.04)',
-                            boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
-                            transform: { md: 'translateY(-2px)' }
-                        },
-                        '&:active': {
-                            transform: 'translateY(0px)',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }
-                    }}
-                >
-                    <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        color="primary"
-                        sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
-                    >
-                        {vocabAttempts}/{TARGET_VOCAB_SESSIONS}
-                    </Typography>
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
-                    >
-                        Vocab
-                    </Typography>
-                </Box> */}
                 <Box
                     onClick={handleStartGrammar}
-                    sx={{
-                        flex: 1,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        p: { xs: 1.5, md: 2 },
-                        borderRadius: { xs: 1.5, md: 2 },
-                        border: '2px solid',
-                        borderColor: 'rgba(103, 80, 164, 0.2)',
-                        bgcolor: 'white',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                            borderColor: 'primary.main',
-                            bgcolor: 'rgba(103, 80, 164, 0.04)',
-                            boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
-                            transform: { md: 'translateY(-2px)' }
-                        },
-                        '&:active': {
-                            transform: 'translateY(0px)',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }
-                    }}
+                    sx={activityCardSx}
                 >
                     <Typography
                         variant="h5"

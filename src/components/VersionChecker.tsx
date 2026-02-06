@@ -9,28 +9,30 @@ const VersionChecker: React.FC = () => {
     const [updateAvailable, setUpdateAvailable] = useState(false);
 
     useEffect(() => {
+        const controller = new AbortController();
+
         const checkForUpdates = async () => {
             try {
-                // Add cache-busting query param to avoid cached responses
-                const response = await fetch(`/version.json?t=${Date.now()}`);
+                const response = await fetch(`/version.json?t=${Date.now()}`, {
+                    signal: controller.signal,
+                });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.version && isNewerVersion(data.version, APP_VERSION)) {
                         setUpdateAvailable(true);
                     }
                 }
-            } catch {
-                // Silently fail - don't bother user if version check fails
-            }
+            } catch { /* ignored - version check is non-critical */ }
         };
 
-        // Check immediately on mount
         checkForUpdates();
 
-        // Then check periodically
         const interval = setInterval(checkForUpdates, VERSION_CHECK_INTERVAL);
 
-        return () => clearInterval(interval);
+        return () => {
+            controller.abort();
+            clearInterval(interval);
+        };
     }, []);
 
     const handleRefresh = () => {

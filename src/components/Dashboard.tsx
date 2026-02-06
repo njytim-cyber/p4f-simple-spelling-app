@@ -69,7 +69,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                     date: textDates[ex.id] || ex.date
                 }));
             } catch {
-                console.error("Failed to parse saved dates");
+                localStorage.removeItem(STORAGE_KEY_DATES);
             }
         }
         return EXERCISES;

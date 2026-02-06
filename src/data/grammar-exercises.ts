@@ -40,13 +40,13 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
         rank: 3,
         topic: "Personal Pronouns",
         question: "My friends and I made plans together, and _____ are going to the cinema tonight.",
-        correct_answer: "They",
+        correct_answer: "we",
         wrong_answers: [
-            "Them",
-            "Their",
-            "Theirs"
+            "them",
+            "us",
+            "they"
         ],
-        explanation: "'They' is the nominative (subject) case pronoun required here, whereas 'Them' is accusative.",
+        explanation: "'We' is correct because the speaker is included in the group ('my friends and I'), so a first-person plural pronoun is needed.",
         reviewed: true
     },
     {
@@ -760,14 +760,14 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 58,
         topic: "Second Conditional",
-        question: "If I _____ rich, I would travel the world and visit every single country on the planet without hesitation.",
-        correct_answer: "were",
+        question: "If I won the lottery, I _____ a big house by the sea and invite all my friends to come and stay.",
+        correct_answer: "would buy",
         wrong_answers: [
-            "am",
-            "was",
-            "be"
+            "will buy",
+            "buy",
+            "bought"
         ],
-        explanation: "Subjunctive 'were' is standard in the if-clause of hypothetical conditionals.",
+        explanation: "Second conditional uses 'would + base verb' in the result clause when the if-clause has past simple (won).",
         reviewed: true
     },
     {
@@ -1009,16 +1009,15 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 77,
         topic: "Mixed Conditionals",
-        question: "If I had studied harder in school, I _____ a better job now.",
-        correct_answer: "would have",
+        question: "If she had saved more money last year, she _____ able to afford the holiday now.",
+        correct_answer: "would be",
         wrong_answers: [
-            "would have had",
-            "will have",
-            "had"
+            "will be",
+            "would have been",
+            "is"
         ],
-        explanation: "Mixed conditional: Past condition (had studied) with present result (would have).",
-        reviewed: true,
-        notes: "Added 'in school' to clarify past context; answer is 'would have' for present result"
+        explanation: "Mixed conditional: past condition (had saved) + present result requires 'would be', not 'would have been' (which implies a past result).",
+        reviewed: true
     },
     {
         rank: 78,
@@ -1030,7 +1029,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
             "left",
             "leaving"
         ],
-        explanation: "Mandative subjunctive uses the base form 'leave' regardless of subject.",
+        explanation: "Mandative subjunctive uses the base form 'be' regardless of subject.",
         reviewed: true
     },
     {
@@ -1101,14 +1100,14 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 84,
         topic: "Causative Form",
-        question: "I need to _____ my car repaired at the garage this week because it broke down yesterday on the motorway.",
-        correct_answer: "get",
+        question: "The manager _____ the staff to work overtime by offering them double pay for the extra hours last weekend.",
+        correct_answer: "got",
         wrong_answers: [
-            "make",
-            "do",
-            "let"
+            "made",
+            "let",
+            "had"
         ],
-        explanation: "Causative 'get/have object done' implies arranging for someone else to do the action.",
+        explanation: "'Got someone to do something' means persuaded or convinced them to do it. 'Made' implies force, 'had' uses bare infinitive, and 'let' means allowed.",
         reviewed: true
     },
     {
@@ -1646,7 +1645,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 125,
         topic: "Main Verbs (Action)",
-        question: "She _____ a beautiful picture of flowers in art class yesterday afternoon at school today.",
+        question: "She _____ a beautiful picture of flowers in art class yesterday afternoon at school.",
         correct_answer: "painted",
         wrong_answers: [
             "paints",
@@ -1779,7 +1778,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 135,
         topic: "Simple Past Tense (Regular)",
-        question: "She _____ her grandmother on the telephone for an hour yesterday evening after school today.",
+        question: "She _____ her grandmother on the telephone for an hour yesterday evening after school.",
         correct_answer: "called",
         wrong_answers: [
             "call",
@@ -2773,14 +2772,14 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 210,
         topic: "Coordinating Conjunctions (FANBOYS)",
-        question: "I didn't go to the party last night, _____ did my sister stay home either surprisingly enough.",
+        question: "I didn't go to the party last night, _____ did my sister — we both stayed home and watched television instead.",
         correct_answer: "nor",
         wrong_answers: [
             "or",
             "and",
             "but"
         ],
-        explanation: "'Nor' is used after negative statements to add another negative.",
+        explanation: "'Nor' is used after negative statements to add another negative, with subject-auxiliary inversion.",
         reviewed: true
     },
     {
@@ -3266,11 +3265,11 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
         question: "The team of players _____ very hard every day to prepare for the important championship match next week.",
         correct_answer: "trains",
         wrong_answers: [
-            "train",
+            "are training",
             "training",
             "trained"
         ],
-        explanation: "Collective noun 'team' treated as singular unit takes singular verb.",
+        explanation: "Collective noun 'team' treated as singular unit takes singular verb in present simple.",
         reviewed: true
     },
     {
@@ -3938,15 +3937,15 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     // Present Perfect Continuous (298-301)
     {
         rank: 298,
-        topic: "Present Perfect Continuous",
+        topic: "Past Perfect Continuous",
         question: "She _____ waiting for the bus for over thirty minutes when it finally arrived at the stop.",
-        correct_answer: "has been",
+        correct_answer: "had been",
         wrong_answers: [
-            "had been",
+            "has been",
             "is",
             "was"
         ],
-        explanation: "Present perfect continuous emphasizes duration up to now.",
+        explanation: "Past perfect continuous ('had been waiting') describes an action in progress before another past event ('arrived').",
         reviewed: true
     },
     {
@@ -3964,7 +3963,7 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     },
     {
         rank: 300,
-        topic: "Present Perfect Continuous",
+        topic: "Past Perfect Continuous",
         question: "How long _____ you been studying French at school before you visited Paris last summer on holiday?",
         correct_answer: "had",
         wrong_answers: [
@@ -4262,9 +4261,9 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
         wrong_answers: [
             "will",
             "can",
-            "could"
+            "does"
         ],
-        explanation: "Second conditional uses 'would' in the main clause.",
+        explanation: "Second conditional uses 'would' in the main clause for hypothetical situations.",
         reviewed: true
     },
     {
@@ -4341,9 +4340,9 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
         wrong_answers: [
             "will",
             "can",
-            "could"
+            "shall"
         ],
-        explanation: "Future intentions shift from 'will' to 'would'.",
+        explanation: "Future intentions shift from 'will' to 'would' in reported speech.",
         reviewed: true
     },
     // Connective Adverbs (329-332)
@@ -4389,14 +4388,14 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 332,
         topic: "Connective Adverbs",
-        question: "She loves reading adventure books; _____, her brother prefers reading about science and space exploration instead completely.",
+        question: "She was preparing dinner in the kitchen; _____, her children were playing quietly in the garden outside.",
         correct_answer: "meanwhile",
         wrong_answers: [
             "therefore",
-            "because",
-            "so"
+            "however",
+            "consequently"
         ],
-        explanation: "'Meanwhile' shows simultaneous contrast.",
+        explanation: "'Meanwhile' indicates two actions happening at the same time.",
         reviewed: true
     },
     // Parenthesis (Commas) (333-336)
@@ -4615,33 +4614,33 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 349,
         topic: "Hyphens",
-        question: "My _____ old sister started secondary school last September and absolutely loves going there every day now.",
+        question: "My _____ sister started secondary school last September and absolutely loves going there every day now.",
         correct_answer: "ten-year-old",
         wrong_answers: [
             "ten year old",
             "ten years old",
             "tenyearold"
         ],
-        explanation: "Compound adjectives before nouns require hyphens.",
+        explanation: "Compound adjectives before nouns require hyphens: 'ten-year-old sister'.",
         reviewed: true
     },
     {
         rank: 350,
         topic: "Hyphens",
-        question: "We need to _____ organize the books on the shelf because they are all mixed up terribly at the moment.",
-        correct_answer: "re-organize",
+        question: "The children were so _____ that the waiter at the restaurant complimented their parents warmly on their manners.",
+        correct_answer: "well-behaved",
         wrong_answers: [
-            "reorganize",
-            "re organize",
-            "reOrganize"
+            "well behaved",
+            "wellbehaved",
+            "well_behaved"
         ],
-        explanation: "Hyphens separate prefixes when avoiding confusion (UK English can use re-organise).",
+        explanation: "Compound adjectives formed with 'well' and a past participle require a hyphen: 'well-behaved'.",
         reviewed: true
     },
     // Ellipsis (351-354)
     {
         rank: 351,
-        topic: "Ellipsis",
+        topic: "Semicolons",
         question: "I love reading mystery stories___ my brother prefers adventure books about pirates and treasure instead every time we visit the library.",
         correct_answer: ";",
         wrong_answers: [
@@ -5185,14 +5184,14 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 392,
         topic: "Third Conditional",
-        question: "She _____ have caught the train if she had left home ten minutes earlier this morning without delay.",
-        correct_answer: "would",
+        question: "If they _____ booked the tickets earlier, they would have got much better seats for the concert.",
+        correct_answer: "had",
         wrong_answers: [
-            "will",
-            "can",
-            "could"
+            "have",
+            "would",
+            "has"
         ],
-        explanation: "Third conditional main clause uses 'would have' + past participle.",
+        explanation: "Third conditional if-clause uses 'had' + past participle: 'If they had booked...'.",
         reviewed: true
     },
     {
@@ -5263,15 +5262,15 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     },
     {
         rank: 398,
-        topic: "Mixed Conditionals",
-        question: "I would have helped you yesterday if I _____ so busy with my own work right now and today.",
-        correct_answer: "weren't",
+        topic: "Third Conditional",
+        question: "If I had known about the meeting, I _____ there to support you when you gave your presentation yesterday.",
+        correct_answer: "would have been",
         wrong_answers: [
-            "hadn't been",
-            "wasn't",
-            "am not"
+            "would be",
+            "will be",
+            "had been"
         ],
-        explanation: "Present condition can explain past result in mixed conditionals.",
+        explanation: "Third conditional: past unreal condition (had known) + past unreal result (would have been).",
         reviewed: true
     },
     // Subjunctive Mood (Mandative) (399-400)
@@ -5407,10 +5406,10 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
         explanation: "'As though' takes subjunctive 'were' for unreal comparisons.",
         reviewed: true
     },
-    // Future Perfect (409-412)
+    // Future Perfect Continuous (409-412)
     {
         rank: 409,
-        topic: "Future Perfect",
+        topic: "Future Perfect Continuous",
         question: "By next summer, we _____ living in this house for exactly ten years since we first moved here together.",
         correct_answer: "will have been",
         wrong_answers: [
@@ -5570,27 +5569,27 @@ export const GRAMMAR_QUESTIONS: GrammarQuestion[] = [
     {
         rank: 421,
         topic: "Causative Form",
-        question: "We're going to _____ our house painted next month by professional decorators from the local company nearby.",
-        correct_answer: "have",
+        question: "The teacher _____ the students to rewrite their essays after finding too many mistakes in the first drafts.",
+        correct_answer: "got",
         wrong_answers: [
-            "get",
-            "make",
-            "let"
+            "made",
+            "let",
+            "had"
         ],
-        explanation: "'Have something done' shows arranging service by someone else.",
+        explanation: "'Got someone to do something' uses the to-infinitive and implies persuasion. 'Made', 'had', and 'let' all take bare infinitive ('rewrite', not 'to rewrite').",
         reviewed: true
     },
     {
         rank: 422,
         topic: "Causative Form",
-        question: "She _____ her hair cut short yesterday at the new hairdresser's salon on the high street in town.",
-        correct_answer: "had",
+        question: "My parents _____ me to tidy my room by offering extra pocket money as a reward every Saturday morning.",
+        correct_answer: "got",
         wrong_answers: [
             "made",
             "let",
-            "got"
+            "had"
         ],
-        explanation: "Causative 'had' shows arranging action performed by another.",
+        explanation: "'Got someone to do something' uses the to-infinitive and suggests persuasion or incentive. 'Made', 'had', and 'let' take bare infinitive ('tidy', not 'to tidy').",
         reviewed: true
     },
     {

@@ -85,10 +85,6 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
         }
     };
 
-    const handleSkip = () => {
-        onComplete();
-    };
-
     const getTooltipPosition = () => {
         if (!targetRect) return { top: '50%', left: '50%' };
 
@@ -97,14 +93,6 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
         const tooltipHeight = 150;
 
         switch (currentStep.position) {
-            case 'bottom':
-                return {
-                    top: targetRect.bottom + padding,
-                    left: Math.max(padding, Math.min(
-                        targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
-                        window.innerWidth - tooltipWidth - padding
-                    )),
-                };
             case 'top':
                 return {
                     top: targetRect.top - tooltipHeight - padding,
@@ -113,10 +101,14 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
                         window.innerWidth - tooltipWidth - padding
                     )),
                 };
+            case 'bottom':
             default:
                 return {
                     top: targetRect.bottom + padding,
-                    left: targetRect.left,
+                    left: Math.max(padding, Math.min(
+                        targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+                        window.innerWidth - tooltipWidth - padding
+                    )),
                 };
         }
     };
@@ -137,7 +129,6 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
                     pointerEvents: 'auto',
                 }}
             >
-                {/* Dark overlay with spotlight cutout */}
                 <Box
                     sx={{
                         position: 'absolute',
@@ -164,7 +155,6 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
                     }}
                 />
 
-                {/* Spotlight ring */}
                 {targetRect && (
                     <Box
                         component={motion.div}
@@ -185,7 +175,6 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
                     />
                 )}
 
-                {/* Tooltip */}
                 <Paper
                     component={motion.div}
                     initial={{ opacity: 0, y: 10 }}
@@ -212,7 +201,7 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ onComplete }) => 
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Button
                             size="small"
-                            onClick={handleSkip}
+                            onClick={onComplete}
                             sx={{ color: 'text.secondary' }}
                         >
                             Skip Tour

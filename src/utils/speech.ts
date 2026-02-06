@@ -8,9 +8,17 @@ const prepForSpeech = (text: string): string => {
         .replace(/"/g, ' quote ');
 };
 
+let currentAudio: HTMLAudioElement | null = null;
+
 const playAudioContent = (base64Audio: string, rate: number = 1) => {
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = '';
+        currentAudio = null;
+    }
     const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
     audio.playbackRate = rate;
+    currentAudio = audio;
     audio.play();
 };
 

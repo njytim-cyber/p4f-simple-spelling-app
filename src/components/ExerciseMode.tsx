@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Container,
     Typography,
@@ -71,6 +71,7 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
     const [hasAnsweredCorrectly, setHasAnsweredCorrectly] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [dataLoaded, setDataLoaded] = useState<{vocab?: VocabularyItem[], grammar?: GrammarQuestion[]}>({});
+    const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
     // Calculate remaining questions
     const totalAvailable = quizType === 'vocab'
@@ -78,44 +79,41 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         : (dataLoaded.grammar?.length || 0);
     const remainingQuestions = totalAvailable - usedQuestionIds.size;
 
-    // Generate questions functions - defined before useEffect to avoid hoisting issues
+    const usedQuestionIdsRef = useRef(usedQuestionIds);
+    usedQuestionIdsRef.current = usedQuestionIds;
+
     const generateVocabQuestions = useCallback((vocabulary: VocabularyItem[]) => {
-        // Filter for good quality vocabulary (exclude generic meanings and already used)
+        const currentUsed = usedQuestionIdsRef.current;
         const levelVocab = vocabulary.filter(v =>
             v.level === 'p4' &&
             !v.meaning.includes('commonly misspelled') &&
-            v.meaning.length > 10 && // Ensure meaningful definitions
-            !usedQuestionIds.has(v.id) // Exclude already used questions
+            v.meaning.length > 10 &&
+            !currentUsed.has(v.id)
         );
 
         const shuffled = [...levelVocab].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, Math.min(questionCount, levelVocab.length));
 
         const generatedQuestions: VocabQuestionData[] = selected.map(item => {
-            // Create sentence with blank by replacing the word (case-insensitive)
             const wordRegex = new RegExp(`\\b${item.word}\\b`, 'gi');
             const sentenceWithBlank = item.example.replace(wordRegex, '_____');
 
-            // Use curated distractors if available, otherwise generate random ones
             let distractors: string[];
             if (item.wrong_answers && item.wrong_answers.length === 3) {
-                // Use curated distractors
                 distractors = item.wrong_answers;
             } else {
-                // Fallback: Get 3 similar-length distractors from same level
                 const targetLength = item.word.length;
                 const otherWords = vocabulary.filter(v =>
                     v.id !== item.id &&
                     v.level === 'p4' &&
                     !v.meaning.includes('commonly misspelled') &&
-                    Math.abs(v.word.length - targetLength) <= 3 // Similar length
+                    Math.abs(v.word.length - targetLength) <= 3
                 );
 
                 const shuffledOthers = [...otherWords].sort(() => Math.random() - 0.5);
                 distractors = shuffledOthers.slice(0, 3).map(v => v.word);
             }
 
-            // Combine correct answer with distractors and shuffle
             const options = [item.word, ...distractors].sort(() => Math.random() - 0.5);
 
             return {
@@ -127,7 +125,6 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
             };
         });
 
-        // Track used questions
         setUsedQuestionIds(prev => {
             const newSet = new Set(prev);
             selected.forEach(item => newSet.add(item.id));
@@ -135,16 +132,15 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         });
 
         setQuestions(generatedQuestions);
-    }, [usedQuestionIds, questionCount]);
+    }, [questionCount]);
 
     const generateGrammarQuestions = useCallback((grammarQuestions: GrammarQuestion[]) => {
-        // Exclude already used questions
-        const availableQuestions = grammarQuestions.filter(q => !usedQuestionIds.has(q.topic));
+        const currentUsed = usedQuestionIdsRef.current;
+        const availableQuestions = grammarQuestions.filter(q => !currentUsed.has(q.topic));
         const shuffled = [...availableQuestions].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, Math.min(questionCount, availableQuestions.length));
 
         const generatedQuestions: GrammarQuestionData[] = selected.map(item => {
-            // Combine correct answer with wrong answers and shuffle
             const options = [item.correct_answer, ...item.wrong_answers].sort(() => Math.random() - 0.5);
 
             return {
@@ -155,7 +151,6 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
             };
         });
 
-        // Track used questions
         setUsedQuestionIds(prev => {
             const newSet = new Set(prev);
             selected.forEach(item => newSet.add(item.topic));
@@ -163,7 +158,7 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         });
 
         setQuestions(generatedQuestions);
-    }, [usedQuestionIds, questionCount]);
+    }, [questionCount]);
 
     // Load data and generate questions on mount
     useEffect(() => {
@@ -185,6 +180,14 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
         };
         loadData();
     }, [quizType, questionCount, generateVocabQuestions, generateGrammarQuestions]);
+
+    // Cleanup all timers on unmount
+    useEffect(() => {
+        const timers = timersRef.current;
+        return () => {
+            timers.forEach(clearTimeout);
+        };
+    }, []);
 
     const currentQuestion = questions[index];
 
@@ -233,9 +236,10 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
             onCorrect?.();
 
             // Auto-advance after 1.5 seconds
-            setTimeout(() => {
+            const t1 = setTimeout(() => {
                 handleNext();
             }, 1500);
+            timersRef.current.push(t1);
         } else {
             // Track missed item on first wrong attempt
             if (attempts === 0) {
@@ -248,10 +252,11 @@ const ExerciseMode: React.FC<ExerciseModeProps> = ({
             }
 
             // Reset selected answer after showing feedback
-            setTimeout(() => {
+            const t2 = setTimeout(() => {
                 setSelectedAnswer(null);
                 setIsCorrect(null);
             }, 1000);
+            timersRef.current.push(t2);
         }
     };
 
