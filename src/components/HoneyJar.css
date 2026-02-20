@@ -1,39 +1,35 @@
-@keyframes bounce {
-  0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
-  50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
+.honey-jar-container {
+  /* Inner shadow gives the illusion of thick glass on the edges */
+  box-shadow: 
+    inset 0 0 10px rgba(255, 255, 255, 0.4),
+    inset 4px 0 8px rgba(0, 0, 0, 0.1),
+    inset -4px 0 8px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .8; transform: scale(0.95); }
-}
-@keyframes ping {
-    75%, 100% { transform: scale(2); opacity: 0; }
-}
-
-.animate-bounce { animation: bounce 1s infinite; }
-.animate-spin { animation: spin 3s linear infinite; }
-.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-.animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
 
 .honey-gradient {
-    background: linear-gradient(to top, #ffb300, #fdd835, #fff59d);
+  /* Richer, deeper amber gradient that looks like actual honey */
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+  /* Inner shadow to give the liquid volume */
+  box-shadow: inset 0 4px 12px rgba(180, 83, 9, 0.6);
 }
 
 .honey-flat {
-    background-color: #fdd835;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: inset 0 2px 8px rgba(217, 119, 6, 0.3);
 }
 
-/* Wobbly surface effect */
 .honey-surface {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.4);
-    position: absolute;
-    top: 0;
-    border-radius: 50%;
-    transform: scaleX(1.5);
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
+  position: absolute;
+  top: -6px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.5);
+  z-index: 2;
+}
+
+.glass-reflection {
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
 }

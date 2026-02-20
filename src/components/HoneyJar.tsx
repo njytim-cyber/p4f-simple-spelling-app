@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
 import { encouragements } from '../data/encouragements';
 import './HoneyJar.css';
 
@@ -11,41 +12,31 @@ interface HoneyJarProps {
 
 export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
     const [isFull, setIsFull] = useState(false);
-
     const [message, setMessage] = useState<string | null>(null);
     const prevScoreRef = useRef(currentScore);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    // Calculate percentage (0 to 100)
-    // Ensure we don't divide by zero and clamp to 100
     const percentage = totalPossible > 0
         ? Math.min(Math.round((currentScore / totalPossible) * 100), 100)
         : 0;
 
-    // Trigger payoff state when 100%
     useEffect(() => {
-        if (percentage >= 100) {
-            setIsFull(true);
-        } else {
-            setIsFull(false);
-        }
+        setIsFull(percentage >= 100);
     }, [percentage]);
 
-    // Handle encouragement messages
     useEffect(() => {
         if (currentScore > prevScoreRef.current) {
             let text = '';
-            // If perfect score reached (and it's the end, implied by 100% or just hitting total)
             if (currentScore === totalPossible && totalPossible > 0) {
-                text = "SIX-SEVEN! SIX-SEVEN!";
+                text = "SWEET SUCCESS!";
             } else {
-                // Random encouragement
                 const randomIndex = Math.floor(Math.random() * encouragements.length);
                 text = encouragements[randomIndex];
             }
 
             setMessage(text);
 
-            // Clear message after 3 seconds
             const timer = setTimeout(() => {
                 setMessage(null);
             }, 3000);
@@ -55,160 +46,304 @@ export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
         prevScoreRef.current = currentScore;
     }, [currentScore, totalPossible]);
 
+    // Spring configuration for the liquid fill
+    const fillSpring = { type: "spring", stiffness: 60, damping: 12 };
+
     return (
-        <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', width: 80, height: 140 }}>
+        <Box sx={{ position: 'relative', width: 96, height: 160, mt: 4, mb: 1, flexShrink: 0 }}>
+            {/* Absolute container prevents layout shifts from animated children */}
+            <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: '100%' }}>
 
-            {/* --- THE PAYOFF: Text (Only shows at 100%) --- */}
-            {isFull && (
-                <div style={{
-                    position: 'absolute',
-                    top: -40,
-                    zIndex: 50,
-                    fontWeight: 900,
-                    color: '#d97706', // amber-600
-                    fontSize: '1.25rem',
-                    letterSpacing: '0.05em',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }} className="animate-bounce">
-                    SWEET!
-                </div>
-            )}
+                {/* Confetti Explosion on 100% */}
+                {isFull && (
+                    <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 9999 }}>
+                        <Confetti
+                            width={window.innerWidth}
+                            height={window.innerHeight}
+                            recycle={false}
+                            numberOfPieces={isMobile ? 150 : 300}
+                            gravity={0.15}
+                            colors={['#f59e0b', '#fbbf24', '#fcd34d', '#ffffff']}
+                        />
+                    </Box>
+                )}
 
-            {/* --- THE BEE (Floats on top of the liquid) --- */}
-            <div
-                className="absolute z-20 flex flex-col items-center"
-                style={{
-                    bottom: `${percentage}%`,
-                    marginBottom: '-12px', // Sit on surface
-                    transition: 'bottom 0.7s ease-out',
-                    position: 'absolute',
-                    zIndex: 20,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center'
-                }}
-            >
-                {/* The Bee Icon */}
-                <span style={{ fontSize: '2rem', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))', display: 'block' }} className={isFull ? 'animate-spin' : 'animate-pulse'}>
-                    {isFull ? '👑' : ''}🐝
-                </span>
-
-                {/* Speech Bubble */}
+                {/* --- THE PAYOFF: Text --- */}
                 <AnimatePresence>
-                    {message && (
+                    {isFull && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.5, y: 10, x: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0, x: 20 }}
-                            exit={{ opacity: 0, scale: 0.5, y: 5 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            initial={{ opacity: 0, scale: 0.3, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
                             style={{
                                 position: 'absolute',
-                                right: '-10px', // Anchor to right side of bee container (plus 10px breathing room)
-                                bottom: '100%',
-                                marginBottom: '5px',
-                                backgroundColor: 'white',
-                                padding: '6px 10px',
-                                borderRadius: '12px',
-                                borderBottomRightRadius: '0px', // Tail on right
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                whiteSpace: 'nowrap',
-                                zIndex: 100,
+                                top: -60,
+                                zIndex: 60,
+                                fontWeight: 900,
+                                color: '#b45309', // darker amber
+                                fontSize: '1.5rem',
+                                letterSpacing: '0.05em',
+                                textShadow: '0 4px 12px rgba(245, 158, 11, 0.4), 0 1px 2px rgba(0,0,0,0.1)'
                             }}
                         >
-                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#d97706', fontSize: '0.75rem' }}>
-                                {message}
-                            </Typography>
-                            {/* Triangle */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: '-4px',
-                                right: '0px', // Tail aligned to right edge
-                                width: '0',
-                                height: '0',
-                                borderRight: '0px solid transparent', // Flip triangle direction
-                                borderLeft: '8px solid transparent',
-                                borderTop: '6px solid white'
-                            }} />
+                            SWEET!
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
 
-            {/* --- THE JAR CONTAINER --- */}
-            <Box sx={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                border: '4px solid #cbd5e1', // slate-300
-                bgcolor: '#f8fafc', // slate-50
-                borderBottomLeftRadius: 24,
-                borderBottomRightRadius: 24,
-                borderTopLeftRadius: 8,
-                borderTopRightRadius: 8,
-                overflow: 'hidden',
-                boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)'
-            }}>
-
-                {/* Glass Reflection (Static) */}
-                <Box sx={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    width: 8,
-                    height: 60,
-                    bgcolor: 'white',
-                    opacity: 0.4,
-                    borderRadius: 4,
-                    zIndex: 10
-                }} />
-
-                {/* --- THE HONEY LIQUID --- */}
-                <div
-                    className={isFull ? 'honey-gradient' : 'honey-flat'}
+                {/* --- THE BEE --- */}
+                <motion.div
+                    animate={
+                        isFull
+                            ? {
+                                y: [0, -60, -80, -40, 0], // Big loop
+                                x: [0, 40, -40, 20, 0],
+                                rotate: [0, 90, 180, 270, 360],
+                                scale: [1, 1.2, 1],
+                            }
+                            : message
+                                ? { y: -20, rotate: -10 } // Simple wiggle translation
+                                : { y: [0, -8, 0], rotate: [-2, 2, -2] } // Idle hover
+                    }
+                    transition={
+                        isFull
+                            ? { duration: 2, ease: "easeInOut", times: [0, 0.2, 0.5, 0.8, 1] }
+                            : message
+                                ? { duration: 0.3, type: "spring", stiffness: 300, damping: 12 }
+                                : { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                    }
                     style={{
-                        height: `${percentage}%`,
-                        width: '100%',
                         position: 'absolute',
-                        bottom: 0,
-                        transition: 'all 0.7s ease-out',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'center',
-                        overflow: 'hidden'
+                        zIndex: 50,
+                        bottom: `calc(${percentage}% + 10px)`, // calculate exactly instead of margin
+                        width: 50,
+                        height: 50,
+                        pointerEvents: 'none' // Ensures animation doesn't intercept clicks
                     }}
                 >
-                    {/* Texture overlay */}
-                    <div style={{
+                    {/* Crown transition */}
+                    <AnimatePresence>
+                        {isFull && (
+                            <motion.span
+                                initial={{ opacity: 0, y: 10, scale: 0 }}
+                                animate={{ opacity: 1, y: -2, scale: 1, rotate: 10 }}
+                                transition={{ delay: 1.8, type: "spring" }} // Appears after loop
+                                style={{ position: 'absolute', top: -16, fontSize: '1.2rem', left: -4 }}
+                            >
+                                👑
+                            </motion.span>
+                        )}
+                    </AnimatePresence>
+
+                    <Box sx={{
                         width: '100%',
                         height: '100%',
-                        opacity: 0.3,
-                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px)',
-                        mixBlendMode: 'overlay'
-                    }}></div>
+                        filter: 'drop-shadow(0 6px 8px rgba(0,0,0,0.3))',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        transform: 'translateY(4px)' // minor adjustment for visual center
+                    }}>
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                            {/* Shadow under the bee */}
+                            <ellipse cx="50" cy="85" rx="20" ry="4" fill="rgba(0,0,0,0.15)" />
 
-                    {/* Surface Line */}
-                    <div className="honey-surface"></div>
-                </div>
+                            {/* Stinger */}
+                            <path d="M78 55 L90 55 L78 62 Z" fill="#333333" />
 
-                {/* --- MARKER LINES --- */}
-                <div style={{ position: 'absolute', top: '25%', width: '100%', borderTop: '1px solid #e2e8f0', opacity: 0.5 }} />
-                <div style={{ position: 'absolute', top: '50%', width: '100%', borderTop: '1px solid #e2e8f0', opacity: 0.5 }} />
-                <div style={{ position: 'absolute', top: '75%', width: '100%', borderTop: '1px solid #e2e8f0', opacity: 0.5 }} />
+                            {/* Back Wing (flapping) */}
+                            <motion.ellipse
+                                cx="45" cy="35" rx="15" ry="25"
+                                fill="url(#wingGradient)"
+                                opacity="0.8"
+                                style={{ originX: '50%', originY: '100%' }}
+                                animate={{ rotate: [-15, 25, -15], scaleY: [1, 0.8, 1] }}
+                                transition={{ duration: 0.15, repeat: Infinity, ease: 'easeInOut' }}
+                            />
 
-            </Box>
+                            {/* Bee Body (Stripes are just a pattern, or just layered shapes) */}
+                            <rect x="30" y="40" width="50" height="35" rx="17.5" fill="#facc15" />
+                            {/* Stripes */}
+                            <path d="M45 40 h10 v35 h-10 Z" fill="#333333" />
+                            <path d="M65 40 h10 v35 h-10 Z" fill="#333333" />
 
-            {/* --- THE 100% OVERFLOW PUDDLE (Bottom) --- */}
-            {isFull && (
-                <div style={{
+                            {/* Front Wing (flapping) */}
+                            <motion.ellipse
+                                cx="35" cy="40" rx="15" ry="25"
+                                fill="url(#wingGradient)"
+                                opacity="0.9"
+                                style={{ originX: '50%', originY: '100%' }}
+                                animate={{ rotate: [10, -30, 10], scaleY: [1, 0.7, 1] }}
+                                transition={{ duration: 0.15, repeat: Infinity, ease: 'easeInOut', delay: 0.05 }}
+                            />
+
+                            {/* Head */}
+                            <circle cx="30" cy="57.5" r="16" fill="#facc15" />
+
+                            {/* Eyes */}
+                            <circle cx="24" cy="54" r="3" fill="#333333" />
+                            <circle cx="34" cy="54" r="3" fill="#333333" />
+
+                            {/* Cheeks */}
+                            <circle cx="20" cy="58" r="2.5" fill="#f87171" opacity="0.6" />
+                            <circle cx="38" cy="58" r="2.5" fill="#f87171" opacity="0.6" />
+
+                            {/* Happy Mouth */}
+                            <path d="M26 62 Q 29 66 32 62" stroke="#333333" strokeWidth="2" strokeLinecap="round" fill="none" />
+
+                            {/* Antennae */}
+                            <path d="M25 43 Q 20 35 15 35" stroke="#333333" strokeWidth="2" strokeLinecap="round" fill="none" />
+                            <circle cx="15" cy="35" r="2" fill="#333333" />
+                            <path d="M35 43 Q 40 35 45 35" stroke="#333333" strokeWidth="2" strokeLinecap="round" fill="none" />
+                            <circle cx="45" cy="35" r="2" fill="#333333" />
+
+                            {/* Definitions */}
+                            <defs>
+                                <linearGradient id="wingGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#ffffff" />
+                                    <stop offset="100%" stopColor="#bae6fd" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </Box>
+
+                    {/* Speech Bubble */}
+                    <AnimatePresence>
+                        {message && !isFull && (
+                            <motion.div
+                                key={message} // Re-animate on new message
+                                initial={{ opacity: 0, scale: 0.5, y: 10, x: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0, x: 20 }}
+                                exit={{ opacity: 0, scale: 0.5, y: 5 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 15 } as any}
+                                style={{
+                                    position: 'absolute',
+                                    left: '100%',
+                                    bottom: '80%', // Anchored mid-high right of the bee
+                                    marginLeft: '10px',
+                                    backgroundColor: 'white',
+                                    padding: '8px 12px',
+                                    borderRadius: '16px',
+                                    borderBottomLeftRadius: '0px', // Right-side tail
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15), inset 0 -2px 0 rgba(0,0,0,0.05)',
+                                    whiteSpace: 'nowrap',
+                                    zIndex: 100,
+                                }}
+                            >
+                                <Typography variant="caption" fontWeight="bold" sx={{ color: '#d97706', fontSize: '0.8rem' }}>
+                                    {message}
+                                </Typography>
+                                {/* Triangle */}
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '-5px',
+                                    left: '0px',
+                                    width: '0',
+                                    height: '0',
+                                    borderLeft: '0px solid transparent', // Left-sided tail
+                                    borderRight: '10px solid transparent',
+                                    borderTop: '8px solid white'
+                                }} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+
+                {/* --- THE JAR CONTAINER --- */}
+                <Box className="honey-jar-container" sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    bgcolor: 'rgba(248, 250, 252, 0.7)', // translucent slate-50
+                    backdropFilter: 'blur(4px)',
+                    borderBottomLeftRadius: 32,
+                    borderBottomRightRadius: 32,
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                    border: '6px solid rgba(203, 213, 225, 0.4)', // thicker, slightly transparent rim
+                    overflow: 'hidden',
+                    zIndex: 10
+                }}>
+
+                    {/* Thick glass rim top highlight */}
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 6,
+                        background: 'linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)',
+                        zIndex: 20
+                    }} />
+
+                    {/* Curved Glass Reflection (Left) */}
+                    <Box className="glass-reflection" sx={{
+                        position: 'absolute',
+                        top: '10%',
+                        left: '10%',
+                        width: '15%',
+                        height: '80%',
+                        borderRadius: '50%',
+                        transform: 'rotate(-5deg)',
+                        zIndex: 20
+                    }} />
+
+                    {/* --- THE HONEY LIQUID --- */}
+                    <motion.div
+                        className={isFull ? 'honey-gradient' : 'honey-flat'}
+                        initial={{ height: '0%' }}
+                        animate={{ height: `${percentage}%` }}
+                        transition={fillSpring as any}
+                        style={{
+                            width: '100%',
+                            position: 'absolute',
+                            bottom: 0,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {/* Texture overlay */}
+                        <Box sx={{
+                            width: '100%',
+                            height: '100%',
+                            opacity: 0.25,
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 8px)',
+                            mixBlendMode: 'overlay',
+                            position: 'absolute'
+                        }} />
+
+                        {/* 3D Surface Interface */}
+                        <Box className="honey-surface" />
+                    </motion.div>
+
+                    {/* --- MARKER LINES (Engraved Glass look) --- */}
+                    {[25, 50, 75].map(pos => (
+                        <Box key={pos} sx={{
+                            position: 'absolute',
+                            bottom: `${pos}%`,
+                            width: '40%',
+                            left: '30%',
+                            height: 2,
+                            bgcolor: 'rgba(255,255,255,0.4)',
+                            borderBottom: '1px solid rgba(0,0,0,0.05)',
+                            borderRadius: 1,
+                            zIndex: 5
+                        }} />
+                    ))}
+                </Box>
+
+                {/* --- JAR SHADOW (Bottom) --- */}
+                <Box sx={{
                     position: 'absolute',
-                    bottom: -8,
-                    width: 100,
-                    height: 16,
-                    backgroundColor: '#facc15',
-                    borderRadius: '50%',
-                    opacity: 0.8
-                }} className="animate-ping" />
-            )}
+                    bottom: -12,
+                    width: '80%',
+                    height: 12,
+                    background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, transparent 70%)',
+                    zIndex: 5
+                }} />
+            </Box>
         </Box>
     );
 };
+
