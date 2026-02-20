@@ -14,7 +14,6 @@ import {
     List,
     ListItem,
     Divider,
-    Paper,
     Grid,
     Tabs,
     Tab,

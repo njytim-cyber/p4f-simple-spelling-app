@@ -1,4 +1,5 @@
 // Shared animation variants and transitions for framer-motion
+import type { Variants } from 'framer-motion';
 
 // Standard page transition for view switching (App.tsx)
 export const pageVariants = {
@@ -9,11 +10,11 @@ export const pageVariants = {
 
 export const pageTransition = {
     duration: 0.25,
-    ease: [0.4, 0, 0.2, 1], // MUI standard easing
+    ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
 };
 
 // Results screen staggered entrance
-export const resultsContainerVariants = {
+export const resultsContainerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -21,16 +22,16 @@ export const resultsContainerVariants = {
     },
 };
 
-export const resultsItemVariants = {
+export const resultsItemVariants: Variants = {
     hidden: { opacity: 0, y: 16 },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
     },
 };
 
-export const scorePopVariants = {
+export const scorePopVariants: Variants = {
     hidden: { opacity: 0, scale: 0.7 },
     visible: {
         opacity: 1,
