@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
     Container,
     Typography,
@@ -19,6 +19,9 @@ import {
     Tabs,
     Tab,
     Tooltip,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
 } from '@mui/material';
 import {
     Star,
@@ -26,13 +29,13 @@ import {
     CheckCircle,
     RadioButtonUnchecked,
     Sync,
-    EditCalendar,
     AutoAwesome,
+    ExpandMore,
 } from '@mui/icons-material';
 import { Exercise, ScoreRecord, ExerciseType, EXERCISES } from '../data/exercises';
 import { CHANGELOG } from '../data/version';
 import { motion } from 'framer-motion';
-import { TextField } from '@mui/material';
+
 import { chunkText } from '../utils/speech';
 
 interface DashboardProps {
@@ -42,103 +45,46 @@ interface DashboardProps {
     revisionDueCount?: number;
 }
 
-const STORAGE_KEY_DATES = 'p4_exercises_dates';
-
 const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevision, revisionDueCount = 0 }) => {
     const [openHistory, setOpenHistory] = useState(false);
     const [openSpellingList, setOpenSpellingList] = useState(false);
     const [openChangelog, setOpenChangelog] = useState(false);
-    const [openEditDates, setOpenEditDates] = useState(false);
     const [infoTab, setInfoTab] = useState(0);
+    const [spellingListTerm, setSpellingListTerm] = useState(-1); // -1 = last term by default
+    const exercises = EXERCISES;
 
-    // Initialize exercises from storage or default
-    const [exercises, setExercises] = useState<Exercise[]>(() => {
-        const saved = localStorage.getItem(STORAGE_KEY_DATES);
-        if (saved) {
-            try {
-                const textDates = JSON.parse(saved) as Record<string, string>;
-                // Merge saved dates into default exercises
-                return EXERCISES.map(ex => ({
-                    ...ex,
-                    date: textDates[ex.id] || ex.date
-                }));
-            } catch {
-                console.error("Failed to parse saved dates");
-            }
+    // Group exercises by term (e.g. "1.1" -> "Term 1", "2.X" -> "Term 2")
+    const termGroups = useMemo(() => {
+        const groups = new Map<string, Exercise[]>();
+        for (const ex of exercises) {
+            const termNum = ex.id.split('.')[0];
+            const label = `Term ${termNum}`;
+            const group = groups.get(label) ?? [];
+            group.push(ex);
+            groups.set(label, group);
         }
-        return EXERCISES;
+        return Array.from(groups.entries());
+    }, [exercises]);
+
+    // Track which accordions are expanded — last term open by default
+    const [expandedTerms, setExpandedTerms] = useState<Set<string>>(() => {
+        const lastLabel = `Term ${exercises[exercises.length - 1]?.id.split('.')[0]}`;
+        return new Set([lastLabel]);
     });
 
-    // Temp state for editing
-    const [editDates, setEditDates] = useState<Record<string, string>>({});
-
-    // Helper to format "24 Jan" or "24 Jan 2026" -> "YYYY-MM-DD" for input
-    const toInputFormat = (dateStr: string) => {
-        if (!dateStr) return '';
-        try {
-            // Check if year is already present (digits at end)
-            const hasYear = /\d{4}$/.test(dateStr.trim());
-            const fullDateStr = hasYear ? dateStr : `${dateStr} ${new Date().getFullYear()}`;
-
-            const date = new Date(fullDateStr);
-            if (isNaN(date.getTime())) return '';
-
-            // Adjust for local timezone offset to prevent date shifting
-            // or just use ISO string split if time is 00:00:00 local
-            const offset = date.getTimezoneOffset() * 60000;
-            const localDate = new Date(date.getTime() - offset);
-            return localDate.toISOString().split('T')[0];
-        } catch {
-            return '';
-        }
-    };
-
-    // Helper to format "YYYY-MM-DD" -> "24 Jan" (or "24 Jan 2026" if needed) for display/storage
-    const toDisplayFormat = (isoDate: string) => {
-        if (!isoDate) return '';
-        try {
-            const date = new Date(isoDate);
-            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        } catch {
-            return isoDate;
-        }
-    };
-
-    const handleOpenEditDates = () => {
-        const currentDates: Record<string, string> = {};
-        // Store as YYYY-MM-DD in the edit state for easy binding to input
-        exercises.forEach(ex => {
-            currentDates[ex.id] = toInputFormat(ex.date);
+    const toggleTerm = (label: string) => {
+        setExpandedTerms(prev => {
+            const next = new Set(prev);
+            if (next.has(label)) next.delete(label);
+            else next.add(label);
+            return next;
         });
-        setEditDates(currentDates);
-        setOpenEditDates(true);
     };
 
-    const handleSaveDates = () => {
-        const newExercises = exercises.map(ex => ({
-            ...ex,
-            // Convert back to "24 Jan" format when saving
-            date: editDates[ex.id] ? toDisplayFormat(editDates[ex.id]) : ex.date
-        }));
-        setExercises(newExercises);
-
-        const dateMap: Record<string, string> = {};
-        newExercises.forEach(ex => dateMap[ex.id] = ex.date);
-        localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(dateMap));
-
-        setOpenEditDates(false);
-    };
-
-
-
-    // ... (existing imports)
-
-    // Helper to normalize history records for display
-    // Handles transition from 1-point system to 2-point tiered system
+    // Normalize legacy scoring records (1-point system -> 2-point tiered system)
     const getNormalizedRecord = (record: ScoreRecord) => {
-        // Find reference exercise to get true item count
         const refEx = exercises.find(e => e.id === record.exerciseId);
-        if (!refEx) return record; // Cannot normalize if ex not found
+        if (!refEx) return record;
 
         const itemCount = record.type === 'spelling'
             ? refEx.spelling.length
@@ -146,66 +92,42 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
 
         const isToday = record.date === new Date().toLocaleDateString();
 
-        // CASE 1: Obvious Bug (Score > Total)
-        // Happens when score used new logic (2pts) but total used old logic (1x)
         if (record.score > record.total) {
-            return {
-                ...record,
-                total: record.total * 2
-            };
+            return { ...record, total: record.total * 2 };
         }
 
-        // CASE 2: Potential Identity Crisis (Total == Item Count)
-        // Could be Legacy (1pt max) OR Bugged New (2pt max, wrongly saved total)
         if (record.total === itemCount) {
-            if (!isToday) {
-                // Legacy Record (Old logic)
-                // Normalize to new scale (x2) so 5/5 becomes 10/10
-                return {
-                    ...record,
-                    score: record.score * 2,
-                    total: record.total * 2
-                };
-            } else {
-                // Bugged New Record (likely from today's session before fix)
-                // Score is already 2-point based (e.g. 2 for 1 correct), Total is 1x
-                // Fix total only: 2/5 -> 2/10
-                return {
-                    ...record,
-                    total: record.total * 2
-                };
-            }
+            return isToday
+                ? { ...record, total: record.total * 2 }
+                : { ...record, score: record.score * 2, total: record.total * 2 };
         }
 
         return record;
     };
 
+    // Memoize expensive score lookups — only recalculate when history changes
+    const { totalXP, bestScores } = useMemo(() => {
+        let xp = 0;
+        const bests = new Map<string, ScoreRecord>();
 
-    const getTotalXP = () => history.reduce((acc, curr) => {
-        const norm = getNormalizedRecord(curr);
-        // If we want XP to be consistent, we might calculate based on norm score?
-        // But let's stick to saved score * 10 for simplicity unless huge disparity
-        // Actually, if legacy 5/5 -> 50XP. New 10/10 -> 100XP.
-        // Users might prefer the boost. Let's use normalized score for XP!
-        return acc + (norm.score * 10);
-    }, 0);
+        for (const record of history) {
+            const norm = getNormalizedRecord(record);
+            xp += norm.score * 10;
 
-    const getBestScore = (exerciseId: string, type: ExerciseType) => {
-        const attempts = history
-            .filter(h => h.exerciseId === exerciseId && h.type === type)
-            .map(getNormalizedRecord);
+            const key = `${record.exerciseId}-${record.type}`;
+            const current = bests.get(key);
+            if (!current || norm.score > getNormalizedRecord(current).score) {
+                bests.set(key, record);
+            }
+        }
 
-        if (attempts.length === 0) return null;
-        return attempts.reduce((max, curr) => (curr.score > max.score ? curr : max), attempts[0]);
-    };
-
-    // ... inside the render ...
-    // Update the history list mapping:
-    // ...
-
+        return { totalXP: xp, bestScores: bests };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [history]);
 
     const StatusTarget = ({ exId, type }: { exId: string, type: ExerciseType }) => {
-        const best = getBestScore(exId, type);
+        const bestRaw = bestScores.get(`${exId}-${type}`);
+        const best = bestRaw ? getNormalizedRecord(bestRaw) : null;
 
         let icon = <RadioButtonUnchecked />;
         let color = 'text.disabled';
@@ -220,9 +142,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
             }
         }
 
-        // Add data attribute for first exercise only (for onboarding)
-        const isFirstExercise = exId === EXERCISES[0]?.id;
-        const dataAttr = isFirstExercise ? { 'data-onboarding': type } : {};
+        // Add data attribute for first exercise in the last (expanded) term group
+        const lastGroup = termGroups[termGroups.length - 1];
+        const isOnboardingTarget = lastGroup && exId === lastGroup[1][0]?.id;
+        const dataAttr = isOnboardingTarget ? { 'data-onboarding': type } : {};
 
         return (
             <IconButton
@@ -327,7 +250,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
 
                     <Chip
                         icon={<Star sx={{ color: '#FFD700 !important' }} />}
-                        label={`${getTotalXP()}`}
+                        label={`${totalXP}`}
                         sx={{
                             bgcolor: 'primary.main',
                             color: 'white',
@@ -380,153 +303,163 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                 </Button>
             )}
 
-            <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #eee' }}>
-                {/* Column Header */}
-                <Box sx={{
-                    py: 1.5,
-                    px: 3,
-                    bgcolor: '#fcfcfc',
-                    borderBottom: '1px solid #eee',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    userSelect: 'none'
-                }}>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                        <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
-                            #
-                        </Typography>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
-                                Date
-                            </Typography>
-                            <Tooltip title="Edit Dates">
-                                <IconButton
-                                    size="small"
-                                    onClick={handleOpenEditDates}
-                                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: 'primary.main' } }}
-                                >
-                                    <EditCalendar sx={{ fontSize: '1rem' }} />
-                                </IconButton>
-                            </Tooltip>
-                        </Stack>
-                    </Stack>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {termGroups.map(([termLabel, termExercises]) => {
+                    const isExpanded = expandedTerms.has(termLabel);
+                    const hasDictation = termExercises.some(e => e.dictation);
+                    // Standard column width for better clicking areas and visual "tightness" relief
+                    const colWidth = 80;
 
-                    <Stack direction="row" spacing={2}>
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
-                            Spelling
-                        </Typography>
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: 60, textAlign: 'center' }}>
-                            Dictation
-                        </Typography>
-                    </Stack>
-                </Box>
-
-                <List disablePadding>
-                    {exercises.map((ex, index) => (
-                        <Box key={ex.id}>
-                            <ListItem
+                    return (
+                        <Accordion
+                            key={termLabel}
+                            expanded={isExpanded}
+                            onChange={() => toggleTerm(termLabel)}
+                            disableGutters
+                            sx={{
+                                borderRadius: '12px !important',
+                                border: '1px solid #eee',
+                                boxShadow: 'none',
+                                '&:before': { display: 'none' },
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <AccordionSummary
+                                expandIcon={<ExpandMore />}
                                 sx={{
-                                    py: 1.0,
-                                    px: 3,
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    '&:hover': { bgcolor: '#fafafa' },
+                                    bgcolor: '#fcfcfc',
+                                    px: 2.5,
+                                    minHeight: 52,
+                                    '& .MuiAccordionSummary-content': {
+                                        my: 1.5,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                        // Spacing between labels and the expand icon
+                                        mr: 2,
+                                    },
+                                    userSelect: 'none',
                                 }}
-                                component={motion.div}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
                             >
-                                <Stack direction="row" spacing={2} alignItems="baseline">
-                                    <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ width: 40 }}>
-                                        {ex.title}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                                        {ex.date}
-                                    </Typography>
-                                </Stack>
-                                <Stack direction="row" spacing={2}>
-                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
-                                        <StatusTarget exId={ex.id} type="spelling" />
-                                    </Box>
-                                    <Box sx={{ width: 60, display: 'flex', justifyContent: 'center' }}>
-                                        <StatusTarget exId={ex.id} type="dictation" />
-                                    </Box>
-                                </Stack>
-                            </ListItem>
-                            {index < exercises.length - 1 && <Divider />}
-                        </Box>
-                    ))}
-                </List>
-            </Paper>
-
-            {/* Edit Dates Dialog */}
-            <Dialog open={openEditDates} onClose={() => setOpenEditDates(false)} fullWidth maxWidth="xs">
-                <DialogTitle sx={{ fontWeight: '800' }}>Edit Dates</DialogTitle>
-                <DialogContent dividers>
-                    <Stack spacing={2} sx={{ pt: 1 }}>
-                        {exercises.map((ex) => (
-                            <TextField
-                                key={ex.id}
-                                label={`Date for ${ex.title}`}
-                                type="date"
-                                InputLabelProps={{ shrink: true }}
-                                value={editDates[ex.id] || ''}
-                                onChange={(e) => setEditDates(prev => ({ ...prev, [ex.id]: e.target.value }))}
-                                size="small"
-                                fullWidth
-                            />
-                        ))}
-                    </Stack>
-                </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpenEditDates(false)} color="inherit">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSaveDates} variant="contained" sx={{ borderRadius: 2 }}>
-                        Save
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                                <Typography variant="subtitle2" fontWeight="bold" color="primary" sx={{ flexGrow: 1 }}>
+                                    {termLabel}
+                                </Typography>
+                                {isExpanded && (
+                                    <Stack direction="row" sx={{ flexShrink: 0 }}>
+                                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: colWidth, textAlign: 'center' }}>
+                                            Spelling
+                                        </Typography>
+                                        {hasDictation && (
+                                            <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: colWidth, textAlign: 'center' }}>
+                                                Dictation
+                                            </Typography>
+                                        )}
+                                    </Stack>
+                                )}
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ p: 0 }}>
+                                <List disablePadding>
+                                    {termExercises.map((ex, index) => (
+                                        <Box key={ex.id}>
+                                            <ListItem
+                                                sx={{
+                                                    py: 1.5,
+                                                    px: 2.5,
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    '&:hover': { bgcolor: '#fafafa' },
+                                                }}
+                                                component={motion.div}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05 }}
+                                            >
+                                                <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                                                    {ex.title}
+                                                </Typography>
+                                                {/* 
+                                                Match the header alignment:
+                                                Header content has mr: 2 (16px) gap to expand icon.
+                                                Expand icon SVG is 24px wide.
+                                                Total offset = 24 + 16 = 40px = mr: 5
+                                            */}
+                                                <Stack direction="row" sx={{ mr: 5 }}>
+                                                    <Box sx={{ width: colWidth, display: 'flex', justifyContent: 'center' }}>
+                                                        <StatusTarget exId={ex.id} type="spelling" />
+                                                    </Box>
+                                                    {hasDictation && (
+                                                        <Box sx={{ width: colWidth, display: 'flex', justifyContent: 'center' }}>
+                                                            {ex.dictation && <StatusTarget exId={ex.id} type="dictation" />}
+                                                        </Box>
+                                                    )}
+                                                </Stack>
+                                            </ListItem>
+                                            {index < termExercises.length - 1 && <Divider />}
+                                        </Box>
+                                    ))}
+                                </List>
+                            </AccordionDetails>
+                        </Accordion>
+                    );
+                })}
+            </Box>
 
             {/* Spelling List Dialog */}
             <Dialog open={openSpellingList} onClose={() => setOpenSpellingList(false)} fullWidth maxWidth="md">
-                <DialogTitle sx={{ fontWeight: '800' }}>Master Spelling List</DialogTitle>
-                <DialogContent dividers>
-                    <List disablePadding>
-                        {EXERCISES.map((ex, i) => (
-                            <Box key={ex.id} sx={{ mb: i < EXERCISES.length - 1 ? 4 : 0 }}>
-                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
-                                    {ex.title}
-                                </Typography>
-                                <Grid container spacing={4}>
-                                    <Grid item xs={12} md={5}>
-                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                                            Spelling Phrases
-                                        </Typography>
-                                        <List dense>
-                                            {ex.spelling.map((item) => (
-                                                <ListItem key={item.id} sx={{ px: 0, py: 0.5 }}>
-                                                    <Typography variant="body2">• {item.phrase}</Typography>
-                                                </ListItem>
-                                            ))}
-                                        </List>
-                                    </Grid>
-                                    <Grid item xs={12} md={7}>
-                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                                            Dictation Text
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ fontStyle: 'italic', bgcolor: '#f9f9f9', p: 1.5, borderRadius: 1 }}>
-                                            "{ex.dictation}"
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                                {i < EXERCISES.length - 1 && <Divider sx={{ mt: 3 }} />}
-                            </Box>
+                <DialogTitle sx={{ fontWeight: '800', pb: 0 }}>Master Spelling List</DialogTitle>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
+                    <Tabs
+                        value={spellingListTerm === -1 ? termGroups.length - 1 : spellingListTerm}
+                        onChange={(_, v) => setSpellingListTerm(v)}
+                        aria-label="term tabs"
+                    >
+                        {termGroups.map(([label], i) => (
+                            <Tab key={label} label={label} value={i} sx={{ fontWeight: 'bold' }} />
                         ))}
-                    </List>
+                    </Tabs>
+                </Box>
+                <DialogContent dividers>
+                    {(() => {
+                        const activeIndex = spellingListTerm === -1 ? termGroups.length - 1 : spellingListTerm;
+                        const filteredExercises = termGroups[activeIndex]?.[1] ?? [];
+                        return (
+                            <List disablePadding>
+                                {filteredExercises.map((ex, i) => (
+                                    <Box key={ex.id} sx={{ mb: i < filteredExercises.length - 1 ? 4 : 0 }}>
+                                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                            {ex.title}
+                                        </Typography>
+                                        <Grid container spacing={4}>
+                                            <Grid item xs={12} md={5}>
+                                                <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                                    Spelling Phrases
+                                                </Typography>
+                                                <List dense>
+                                                    {ex.spelling.map((item) => (
+                                                        <ListItem key={item.id} sx={{ px: 0, py: 0.5 }}>
+                                                            <Typography variant="body2">• {item.phrase}</Typography>
+                                                        </ListItem>
+                                                    ))}
+                                                </List>
+                                            </Grid>
+                                            {ex.dictation && (
+                                                <Grid item xs={12} md={7}>
+                                                    <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                                        Dictation Text
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ fontStyle: 'italic', bgcolor: '#f9f9f9', p: 1.5, borderRadius: 1 }}>
+                                                        "{ex.dictation}"
+                                                    </Typography>
+                                                </Grid>
+                                            )}
+                                        </Grid>
+                                        {i < filteredExercises.length - 1 && <Divider sx={{ mt: 3 }} />}
+                                    </Box>
+                                ))}
+                            </List>
+                        );
+                    })()}
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenSpellingList(false)} fullWidth variant="contained" sx={{ borderRadius: 2, py: 1.5 }}>

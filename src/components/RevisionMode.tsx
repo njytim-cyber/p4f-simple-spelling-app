@@ -11,11 +11,13 @@ import {
     Tooltip,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, AutoAwesome, Star } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { speak } from '../utils/speech';
+import { resultsContainerVariants, resultsItemVariants, scorePopVariants } from '../utils/animations';
 import { HoneyJar } from './HoneyJar';
-import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import VoiceSelector from './VoiceSelector';
+import { getSavedVoice } from '../utils/voicePreference';
 import ExerciseCard from './ExerciseCard';
-import { playVictorySound } from '../utils/sounds';
 import {
     RevisionItem,
     calculateNextReview,
@@ -58,12 +60,6 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
         }
     }, [index, currentItem, speed, voice, showResults]);
 
-    // Handle victory sound
-    useEffect(() => {
-        if (showResults && score === totalPossible) {
-            playVictorySound();
-        }
-    }, [showResults, score, totalPossible]);
 
     const handleCorrect = (attempts: number) => {
         // Scoring: 2 points for first try (attempts=1), 1 point otherwise
@@ -112,16 +108,28 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
         return (
             <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <Card sx={{ p: 4, borderRadius: 2, textAlign: 'center', maxWidth: 400 }}>
-                    <AutoAwesome sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
-                    <Typography variant="h5" fontWeight="bold" gutterBottom color="success.main">
-                        {getEncouragement('empty')}
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }}>
-                        You don't have any items to revise right now. Keep practicing and any mistakes will appear here for review!
-                    </Typography>
-                    <Button variant="contained" onClick={onBack} fullWidth sx={{ py: 1.5 }}>
-                        Back to Dashboard
-                    </Button>
+                    <motion.div
+                        variants={resultsContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.div variants={scorePopVariants}>
+                            <AutoAwesome sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
+                        </motion.div>
+                        <motion.div variants={resultsItemVariants}>
+                            <Typography variant="h5" fontWeight="bold" gutterBottom color="success.main">
+                                {getEncouragement('empty')}
+                            </Typography>
+                            <Typography color="text.secondary" sx={{ mb: 3 }}>
+                                You don't have any items to revise right now. Keep practicing and any mistakes will appear here for review!
+                            </Typography>
+                        </motion.div>
+                        <motion.div variants={resultsItemVariants}>
+                            <Button variant="contained" onClick={onBack} fullWidth sx={{ py: 1.5 }}>
+                                Back to Dashboard
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 </Card>
             </Container>
         );
@@ -132,34 +140,47 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
         return (
             <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
                 <Card sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
-                        <AutoAwesome sx={{ fontSize: 50, color: 'secondary.main', mb: 2 }} />
-                        <Typography variant="h4" gutterBottom fontWeight="bold">
-                            {getEncouragement('sessionComplete')}
-                        </Typography>
-                        <Typography variant="h2" color="secondary" fontWeight="bold">
-                            {score} / {totalPossible}
-                        </Typography>
-                        <Typography color="text.secondary">Points</Typography>
-                    </Box>
-
-                    <Box sx={{ bgcolor: '#f0f7ff', p: 3, borderRadius: 2, mb: 4, userSelect: 'none' }}>
-                        <Typography variant="body1" color="text.secondary" textAlign="center">
-                            <strong>Spaced Repetition Active.</strong><br />
-                            Success! The items you got right are scheduled for a future challenge. Let’s focus on the others until they are locked in.
-                        </Typography>
-                    </Box>
-
-                    <Button
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        sx={{ py: 2 }}
-                        onClick={() => onComplete(score, totalPossible)}
-                        autoFocus
+                    <motion.div
+                        variants={resultsContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}
                     >
-                        Finish Revision
-                    </Button>
+                        <motion.div variants={scorePopVariants}>
+                            <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
+                                <AutoAwesome sx={{ fontSize: 50, color: 'secondary.main', mb: 2 }} />
+                                <Typography variant="h4" gutterBottom fontWeight="bold">
+                                    {getEncouragement('sessionComplete')}
+                                </Typography>
+                                <Typography variant="h2" color="secondary" fontWeight="bold">
+                                    {score} / {totalPossible}
+                                </Typography>
+                                <Typography color="text.secondary">Points</Typography>
+                            </Box>
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants}>
+                            <Box sx={{ bgcolor: '#f0f7ff', p: 3, borderRadius: 2, mb: 4, userSelect: 'none' }}>
+                                <Typography variant="body1" color="text.secondary" textAlign="center">
+                                    <strong>Spaced Repetition Active.</strong><br />
+                                    Success! The items you got right are scheduled for a future challenge. Let's focus on the others until they are locked in.
+                                </Typography>
+                            </Box>
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                sx={{ py: 2 }}
+                                onClick={() => onComplete(score, totalPossible)}
+                                autoFocus
+                            >
+                                Finish Revision
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 </Card>
             </Container>
         );
@@ -230,12 +251,19 @@ const RevisionMode: React.FC<RevisionModeProps> = ({
                         <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
-                        label={`${score}/${totalPossible}`}
-                        variant="outlined"
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
-                    />
+                    <motion.div
+                        key={score}
+                        initial={{ scale: 1 }}
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                        <Chip
+                            icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
+                            label={`${score}/${totalPossible}`}
+                            variant="outlined"
+                            sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
+                        />
+                    </motion.div>
                 </Box>
             </Box>
 

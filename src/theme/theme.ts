@@ -24,6 +24,10 @@ const theme = createTheme({
                     borderRadius: 100,
                     textTransform: 'none',
                     fontWeight: 600,
+                    transition: 'transform 0.15s ease, filter 0.15s ease, background-color 0.2s ease',
+                    '&:active': {
+                        transform: 'scale(0.97)',
+                    },
                     '&:focus': {
                         boxShadow: 'none',
                     },
@@ -37,10 +41,16 @@ const theme = createTheme({
                     boxShadow: 'none',
                     '&:hover': {
                         boxShadow: 'none',
+                        filter: 'brightness(1.08)',
                     },
                     '&:focus': {
                         boxShadow: 'none',
                     }
+                },
+                outlined: {
+                    '&:hover': {
+                        filter: 'brightness(0.97)',
+                    },
                 }
             }
         },

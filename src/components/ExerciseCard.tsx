@@ -9,7 +9,6 @@ interface ExerciseCardProps {
     isDictation?: boolean;
     onCorrect: (attempts: number) => void; // Parent handles score/progression
     onWrong: () => void; // Parent might track mistakes
-    onGiveUp?: () => void; // Optional: if we want to allow skipping
     autoFocus?: boolean;
     customValidator?: (input: string) => { isCorrect: boolean; feedbackMessage?: string | React.ReactNode };
 }
@@ -33,10 +32,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         setFeedback('neutral');
         setFeedbackMessage('');
         setAttempts(0);
+        let focusTimer: ReturnType<typeof setTimeout> | undefined;
         if (autoFocus) {
-            // Small timeout to ensure render visibility before focus
-            setTimeout(() => inputRef.current?.focus(), 50);
+            focusTimer = setTimeout(() => inputRef.current?.focus(), 50);
         }
+        return () => { if (focusTimer) clearTimeout(focusTimer); };
     }, [phrase, autoFocus]);
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -204,9 +204,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         </Button>
                     )}
 
-                    {/* Correct state doesn't need a button usually as it auto-advances, 
-                        but could add 'Next' if auto-advance is disabled in parent props? 
-                        For now, assuming auto-advance handled by parent effects. */}
                 </Card>
             </motion.div>
         </AnimatePresence>

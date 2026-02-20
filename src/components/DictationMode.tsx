@@ -17,12 +17,15 @@ import {
     Tooltip,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak, chunkText } from '../utils/speech';
+import { resultsContainerVariants, resultsItemVariants, scorePopVariants } from '../utils/animations';
 import { HoneyJar } from './HoneyJar';
-import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import VoiceSelector from './VoiceSelector';
+import { getSavedVoice } from '../utils/voicePreference';
 import ExerciseCard from './ExerciseCard';
-import { playVictorySound } from '../utils/sounds';
+
 
 interface DictationModeProps {
     exercise: Exercise;
@@ -132,9 +135,6 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         let timer: ReturnType<typeof setTimeout>;
         if (!showResults) {
             timer = setTimeout(() => speak(currentChunk, speed, voice), 300);
-        } else if (missedChunks.length === 0) {
-            // Play victory sound on perfect score!
-            playVictorySound();
         }
         return () => {
             clearTimeout(timer);
@@ -205,56 +205,69 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
         return (
             <Container maxWidth="sm" sx={{ minHeight: '100vh', pt: 4, pb: 4, display: 'flex', flexDirection: 'column' }}>
                 <Card sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
-                        <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center" sx={{ mb: 4 }}>
-                            Dictation Review
-                        </Typography>
-                        <Typography variant="h2" color="secondary" fontWeight="bold">
-                            {score} / {chunks.length * 2}
-                        </Typography>
-                        <Typography color="text.secondary">Points</Typography>
-                    </Box>
-
-                    {missedChunks.length > 0 ? (
-                        <>
-                            <Typography variant="h6" gutterBottom color="error" sx={{ userSelect: 'none' }}>
-                                Review Missed Chunks:
-                            </Typography>
-                            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-                                {missedChunks.map((chunk, i) => (
-                                    <Box key={i} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, userSelect: 'none' }}>
-                                        <Typography variant="body1" sx={{ mb: 1 }}>{chunk}</Typography>
-                                        <Button
-                                            size="small"
-                                            startIcon={<VolumeUp />}
-                                            onClick={() => speak(chunk, speed, voice)}
-                                            variant="outlined"
-                                        >
-                                            Listen Again
-                                        </Button>
-                                    </Box>
-                                ))}
-                            </Box>
-                        </>
-                    ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
-                            <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
-                                Flawless Dictation! 🎯
-                            </Typography>
-                            <Typography color="text.secondary">You captured every word perfectly.</Typography>
-                        </Box>
-                    )}
-
-                    <Button
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        autoFocus
-                        sx={{ mt: 4, py: 2 }}
-                        onClick={() => onComplete(score, chunks.length * 2, missedChunks)}
+                    <motion.div
+                        variants={resultsContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}
                     >
-                        Finish Exercise
-                    </Button>
+                        <motion.div variants={scorePopVariants}>
+                            <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
+                                <Typography variant="h4" gutterBottom fontWeight="bold" textAlign="center" sx={{ mb: 4 }}>
+                                    Dictation Review
+                                </Typography>
+                                <Typography variant="h2" color="secondary" fontWeight="bold">
+                                    {score} / {chunks.length * 2}
+                                </Typography>
+                                <Typography color="text.secondary">Points</Typography>
+                            </Box>
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants} style={{ flexGrow: 1 }}>
+                            {missedChunks.length > 0 ? (
+                                <>
+                                    <Typography variant="h6" gutterBottom color="error" sx={{ userSelect: 'none' }}>
+                                        Review Missed Chunks:
+                                    </Typography>
+                                    <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                                        {missedChunks.map((chunk, i) => (
+                                            <Box key={i} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, userSelect: 'none' }}>
+                                                <Typography variant="body1" sx={{ mb: 1 }}>{chunk}</Typography>
+                                                <Button
+                                                    size="small"
+                                                    startIcon={<VolumeUp />}
+                                                    onClick={() => speak(chunk, speed, voice)}
+                                                    variant="outlined"
+                                                >
+                                                    Listen Again
+                                                </Button>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </>
+                            ) : (
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
+                                    <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
+                                        Flawless Dictation! 🎯
+                                    </Typography>
+                                    <Typography color="text.secondary">You captured every word perfectly.</Typography>
+                                </Box>
+                            )}
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                autoFocus
+                                sx={{ mt: 4, py: 2 }}
+                                onClick={() => onComplete(score, chunks.length * 2, missedChunks)}
+                            >
+                                Finish Exercise
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 </Card>
             </Container>
         );
@@ -315,12 +328,19 @@ const DictationMode: React.FC<DictationModeProps> = ({ exercise, onComplete, onB
                         <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
-                        label={`${score}/${chunks.length * 2}`}
-                        variant="outlined"
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
-                    />
+                    <motion.div
+                        key={score}
+                        initial={{ scale: 1 }}
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                        <Chip
+                            icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
+                            label={`${score}/${chunks.length * 2}`}
+                            variant="outlined"
+                            sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
+                        />
+                    </motion.div>
                 </Box>
             </Stack>
 

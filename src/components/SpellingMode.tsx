@@ -16,12 +16,15 @@ import {
     Tooltip,
 } from '@mui/material';
 import { ArrowBack, VolumeUp, Star } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { Exercise } from '../data/exercises';
 import { speak } from '../utils/speech';
+import { resultsContainerVariants, resultsItemVariants, scorePopVariants } from '../utils/animations';
 import { HoneyJar } from './HoneyJar';
-import VoiceSelector, { getSavedVoice } from './VoiceSelector';
+import VoiceSelector from './VoiceSelector';
+import { getSavedVoice } from '../utils/voicePreference';
 import ExerciseCard from './ExerciseCard';
-import { playVictorySound } from '../utils/sounds';
+
 
 interface SpellingModeProps {
     exercise: Exercise;
@@ -57,9 +60,6 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
         if (!showResults) {
             // Small delay to ensure synthesis is ready
             timer = setTimeout(() => speak(currentWord.phrase, speed, voice), 300);
-        } else if (missedItems.length === 0) {
-            // Play victory sound on perfect score!
-            playVictorySound();
         }
         return () => {
             clearTimeout(timer);
@@ -108,50 +108,63 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                     Review
                 </Typography>
                 <Card sx={{ p: 4, borderRadius: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
-                        <Typography variant="h2" color="primary" fontWeight="bold">
-                            {score} / {exercise.spelling.length * 2}
-                        </Typography>
-                        <Typography color="text.secondary">Points</Typography>
-                    </Box>
-
-                    {missedItems.length > 0 ? (
-                        <>
-                            <Typography variant="h6" gutterBottom color="error" sx={{ userSelect: 'none' }}>
-                                Words to Practice:
-                            </Typography>
-                            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-                                {missedItems.map((item, i) => (
-                                    <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
-                                        <Typography fontWeight="bold">{item}</Typography>
-                                        <Tooltip title="Listen Again">
-                                            <IconButton size="small" onClick={() => speak(item, speed, voice)}>
-                                                <VolumeUp fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                ))}
-                            </Box>
-                        </>
-                    ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
-                            <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
-                                Perfect Score! 🏆
-                            </Typography>
-                            <Typography color="text.secondary">You got everything correct.</Typography>
-                        </Box>
-                    )}
-
-                    <Button
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        autoFocus
-                        sx={{ mt: 4, py: 2 }}
-                        onClick={() => onComplete(score, exercise.spelling.length * 2, missedItems)}
+                    <motion.div
+                        variants={resultsContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}
                     >
-                        Return to Dashboard
-                    </Button>
+                        <motion.div variants={scorePopVariants}>
+                            <Box sx={{ textAlign: 'center', mb: 4, userSelect: 'none' }}>
+                                <Typography variant="h2" color="primary" fontWeight="bold">
+                                    {score} / {exercise.spelling.length * 2}
+                                </Typography>
+                                <Typography color="text.secondary">Points</Typography>
+                            </Box>
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants} style={{ flexGrow: 1 }}>
+                            {missedItems.length > 0 ? (
+                                <>
+                                    <Typography variant="h6" gutterBottom color="error" sx={{ userSelect: 'none' }}>
+                                        Words to Practice:
+                                    </Typography>
+                                    <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                                        {missedItems.map((item, i) => (
+                                            <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+                                                <Typography fontWeight="bold">{item}</Typography>
+                                                <Tooltip title="Listen Again">
+                                                    <IconButton size="small" onClick={() => speak(item, speed, voice)}>
+                                                        <VolumeUp fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </>
+                            ) : (
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', py: 4 }}>
+                                    <Typography variant="h5" color="success.main" fontWeight="bold" gutterBottom>
+                                        Perfect Score! 🏆
+                                    </Typography>
+                                    <Typography color="text.secondary">You got everything correct.</Typography>
+                                </Box>
+                            )}
+                        </motion.div>
+
+                        <motion.div variants={resultsItemVariants}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                autoFocus
+                                sx={{ mt: 4, py: 2 }}
+                                onClick={() => onComplete(score, exercise.spelling.length * 2, missedItems)}
+                            >
+                                Return to Dashboard
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 </Card>
             </Container>
         );
@@ -216,12 +229,19 @@ const SpellingMode: React.FC<SpellingModeProps> = ({ exercise, onComplete, onBac
                         <Box sx={{ width: '1px', height: '18px', bgcolor: 'divider', mx: 0.5 }} />
                         <VoiceSelector currentVoiceId={voice} onVoiceSelect={setVoice} />
                     </Box>
-                    <Chip
-                        icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
-                        label={`${score}/${exercise.spelling.length * 2}`}
-                        variant="outlined"
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
-                    />
+                    <motion.div
+                        key={score}
+                        initial={{ scale: 1 }}
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                        <Chip
+                            icon={<Star sx={{ color: '#FFD700 !important', fontSize: '1.1rem' }} />}
+                            label={`${score}/${exercise.spelling.length * 2}`}
+                            variant="outlined"
+                            sx={{ fontWeight: 'bold', fontSize: '0.85rem', height: 32, userSelect: 'none' }}
+                        />
+                    </motion.div>
                 </Box>
             </Box>
 

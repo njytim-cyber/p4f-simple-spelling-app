@@ -119,3 +119,8 @@ dist
 # Vite
 dist-ssr
 *.local
+
+# AI tools
+.claude/
+.playwright-mcp/
+

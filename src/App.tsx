@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense, lazy, useMemo } from 'react';
 import { Exercise, ExerciseType, ScoreRecord } from './data/exercises';
 import Dashboard from './components/Dashboard';
 // Lazy load exercise modes for code splitting
@@ -13,6 +13,8 @@ import VersionChecker from './components/VersionChecker';
 import { APP_VERSION } from './data/version';
 import Confetti from 'react-confetti';
 import { Box, CircularProgress } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { pageVariants, pageTransition } from './utils/animations';
 import {
     RevisionItem,
     getMissedItemsFromHistory,
@@ -35,8 +37,13 @@ export default function App() {
     const [revisionRefreshCounter, setRevisionRefreshCounter] = useState(0);
 
     const [history, setHistory] = useState<ScoreRecord[]>(() => {
-        const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            localStorage.removeItem(STORAGE_KEY_HISTORY);
+            return [];
+        }
     });
 
     const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -75,11 +82,12 @@ export default function App() {
         setView('revision');
     };
 
-    const triggerConfetti = () => {
-        setShowConfetti(false);
-        setTimeout(() => setShowConfetti(true), 10);
-        setTimeout(() => setShowConfetti(false), 3000);
-    };
+    const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const triggerConfetti = useCallback(() => {
+        if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current);
+        setShowConfetti(true);
+        confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 3000);
+    }, []);
 
     const handleComplete = (score: number, total: number, type: ExerciseType, missedItems?: string[]) => {
         if (activeExercise) {
@@ -130,43 +138,60 @@ export default function App() {
             <ErrorBoundary>
                 <Suspense fallback={
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                        <CircularProgress />
-                    </Box>
-                }>
-                    {view === 'dashboard' ? (
-                        <Dashboard
-                            onSelect={handleSelect}
-                            history={history}
-                            onStartRevision={handleStartRevision}
-                            revisionDueCount={revisionDueCount}
-                        />
-                    ) : view === 'revision' ? (
-                        <RevisionMode
-                            items={revisionItems}
-                            allRevisionData={allRevisionData}
-                            onComplete={handleRevisionComplete}
-                            onBack={() => {
-                                setRevisionRefreshCounter(c => c + 1);
-                                setView('dashboard');
+                        <CircularProgress
+                            sx={{
+                                opacity: 0,
+                                animation: 'fadeIn 0.3s ease-in 0.3s forwards',
+                                '@keyframes fadeIn': { to: { opacity: 1 } },
                             }}
                         />
-                    ) : activeExercise ? (
-                        activeType === 'spelling' ? (
-                            <SpellingMode
-                                exercise={activeExercise}
-                                onComplete={(score, total, missed) => handleComplete(score, total, 'spelling', missed)}
-                                onCorrect={triggerConfetti}
-                                onBack={() => setView('dashboard')}
-                            />
-                        ) : (
-                            <DictationMode
-                                exercise={activeExercise}
-                                onComplete={(score, total, missed) => handleComplete(score, total, 'dictation', missed)}
-                                onCorrect={triggerConfetti}
-                                onBack={() => setView('dashboard')}
-                            />
-                        )
-                    ) : null}
+                    </Box>
+                }>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={view === 'exercise' ? `exercise-${activeExercise?.id}-${activeType}` : view}
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={pageTransition}
+                        >
+                            {view === 'dashboard' ? (
+                                <Dashboard
+                                    onSelect={handleSelect}
+                                    history={history}
+                                    onStartRevision={handleStartRevision}
+                                    revisionDueCount={revisionDueCount}
+                                />
+                            ) : view === 'revision' ? (
+                                <RevisionMode
+                                    items={revisionItems}
+                                    allRevisionData={allRevisionData}
+                                    onComplete={handleRevisionComplete}
+                                    onBack={() => {
+                                        setRevisionRefreshCounter(c => c + 1);
+                                        setView('dashboard');
+                                    }}
+                                />
+                            ) : activeExercise ? (
+                                activeType === 'spelling' ? (
+                                    <SpellingMode
+                                        exercise={activeExercise}
+                                        onComplete={(score, total, missed) => handleComplete(score, total, 'spelling', missed)}
+                                        onCorrect={triggerConfetti}
+                                        onBack={() => setView('dashboard')}
+                                    />
+                                ) : (
+                                    <DictationMode
+                                        exercise={activeExercise}
+                                        onComplete={(score, total, missed) => handleComplete(score, total, 'dictation', missed)}
+                                        onCorrect={triggerConfetti}
+                                        onBack={() => setView('dashboard')}
+                                    />
+                                )
+                            ) : null}
+                        </motion.div>
+                    </AnimatePresence>
                 </Suspense>
             </ErrorBoundary>
 

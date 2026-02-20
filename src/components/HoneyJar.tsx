@@ -177,12 +177,12 @@ export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
                         overflow: 'hidden'
                     }}
                 >
-                    {/* Texture Bubbles */}
+                    {/* Texture overlay */}
                     <div style={{
                         width: '100%',
                         height: '100%',
                         opacity: 0.3,
-                        backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')",
+                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px)',
                         mixBlendMode: 'overlay'
                     }}></div>
 

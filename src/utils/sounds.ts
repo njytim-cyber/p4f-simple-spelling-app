@@ -44,8 +44,3 @@ export const playCorrectSound = () => {
         console.warn('Audio play failed', e);
     }
 };
-
-// Play a "fanfare" arpeggio for perfect scores
-export const playVictorySound = () => {
-    // Sound effects disabled
-};
