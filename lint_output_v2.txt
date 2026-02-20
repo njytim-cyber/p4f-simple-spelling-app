@@ -1,9 +1,0 @@
-
-C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\components\VoiceSelector.tsx
-  23:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-C:\Users\njyti\Desktop\gemini 3 games\p4f-simple-spelling-app\src\utils\speech.ts
-  126:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
-
-Γ£û 2 problems (0 errors, 2 warnings)
-
