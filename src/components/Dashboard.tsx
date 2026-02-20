@@ -432,7 +432,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                                         <Grid container spacing={4}>
                                             <Grid item xs={12} md={5}>
                                                 <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                                                    {ex.id.startsWith('2.') ? 'Commonly misspelt words' : 'Spelling Phrases'}
+                                                    {ex.id === '2.X' ? 'Commonly misspelt words' : 'Spelling Phrases'}
                                                 </Typography>
                                                 <List dense>
                                                     {ex.spelling.map((item) => (
