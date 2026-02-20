@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, TextField, Button, Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getEncouragement } from '../utils/spacedRepetition';
-import { playCorrectSound } from '../utils/sounds';
+import { playCorrectSound, playWrongSound } from '../utils/sounds';
 
 interface ExerciseCardProps {
     phrase: string;
@@ -25,6 +25,18 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     const [feedback, setFeedback] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
     const [feedbackMessage, setFeedbackMessage] = useState<string | React.ReactNode>('');
     const [attempts, setAttempts] = useState(0); // Track attempts for this specific card instance
+    const [placeholderText, setPlaceholderText] = useState('');
+
+    const wholesomePlaceholders = [
+        "You've got this! ✨",
+        "Take your time, you're doing great! 💛",
+        "Believe in yourself! 🌟",
+        "I know you can do it! 🚀",
+        "Type the word here... 🐝",
+        "Can't wait to see your answer! 🌻",
+        "You're a spelling superstar! ⭐",
+        "Deep breath, you'll nail it! 🎯"
+    ];
 
     // Reset state when phrase changes
     useEffect(() => {
@@ -32,6 +44,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         setFeedback('neutral');
         setFeedbackMessage('');
         setAttempts(0);
+
+        // Pick a random wholesome placeholder
+        const randomPlaceholder = wholesomePlaceholders[Math.floor(Math.random() * wholesomePlaceholders.length)];
+        setPlaceholderText(randomPlaceholder);
+
         let focusTimer: ReturnType<typeof setTimeout> | undefined;
         if (autoFocus) {
             focusTimer = setTimeout(() => inputRef.current?.focus(), 50);
@@ -67,6 +84,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
             setFeedback('wrong');
             setFeedbackMessage(customValidator && message ? message : getEncouragement('incorrect'));
             setAttempts(prev => prev + 1);
+            playWrongSound();
             onWrong();
         }
     };
@@ -104,16 +122,30 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                         p: 4,
                         borderRadius: 2,
                         position: 'relative',
+                        boxShadow: feedback === 'correct' ? '0 0 20px rgba(76, 175, 80, 0.4)' : '0 4px 6px rgba(0,0,0,0.1)',
+                        borderColor: feedback === 'correct' ? 'success.main' : 'transparent',
+                        borderWidth: 2,
+                        borderStyle: 'solid',
+                        transition: 'all 0.3s ease-in-out'
                     }}
                     component={motion.div}
-                    animate={feedback === 'wrong' ? { x: [-10, 10, -10, 10, 0] } : {}}
+                    animate={
+                        feedback === 'wrong'
+                            ? { x: [-10, 10, -10, 10, 0] }
+                            : feedback === 'correct'
+                                ? { scale: [1, 1.02, 1] }
+                                : {}
+                    }
+                    transition={
+                        feedback === 'correct' ? { type: 'spring', stiffness: 300, damping: 15 } : { duration: 0.4 }
+                    }
                 >
                     <TextField
                         fullWidth
                         multiline={isDictation}
                         minRows={isDictation ? 2 : 1}
                         variant="outlined"
-                        placeholder={isDictation ? "Type what you hear..." : "Type the word..."}
+                        placeholder={placeholderText || "Type here..."}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -128,15 +160,19 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                                 borderRadius: 1,
                                 fontSize: '1.5rem',
                                 fontWeight: 'bold',
-                                opacity: feedback !== 'neutral' ? 0.5 : 1,
-                                bgcolor: feedback !== 'neutral' ? '#f5f5f5' : 'transparent',
+                                opacity: feedback !== 'neutral' && feedback !== 'correct' ? 0.6 : 1,
+                                bgcolor: feedback === 'correct' ? 'rgba(76, 175, 80, 0.05)' : feedback === 'wrong' ? '#fff3e0' : 'transparent',
                                 cursor: feedback !== 'neutral' ? 'not-allowed' : 'text',
+                                '& fieldset': {
+                                    borderColor: feedback === 'correct' ? 'success.main' : undefined,
+                                }
                             },
                             '& input': {
-                                caretColor: feedback !== 'neutral' ? 'transparent' : 'auto'
+                                caretColor: feedback !== 'neutral' ? 'transparent' : 'auto',
+                                color: feedback === 'correct' ? 'success.main' : undefined
                             },
                             '& .Mui-disabled': {
-                                WebkitTextFillColor: feedback === 'wrong' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.38)',
+                                WebkitTextFillColor: feedback === 'wrong' ? 'rgba(0, 0, 0, 0.5)' : feedback === 'correct' ? '#2e7d32' : 'rgba(0, 0, 0, 0.38)',
                             }
                         }}
                     />
