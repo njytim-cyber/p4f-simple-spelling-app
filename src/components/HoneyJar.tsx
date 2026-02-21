@@ -212,37 +212,41 @@ export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
                         {message && !isFull && (
                             <motion.div
                                 key={message} // Re-animate on new message
-                                initial={{ opacity: 0, scale: 0.5, y: 10, x: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0, x: 20 }}
+                                initial={{ opacity: 0, scale: 0.5, y: 10, x: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0, x: -10 }}
                                 exit={{ opacity: 0, scale: 0.5, y: 5 }}
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 transition={{ type: 'spring', stiffness: 400, damping: 15 } as any}
                                 style={{
                                     position: 'absolute',
-                                    left: '100%',
-                                    bottom: '80%', // Anchored mid-high right of the bee
-                                    marginLeft: '10px',
+                                    right: '100%',
+                                    bottom: '80%', // Anchored mid-high left of the bee
+                                    marginRight: '10px',
                                     backgroundColor: 'white',
                                     padding: '8px 12px',
                                     borderRadius: '16px',
-                                    borderBottomLeftRadius: '0px', // Right-side tail
+                                    borderBottomRightRadius: '0px', // Right-side tail connecting to bee
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.15), inset 0 -2px 0 rgba(0,0,0,0.05)',
-                                    whiteSpace: 'nowrap',
+                                    whiteSpace: 'normal',
+                                    wordWrap: 'break-word',
+                                    maxWidth: '200px',
+                                    width: 'max-content',
                                     zIndex: 100,
+                                    pointerEvents: 'none',
                                 }}
                             >
-                                <Typography variant="caption" fontWeight="bold" sx={{ color: '#d97706', fontSize: '0.8rem' }}>
+                                <Typography variant="caption" fontWeight="bold" sx={{ color: '#d97706', fontSize: '0.8rem', lineHeight: 1.2, display: 'block' }}>
                                     {message}
                                 </Typography>
                                 {/* Triangle */}
                                 <div style={{
                                     position: 'absolute',
                                     bottom: '-5px',
-                                    left: '0px',
+                                    right: '0px',
                                     width: '0',
                                     height: '0',
-                                    borderLeft: '0px solid transparent', // Left-sided tail
-                                    borderRight: '10px solid transparent',
+                                    borderRight: '0px solid transparent', // Right-sided tail
+                                    borderLeft: '10px solid transparent',
                                     borderTop: '8px solid white'
                                 }} />
                             </motion.div>
