@@ -126,7 +126,7 @@ export const EXERCISES: Exercise[] = [
             { id: 's4', phrase: 'contemplating' },
             { id: 's5', phrase: 'curiosity was piqued' },
         ],
-        dictation: `Annoyed that I had talked back, the bully flew into a rage. He held me by the collar, raised his fist and punched me in the stomach. The impact had me doubled up in pain as I staggered a few steps back. Refused to be intimidated, I stared straight into his eyes and yelled, "Stop this!" Taken aback by my shout, the bully froze and I made my escape. I managed to fend off more attacks from the bully with my courage.`,
+        dictation: `Annoyed that I had talked back, the bully flew into a rage. He held me by the collar, raised his fist and punched me in the stomach. The impact had me doubled up in pain as I staggered a few steps back. Refusing to be intimidated, I stared straight into his eyes and yelled, "Stop this!" Taken aback by my shout, the bully froze and I made my escape. I managed to fend off more attacks from the bully with my courage.`,
     },
     {
         id: '2.X',

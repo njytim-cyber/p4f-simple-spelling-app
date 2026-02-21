@@ -4,6 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getEncouragement } from '../utils/spacedRepetition';
 import { playCorrectSound, playWrongSound } from '../utils/sounds';
 
+const wholesomePlaceholders = [
+    "You've got this! ✨",
+    "Take your time, you're doing great! 💛",
+    "Believe in yourself! 🌟",
+    "I know you can do it! 🚀",
+    "Type the word here... 🐝",
+    "Can't wait to see your answer! 🌻",
+    "You're a spelling superstar! ⭐",
+    "Deep breath, you'll nail it! 🎯"
+];
 interface ExerciseCardProps {
     phrase: string;
     isDictation?: boolean;
@@ -26,17 +36,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     const [feedbackMessage, setFeedbackMessage] = useState<string | React.ReactNode>('');
     const [attempts, setAttempts] = useState(0); // Track attempts for this specific card instance
     const [placeholderText, setPlaceholderText] = useState('');
-
-    const wholesomePlaceholders = [
-        "You've got this! ✨",
-        "Take your time, you're doing great! 💛",
-        "Believe in yourself! 🌟",
-        "I know you can do it! 🚀",
-        "Type the word here... 🐝",
-        "Can't wait to see your answer! 🌻",
-        "You're a spelling superstar! ⭐",
-        "Deep breath, you'll nail it! 🎯"
-    ];
 
     // Reset state when phrase changes
     useEffect(() => {

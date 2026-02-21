@@ -215,6 +215,7 @@ export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
                                 initial={{ opacity: 0, scale: 0.5, y: 10, x: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0, x: 20 }}
                                 exit={{ opacity: 0, scale: 0.5, y: 5 }}
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 transition={{ type: 'spring', stiffness: 400, damping: 15 } as any}
                                 style={{
                                     position: 'absolute',
@@ -293,6 +294,7 @@ export const HoneyJar = ({ currentScore, totalPossible }: HoneyJarProps) => {
                         className={isFull ? 'honey-gradient' : 'honey-flat'}
                         initial={{ height: '0%' }}
                         animate={{ height: `${percentage}%` }}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         transition={fillSpring as any}
                         style={{
                             width: '100%',
