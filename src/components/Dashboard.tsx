@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useSwipeNavigation } from '../utils/useSwipeNavigation';
 import {
     Container,
     Typography,
@@ -170,29 +171,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
         return major > 1 || (major === 1 && minor >= 2);
     });
 
-    // Swipe Logic for Info Dialog
-    const touchStart = useRef<number | null>(null);
-    const touchEnd = useRef<number | null>(null);
-    const minSwipeDistance = 50;
+    // Swipe navigation for Info Dialog (About ↔ What's New)
+    const infoSwipe = useSwipeNavigation(infoTab, 1, setInfoTab);
 
-    const onTouchStart = (e: React.TouchEvent) => {
-        touchEnd.current = null;
-        touchStart.current = e.targetTouches[0].clientX;
-    }
-
-    const onTouchMove = (e: React.TouchEvent) => {
-        touchEnd.current = e.targetTouches[0].clientX;
-    }
-
-    const onTouchEnd = () => {
-        if (!touchStart.current || !touchEnd.current) return;
-        const distance = touchStart.current - touchEnd.current;
-        const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
-
-        if (isLeftSwipe && infoTab === 0) setInfoTab(1);
-        if (isRightSwipe && infoTab === 1) setInfoTab(0);
-    }
+    // Swipe navigation for Spelling List Dialog (Term tabs)
+    const activeSpellingIndex = spellingListTerm === -1 ? termGroups.length - 1 : spellingListTerm;
+    const onSpellingSwipe = useCallback((i: number) => setSpellingListTerm(i), []);
+    const spellingSwipe = useSwipeNavigation(activeSpellingIndex, termGroups.length - 1, onSpellingSwipe);
 
     return (
         <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -418,7 +403,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                         ))}
                     </Tabs>
                 </Box>
-                <DialogContent dividers>
+                <DialogContent dividers
+                    onTouchStart={spellingSwipe.onTouchStart}
+                    onTouchMove={spellingSwipe.onTouchMove}
+                    onTouchEnd={spellingSwipe.onTouchEnd}
+                >
                     {(() => {
                         const activeIndex = spellingListTerm === -1 ? termGroups.length - 1 : spellingListTerm;
                         const filteredExercises = termGroups[activeIndex]?.[1] ?? [];
@@ -547,9 +536,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onSelect, history, onStartRevisio
                 </Box>
 
                 <DialogContent dividers sx={{ p: 0 }}
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
+                    onTouchStart={infoSwipe.onTouchStart}
+                    onTouchMove={infoSwipe.onTouchMove}
+                    onTouchEnd={infoSwipe.onTouchEnd}
                 >
                     {infoTab === 0 && (
                         <Box sx={{ p: 3 }}>
